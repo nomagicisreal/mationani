@@ -1,6 +1,6 @@
 name: mationani
 description: aim to integrate all the simple animations into a stateful widget -- mationani
-version: 0.0.3
+version: 0.0.2
 repository: https://github.com/nomagicisreal/mationani
 
 environment:
@@ -13,5 +13,7 @@ dependencies:
   vector_math: ^2.1.4
 
 dev_dependencies:
+  flutter:
+    sdk: flutter
   lints: ^3.0.0
   test: ^1.24.0
