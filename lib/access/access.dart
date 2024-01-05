@@ -1,5 +1,5 @@
 // ignore_for_file: constant_identifier_names, non_constant_identifier_names
-part of mationani;
+part of '../mationani.dart';
 
 ///
 /// this file contains:
@@ -572,8 +572,8 @@ extension FSizingPath on SizingPath {
     Direction2DIn4 shortestSide = Direction2DIn4.top,
   }) =>
       (size) {
-        final origin = topLeftMargin(size);
-        final bodySize = body(size);
+        // final origin = topLeftMargin(size);
+        // final bodySize = body(size);
         throw UnimplementedError();
       };
 }

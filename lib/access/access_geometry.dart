@@ -1,6 +1,6 @@
 // ignore_for_file: constant_identifier_names
 
-part of mationani;
+part of '../mationani.dart';
 
 ///
 /// this file contains:
@@ -539,7 +539,6 @@ extension KOffset on Offset {
   static const xy_100_80N = Offset(100, -80);
   static const xy_100_90N = Offset(100, -90);
   static const xy_100_100N = Offset(100, -100);
-
 }
 
 extension KOffsetPermutation4 on List<Offset> {

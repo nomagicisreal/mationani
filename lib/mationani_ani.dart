@@ -1,4 +1,4 @@
-part of mationani;
+part of 'mationani.dart';
 
 ///
 /// this file contains:

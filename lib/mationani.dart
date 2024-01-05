@@ -2,7 +2,6 @@ library mationani;
 
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-// ignore: depend_on_referenced_packages
 import 'package:vector_math/vector_math_64.dart' show Vector3;
 
 part 'access/access.dart';
