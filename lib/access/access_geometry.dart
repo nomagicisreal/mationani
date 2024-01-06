@@ -1,5 +1,4 @@
 // ignore_for_file: constant_identifier_names
-
 part of '../mationani.dart';
 
 ///
@@ -16,8 +15,9 @@ part of '../mationani.dart';
 /// [KRadius], [KBorderRadius]
 /// [KEdgeInsets]
 ///
+/// [FMapper], [FMapperDouble]
+/// [KMapperCubicPointsPermutation]
 /// [FGeneratorOffset]
-/// [FSizingOffset]
 ///
 ///
 
@@ -347,82 +347,10 @@ extension KSize16Ratio9 on Size {
 ///
 ///
 ///
-/// direction, offset, coordinate, vector
+/// offset, coordinate, vector
 ///
 ///
 ///
-
-///
-/// See Also:
-///   * [KRadian]
-///   * [_MationTransformBase], [MationTransform]
-///   * [Coordinate.transferToTransformOf], [Coordinate.fromDirection]
-///
-extension KDirection on Direction {
-  static const offset_top = Offset(0, -1);
-  static const offset_left = Offset(-1, 0);
-  static const offset_right = Offset(1, 0);
-  static const offset_bottom = Offset(0, 1);
-  static const offset_center = Offset.zero;
-  static const offset_topLeft =
-      Offset(-DoubleExtension.sqrt1_2, -DoubleExtension.sqrt1_2);
-  static const offset_topRight =
-      Offset(DoubleExtension.sqrt1_2, -DoubleExtension.sqrt1_2);
-  static const offset_bottomLeft =
-      Offset(-DoubleExtension.sqrt1_2, DoubleExtension.sqrt1_2);
-  static const offset_bottomRight =
-      Offset(DoubleExtension.sqrt1_2, DoubleExtension.sqrt1_2);
-
-  static const coordinate_center = Coordinate.zero;
-  static const coordinate_left = Coordinate.ofX(-1);
-  static const coordinate_top = Coordinate.ofY(-1);
-  static const coordinate_right = Coordinate.ofX(1);
-  static const coordinate_bottom = Coordinate.ofY(1);
-  static const coordinate_front = Coordinate.ofZ(1);
-  static const coordinate_back = Coordinate.ofZ(-1);
-
-  static const coordinate_topLeft =
-      Coordinate.ofXY(-DoubleExtension.sqrt1_2, -DoubleExtension.sqrt1_2);
-  static const coordinate_topRight =
-      Coordinate.ofXY(DoubleExtension.sqrt1_2, -DoubleExtension.sqrt1_2);
-  static const coordinate_bottomLeft =
-      Coordinate.ofXY(-DoubleExtension.sqrt1_2, DoubleExtension.sqrt1_2);
-  static const coordinate_bottomRight =
-      Coordinate.ofXY(DoubleExtension.sqrt1_2, DoubleExtension.sqrt1_2);
-  static const coordinate_frontLeft =
-      Coordinate.ofXZ(-DoubleExtension.sqrt1_2, DoubleExtension.sqrt1_2);
-  static const coordinate_frontTop =
-      Coordinate.ofYZ(-DoubleExtension.sqrt1_2, DoubleExtension.sqrt1_2);
-  static const coordinate_frontRight =
-      Coordinate.ofXZ(DoubleExtension.sqrt1_2, DoubleExtension.sqrt1_2);
-  static const coordinate_frontBottom =
-      Coordinate.ofYZ(DoubleExtension.sqrt1_2, DoubleExtension.sqrt1_2);
-  static const coordinate_backLeft =
-      Coordinate.ofXZ(-DoubleExtension.sqrt1_2, -DoubleExtension.sqrt1_2);
-  static const coordinate_backTop =
-      Coordinate.ofYZ(-DoubleExtension.sqrt1_2, -DoubleExtension.sqrt1_2);
-  static const coordinate_backRight =
-      Coordinate.ofXZ(DoubleExtension.sqrt1_2, -DoubleExtension.sqrt1_2);
-  static const coordinate_backBottom =
-      Coordinate.ofYZ(DoubleExtension.sqrt1_2, -DoubleExtension.sqrt1_2);
-
-  static const coordinate_frontTopLeft = Coordinate(-DoubleExtension.sqrt1_3,
-      -DoubleExtension.sqrt1_3, DoubleExtension.sqrt1_3);
-  static const coordinate_frontTopRight = Coordinate(DoubleExtension.sqrt1_3,
-      -DoubleExtension.sqrt1_3, DoubleExtension.sqrt1_3);
-  static const coordinate_frontBottomLeft = Coordinate(-DoubleExtension.sqrt1_3,
-      DoubleExtension.sqrt1_3, DoubleExtension.sqrt1_3);
-  static const coordinate_frontBottomRight = Coordinate(DoubleExtension.sqrt1_3,
-      DoubleExtension.sqrt1_3, DoubleExtension.sqrt1_3);
-  static const coordinate_backTopLeft = Coordinate(-DoubleExtension.sqrt1_3,
-      -DoubleExtension.sqrt1_3, -DoubleExtension.sqrt1_3);
-  static const coordinate_backTopRight = Coordinate(DoubleExtension.sqrt1_3,
-      -DoubleExtension.sqrt1_3, -DoubleExtension.sqrt1_3);
-  static const coordinate_backBottomLeft = Coordinate(-DoubleExtension.sqrt1_3,
-      DoubleExtension.sqrt1_3, -DoubleExtension.sqrt1_3);
-  static const coordinate_backBottomRight = Coordinate(DoubleExtension.sqrt1_3,
-      DoubleExtension.sqrt1_3, -DoubleExtension.sqrt1_3);
-}
 
 extension KOffset on Offset {
   static const square_1 = Offset(1, 1);
@@ -1062,6 +990,95 @@ extension KEdgeInsets on EdgeInsets {
 
 ///
 ///
+/// mapper
+///
+///
+
+extension FMapper on Mapper {
+  static T keep<T>(T value) => value;
+
+  static Offset offset(Offset v) => v;
+
+  static Iterable<Offset> ofOffsetIterable(Iterable<Offset> v) => v;
+
+  static Coordinate ofCoordinate(Coordinate v) => v;
+
+  static Size ofSize(Size v) => v;
+
+  static Curve ofCurve(Curve v) => v;
+
+  static Curve ofCurveFlipped(Curve v) => v.flipped;
+}
+
+extension FMapperDouble on Mapper<double> {
+  static double of(double v) => v;
+
+  static double zero(double value) => 0;
+
+  static double keep(double value) => value;
+
+  ///
+  /// operate
+  ///
+  static Mapper<double> plus(double value) => (v) => v + value;
+
+  static Mapper<double> minus(double value) => (v) => v - value;
+
+  static Mapper<double> multiply(double value) => (v) => v * value;
+
+  static Mapper<double> divide(double value) => (v) => v / value;
+
+  static Mapper<double> operate(Operator operator, double value) =>
+      operator.doubleCompanion(value);
+
+  ///
+  /// sin
+  ///
+  static Mapper<double> sinFromFactor(double timeFactor, double factor) =>
+      (value) => math.sin(timeFactor * value) * factor;
+
+  // return "times of period" of (0 ~ 1 ~ 0 ~ -1 ~ 0)
+  static Mapper<double> sinFromPeriod(double times) {
+    final tween = Tween(
+      begin: 0.0,
+      end: switch (times) {
+        double.infinity || double.negativeInfinity => throw UnimplementedError(
+            'instead of times infinity, pls use [Ani] to repeat animation',
+          ),
+        _ => KRadian.angle_360 * times,
+      },
+    );
+    return (value) => math.sin(tween.transform(value));
+  }
+}
+
+extension KMapperCubicPointsPermutation on Mapper<Map<Offset, List<Offset>>> {
+  static const Mapper<Map<Offset, List<Offset>>> p0231 = _0231;
+  static const Mapper<Map<Offset, List<Offset>>> p1230 = _1230;
+
+  static Map<Offset, List<Offset>> _0231(Map<Offset, List<Offset>> points) =>
+      points.map(
+        (points, cubicPoints) => MapEntry(
+          points,
+          KOffsetPermutation4.p0231(cubicPoints),
+        ),
+      );
+
+  static Map<Offset, List<Offset>> _1230(Map<Offset, List<Offset>> points) =>
+      points.map(
+        (points, cubicPoints) => MapEntry(
+          points,
+          KOffsetPermutation4.p1230(cubicPoints),
+        ),
+      );
+
+  static Mapper<Map<Offset, List<Offset>>> of(Mapper<List<Offset>> mapper) =>
+      (points) => points
+          .map((points, cubicPoints) => MapEntry(points, mapper(cubicPoints)));
+}
+
+///
+///
 ///
 ///
 ///
@@ -1125,40 +1142,4 @@ extension FGeneratorOffset on Generator<Offset> {
         group2ThresholdX: 0,
         group2ThresholdY: 11,
       );
-}
-
-///
-///
-///
-///
-///
-/// sizing
-///
-///
-///
-///
-///
-
-extension FSizingOffset on SizingOffset {
-  static SizingOffset of(Offset value) => (_) => value;
-
-  static Offset zero(Size size) => Offset.zero;
-
-  static Offset topLeft(Size size) => size.topLeft(Offset.zero);
-
-  static Offset topCenter(Size size) => size.topCenter(Offset.zero);
-
-  static Offset topRight(Size size) => size.topRight(Offset.zero);
-
-  static Offset centerLeft(Size size) => size.centerLeft(Offset.zero);
-
-  static Offset center(Size size) => size.center(Offset.zero);
-
-  static Offset centerRight(Size size) => size.centerRight(Offset.zero);
-
-  static Offset bottomLeft(Size size) => size.bottomLeft(Offset.zero);
-
-  static Offset bottomCenter(Size size) => size.bottomCenter(Offset.zero);
-
-  static Offset bottomRight(Size size) => size.bottomRight(Offset.zero);
 }

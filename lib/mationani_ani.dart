@@ -11,12 +11,6 @@ part of 'mationani.dart';
 /// [FAni], [FAnimationStatusListener], [FOnAnimatingProcessor]
 ///
 ///
-///
-///
-///
-///
-///
-///
 
 ///
 /// the named constructors or mation setting:
@@ -31,7 +25,6 @@ part of 'mationani.dart';
 /// [Ani.initForwardResetAndUpdateForwardReset]
 /// [Ani.updateSequencingWhen]
 /// ...
-///
 ///
 class Ani {
   final DurationFR duration;

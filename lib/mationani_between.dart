@@ -1,17 +1,20 @@
+// ignore_for_file: constant_identifier_names
 part of 'mationani.dart';
 
 ///
 /// this file contains:
 /// [DurationFR], [CurveFR]
+///
 /// [Between]
 ///   * [BetweenInterval]
 ///   * [BetweenConcurrent]
 ///   [BetweenSpline2D]
 ///   [BetweenPath]
 ///     [BetweenPathOffset]
-///     [BetweenPathConcurrent]
+///     * [_BetweenPathConcurrent]
 ///     [BetweenPathPolygon]
 ///   ...
+///
 /// [Curving], [Clipping], [Painting]
 ///
 /// math definition:
@@ -22,9 +25,13 @@ part of 'mationani.dart';
 ///     [RRegularPolygonCubicOnEdge]
 ///       [RsRegularPolygon]
 ///       ...
+///
+///
 /// [Direction]
 /// 2D: [Direction2DIn4], [Direction2DIn8]
 /// 3D: [Direction3DIn6], [Direction3DIn14], [Direction3DIn22]
+///
+///
 ///
 ///
 ///
@@ -323,158 +330,18 @@ class BetweenConcurrent<T, S> {
 }
 
 ///
-///
-///
-/// [BetweenSpline2D.arcOval]
-/// [BetweenSpline2D.arcCircle]
-///
-/// [BetweenSpline2D.bezierQuadratic]
-/// [BetweenSpline2D.bezierCubic]
-/// [BetweenSpline2D.catmullRom]
-///
-/// [BetweenSpline2D.arcCircleSemi]
-/// [BetweenSpline2D.bezierQuadraticSymmetry]
-/// [BetweenSpline2D.bezierCubicSymmetry]
-/// [BetweenSpline2D.catmullRomSymmetry]
-///
-/// See Also:
-///   * [_FOnLerpSpline2D]
-///
+/// See Also [FOnLerpSpline2D]
 ///
 class BetweenSpline2D extends Between<Offset> {
-  BetweenSpline2D.arcOval(
-    Between<double> direction,
-    Between<double> r, {
-    Offset origin = Offset.zero,
+  BetweenSpline2D({
+    required OnLerp<Offset> super.onLerp,
     super.curve,
-  }) : super(
-          begin: origin + Offset.fromDirection(direction.begin, r.begin),
-          end: origin + Offset.fromDirection(direction.end, r.end),
-          onLerp: _FOnLerpSpline2D.arcOval(origin, direction, r),
-        );
-
-  BetweenSpline2D.arcCircle(
-    Between<double> direction,
-    double r, {
-    Offset o = Offset.zero,
-    super.curve,
-  }) : super(
-          begin: o + Offset.fromDirection(direction.begin, r),
-          end: o + Offset.fromDirection(direction.end, r),
-          onLerp: _FOnLerpSpline2D.arcCircle(o, r, direction),
-        );
-
-  BetweenSpline2D.arcCircleSemi(
-    Offset begin,
-    Offset end, {
-    bool isClockwise = false,
-    super.curve,
-  }) : super(
-          begin: begin,
-          end: end,
-          onLerp: _FOnLerpSpline2D.arcCircleSemi(begin, end, isClockwise),
-        );
-
-  BetweenSpline2D.bezierQuadratic(
-    Offset begin,
-    Offset end, {
-    required Offset c,
-    super.curve,
-  }) : super(
-          begin: begin,
-          end: end,
-          onLerp: _FOnLerpSpline2D.bezierQuadratic(begin, end, c),
-        );
-
-  BetweenSpline2D.bezierQuadraticSymmetry(
-    Offset begin,
-    Offset end, {
-    double d = 5, // distance perpendicular
-    super.curve,
-  }) : super(
-          begin: begin,
-          end: end,
-          onLerp: _FOnLerpSpline2D.bezierQuadraticSymmetry(begin, end, d),
-        );
-
-  BetweenSpline2D.bezierCubic(
-    Offset begin,
-    Offset end, {
-    required Offset c1,
-    required Offset c2,
-    super.curve,
-  }) : super(
-          begin: begin,
-          end: end,
-          onLerp: _FOnLerpSpline2D.bezierCubic(begin, end, c1, c2),
-        );
-
-  BetweenSpline2D.bezierCubicSymmetry(
-    Offset begin,
-    Offset end, {
-    double dPerpendicular = 10,
-    double dParallel = 1,
-    super.curve,
-  }) : super(
-          begin: begin,
-          end: end,
-          onLerp: _FOnLerpSpline2D.bezierCubicSymmetry(
-            begin,
-            end,
-            dPerpendicular,
-            dParallel,
-          ),
-        );
-
-  BetweenSpline2D.catmullRom(
-    List<Offset> controlPoints, {
-    double tension = 0.0,
-    Offset? startHandle,
-    Offset? endHandle,
-    super.curve,
-  }) : super(
-          begin: controlPoints.first,
-          end: controlPoints.last,
-          onLerp: _FOnLerpSpline2D.catmullRom(
-            controlPoints,
-            tension: tension,
-            startHandle: startHandle,
-            endHandle: endHandle,
-          ),
-        );
-
-  BetweenSpline2D.catmullRomSymmetry(
-    Offset begin,
-    Offset end, {
-    double dPerpendicular = 5,
-    double dParallel = 2,
-    double tension = 0.0,
-    Offset? startHandle,
-    Offset? endHandle,
-    super.curve,
-  }) : super(
-          begin: begin,
-          end: end,
-          onLerp: _FOnLerpSpline2D.catmullRomSymmetry(
-            begin: begin,
-            end: end,
-            dPerpendicular: dPerpendicular,
-            dParallel: dParallel,
-            tension: tension,
-            startHandle: startHandle,
-            endHandle: endHandle,
-          ),
-        );
+  }) : super(begin: onLerp(0), end: onLerp(1));
 }
 
 ///
 ///
-///
-///
 /// between path
-///
-///
-///
 ///
 class BetweenPath<T> extends Between<SizingPath> {
   final OnAnimatePath<T> onAnimate;
@@ -501,7 +368,7 @@ class BetweenPath<T> extends Between<SizingPath> {
   }) : super(
           begin: onAnimate(0, between.begin),
           end: onAnimate(0, between.begin),
-          onLerp: _FOnAnimatePath.of(onAnimate, between._onLerp),
+          onLerp: FOnAnimatePath.of(onAnimate, between._onLerp),
         );
 }
 
@@ -516,13 +383,9 @@ class BetweenPathOffset extends BetweenPath<Offset> {
     super.between,
     double width, {
     super.curve,
-  }) : super(
-          onAnimate: _FOnAnimatePath.stadium(
-            between.begin,
-            between.direction,
-            width,
-          ),
-        );
+    StrokeCap strokeCap = StrokeCap.round,
+  })  : assert(strokeCap == StrokeCap.round),
+        super(onAnimate: FOnAnimatePath.lineStadium(between, width));
 
   factory BetweenPathOffset.linePoly(
     double r, {
@@ -536,7 +399,7 @@ class BetweenPathOffset extends BetweenPath<Offset> {
     int i = 0;
     double bound = intervals[i];
     OnAnimatePath<Offset> lining(Offset a, Offset b) =>
-        _FOnAnimatePath.stadium(a, a.directionTo(b), r);
+        FOnAnimatePath.stadium(a, a.directionTo(b), r);
     OnAnimatePath<Offset> drawing = lining(nodes[0], nodes[1]);
     SizingPath draw = FSizingPath.circle(nodes[0], r);
 
@@ -562,18 +425,18 @@ class BetweenPathOffset extends BetweenPath<Offset> {
     required Generator<BetweenInterval> interval,
     CurveFR? curve,
   }) {
-    final offset = Between.sequenceFromGenerator(
-      totalStep: totalStep,
-      step: step,
-      interval: interval,
-      curve: curve,
-    );
+    // final offset = Between.sequenceFromGenerator(
+    //   totalStep: totalStep,
+    //   step: step,
+    //   interval: interval,
+    //   curve: curve,
+    // );
     throw UnimplementedError();
   }
 }
 
-class BetweenPathConcurrent<T> extends BetweenPath<List<T>> {
-  BetweenPathConcurrent(BetweenConcurrent<T, SizingPath> concurrent)
+class _BetweenPathConcurrent<T> extends BetweenPath<List<T>> {
+  _BetweenPathConcurrent(BetweenConcurrent<T, SizingPath> concurrent)
       : super._(
           begin: concurrent.begins,
           end: concurrent.ends,
@@ -582,7 +445,7 @@ class BetweenPathConcurrent<T> extends BetweenPath<List<T>> {
         );
 }
 
-class BetweenPathPolygon extends BetweenPathConcurrent<double> {
+class BetweenPathPolygon extends _BetweenPathConcurrent<double> {
   BetweenPathPolygon.regularCubicOnEdge({
     required RRegularPolygonCubicOnEdge polygon,
     Between<double>? scale,
@@ -653,16 +516,16 @@ class Clipping extends CustomClipper<Path> {
 }
 
 class Painting extends CustomPainter {
-  final SizingPaintFromCanvas paintFromCanvasSize;
-  final SizingPath pathFromSize;
-  final CanvasProcessor canvasListener;
+  final SizingPaintFromCanvas sizingPaintFromCanvas;
+  final SizingPath sizingPath;
+  final PaintingPath paintingPath;
   final Combiner<Painting, bool> _shouldRePaint;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = paintFromCanvasSize(canvas, size);
-    final path = pathFromSize(size);
-    canvasListener(canvas, paint, path);
+    final paint = sizingPaintFromCanvas(canvas, size);
+    final path = sizingPath(size);
+    paintingPath(canvas, paint, path);
   }
 
   @override
@@ -673,9 +536,9 @@ class Painting extends CustomPainter {
 
   @override
   int get hashCode => Object.hash(
-        paintFromCanvasSize.hashCode,
-        pathFromSize.hashCode,
-        canvasListener.hashCode,
+        sizingPaintFromCanvas.hashCode,
+        sizingPath.hashCode,
+        paintingPath.hashCode,
       );
 
   static bool _rePaintWhenDiff(Painting oldP, Painting p) => oldP != p;
@@ -685,22 +548,30 @@ class Painting extends CustomPainter {
   static bool _rePaintNever(Painting oldP, Painting p) => false;
 
   const Painting.rePaintWhenUpdate({
-    this.canvasListener = FCanvasProcessor.drawPathWithPaint,
-    required this.pathFromSize,
-    required this.paintFromCanvasSize,
+    this.paintingPath = draw,
+    required this.sizingPath,
+    required this.sizingPaintFromCanvas,
   }) : _shouldRePaint = _rePaintWhenUpdate;
 
   const Painting.rePaintWhenDiff({
-    this.canvasListener = FCanvasProcessor.drawPathWithPaint,
-    required this.pathFromSize,
-    required this.paintFromCanvasSize,
+    this.paintingPath = draw,
+    required this.sizingPath,
+    required this.sizingPaintFromCanvas,
   }) : _shouldRePaint = _rePaintWhenDiff;
 
   const Painting.rePaintNever({
-    this.canvasListener = FCanvasProcessor.drawPathWithPaint,
-    required this.paintFromCanvasSize,
-    required this.pathFromSize,
+    this.paintingPath = draw,
+    required this.sizingPaintFromCanvas,
+    required this.sizingPath,
   }) : _shouldRePaint = _rePaintNever;
+
+  ///
+  ///
+  /// paint with path
+  ///
+  ///
+  static void draw(Canvas canvas, Paint paint, Path path) =>
+      canvas.drawPath(path, paint);
 }
 
 ///
@@ -784,10 +655,10 @@ enum Operator {
         _ => throw UnimplementedError(),
       };
 
-  T operationOf<T>(T a, T b) => switch (T) {
-        double => operateDouble(a as double, b as double),
-        Duration => operateDuration(a as Duration, b as Duration),
-        DurationFR => operateDurationFR(a as DurationFR, b as DurationFR),
+  T operationOf<T>(T a, T b) => switch (a) {
+        double _ => operateDouble(a, b as double),
+        Duration _ => operateDuration(a, b as Duration),
+        DurationFR _ => operateDurationFR(a, b as DurationFR),
         _ => throw UnimplementedError(),
       } as T;
 
@@ -1004,7 +875,7 @@ class Coordinate extends Offset with _CoordinateBase {
   @override
   final double dz;
 
-  const Coordinate(double dx, double dy, this.dz) : super(dx, dy);
+  const Coordinate(super.dx, super.dy, this.dz);
 
   const Coordinate.cube(double dimension)
       : dz = dimension,
@@ -1022,9 +893,7 @@ class Coordinate extends Offset with _CoordinateBase {
       : dz = z,
         super(0, 0);
 
-  const Coordinate.ofXY(double dx, double dy)
-      : dz = 0,
-        super(dx, dy);
+  const Coordinate.ofXY(super.dx, super.dy) : dz = 0;
 
   const Coordinate.ofYZ(double dy, this.dz) : super(0, dy);
 
@@ -1197,7 +1066,7 @@ class RRegularPolygonCubicOnEdge extends RRegularPolygon {
 
     // [cornerPrevious, controlPointA, controlPointB, cornerNext]
     super.cubicPointsMapper = KMapperCubicPointsPermutation.p0231,
-    super.cornerAdjust = FCompanionOffsetIterable.adjustSizeCenter,
+    super.cornerAdjust = IterableOffsetExtension.adjustCenterCompanion,
     required super.radiusCircumscribedCircle,
   });
 
@@ -1345,9 +1214,6 @@ class RRegularPolygonCubicOnEdge extends RRegularPolygon {
       };
 }
 
-///
-/// TODO: a polygon with difference corner radius
-///
 abstract class RsRegularPolygon extends RRegularPolygon {
   final List<Radius> cornerRadiusList;
 
@@ -1380,12 +1246,82 @@ abstract class RsRegularPolygon extends RRegularPolygon {
 ///
 ///
 
+///
+/// See Also:
+///   * [KRadian]
+///   * [_MationTransformBase], [MationTransform]
+///   * [Coordinate.transferToTransformOf], [Coordinate.fromDirection]
+///
 base mixin Direction<D> {
   D get flipped;
 
   Offset get toOffset;
 
   Coordinate get toCoordinate;
+
+  static const offset_top = Offset(0, -1);
+  static const offset_left = Offset(-1, 0);
+  static const offset_right = Offset(1, 0);
+  static const offset_bottom = Offset(0, 1);
+  static const offset_center = Offset.zero;
+  static const offset_topLeft =
+      Offset(-DoubleExtension.sqrt1_2, -DoubleExtension.sqrt1_2);
+  static const offset_topRight =
+      Offset(DoubleExtension.sqrt1_2, -DoubleExtension.sqrt1_2);
+  static const offset_bottomLeft =
+      Offset(-DoubleExtension.sqrt1_2, DoubleExtension.sqrt1_2);
+  static const offset_bottomRight =
+      Offset(DoubleExtension.sqrt1_2, DoubleExtension.sqrt1_2);
+
+  static const coordinate_center = Coordinate.zero;
+  static const coordinate_left = Coordinate.ofX(-1);
+  static const coordinate_top = Coordinate.ofY(-1);
+  static const coordinate_right = Coordinate.ofX(1);
+  static const coordinate_bottom = Coordinate.ofY(1);
+  static const coordinate_front = Coordinate.ofZ(1);
+  static const coordinate_back = Coordinate.ofZ(-1);
+
+  static const coordinate_topLeft =
+      Coordinate.ofXY(-DoubleExtension.sqrt1_2, -DoubleExtension.sqrt1_2);
+  static const coordinate_topRight =
+      Coordinate.ofXY(DoubleExtension.sqrt1_2, -DoubleExtension.sqrt1_2);
+  static const coordinate_bottomLeft =
+      Coordinate.ofXY(-DoubleExtension.sqrt1_2, DoubleExtension.sqrt1_2);
+  static const coordinate_bottomRight =
+      Coordinate.ofXY(DoubleExtension.sqrt1_2, DoubleExtension.sqrt1_2);
+  static const coordinate_frontLeft =
+      Coordinate.ofXZ(-DoubleExtension.sqrt1_2, DoubleExtension.sqrt1_2);
+  static const coordinate_frontTop =
+      Coordinate.ofYZ(-DoubleExtension.sqrt1_2, DoubleExtension.sqrt1_2);
+  static const coordinate_frontRight =
+      Coordinate.ofXZ(DoubleExtension.sqrt1_2, DoubleExtension.sqrt1_2);
+  static const coordinate_frontBottom =
+      Coordinate.ofYZ(DoubleExtension.sqrt1_2, DoubleExtension.sqrt1_2);
+  static const coordinate_backLeft =
+      Coordinate.ofXZ(-DoubleExtension.sqrt1_2, -DoubleExtension.sqrt1_2);
+  static const coordinate_backTop =
+      Coordinate.ofYZ(-DoubleExtension.sqrt1_2, -DoubleExtension.sqrt1_2);
+  static const coordinate_backRight =
+      Coordinate.ofXZ(DoubleExtension.sqrt1_2, -DoubleExtension.sqrt1_2);
+  static const coordinate_backBottom =
+      Coordinate.ofYZ(DoubleExtension.sqrt1_2, -DoubleExtension.sqrt1_2);
+
+  static const coordinate_frontTopLeft = Coordinate(-DoubleExtension.sqrt1_3,
+      -DoubleExtension.sqrt1_3, DoubleExtension.sqrt1_3);
+  static const coordinate_frontTopRight = Coordinate(DoubleExtension.sqrt1_3,
+      -DoubleExtension.sqrt1_3, DoubleExtension.sqrt1_3);
+  static const coordinate_frontBottomLeft = Coordinate(-DoubleExtension.sqrt1_3,
+      DoubleExtension.sqrt1_3, DoubleExtension.sqrt1_3);
+  static const coordinate_frontBottomRight = Coordinate(DoubleExtension.sqrt1_3,
+      DoubleExtension.sqrt1_3, DoubleExtension.sqrt1_3);
+  static const coordinate_backTopLeft = Coordinate(-DoubleExtension.sqrt1_3,
+      -DoubleExtension.sqrt1_3, -DoubleExtension.sqrt1_3);
+  static const coordinate_backTopRight = Coordinate(DoubleExtension.sqrt1_3,
+      -DoubleExtension.sqrt1_3, -DoubleExtension.sqrt1_3);
+  static const coordinate_backBottomLeft = Coordinate(-DoubleExtension.sqrt1_3,
+      DoubleExtension.sqrt1_3, -DoubleExtension.sqrt1_3);
+  static const coordinate_backBottomRight = Coordinate(DoubleExtension.sqrt1_3,
+      DoubleExtension.sqrt1_3, -DoubleExtension.sqrt1_3);
 }
 
 enum Direction2DIn4 with Direction<Direction2DIn4> {
@@ -1404,18 +1340,18 @@ enum Direction2DIn4 with Direction<Direction2DIn4> {
 
   @override
   Offset get toOffset => switch (this) {
-        Direction2DIn4.left => KDirection.offset_left,
-        Direction2DIn4.right => KDirection.offset_right,
-        Direction2DIn4.top => KDirection.offset_top,
-        Direction2DIn4.bottom => KDirection.offset_bottom,
+        Direction2DIn4.left => Direction.offset_left,
+        Direction2DIn4.right => Direction.offset_right,
+        Direction2DIn4.top => Direction.offset_top,
+        Direction2DIn4.bottom => Direction.offset_bottom,
       };
 
   @override
   Coordinate get toCoordinate => switch (this) {
-        Direction2DIn4.left => KDirection.coordinate_left,
-        Direction2DIn4.right => KDirection.coordinate_right,
-        Direction2DIn4.top => KDirection.coordinate_top,
-        Direction2DIn4.bottom => KDirection.coordinate_bottom,
+        Direction2DIn4.left => Direction.coordinate_left,
+        Direction2DIn4.right => Direction.coordinate_right,
+        Direction2DIn4.top => Direction.coordinate_top,
+        Direction2DIn4.bottom => Direction.coordinate_bottom,
       };
 }
 
@@ -1443,26 +1379,26 @@ enum Direction2DIn8 with Direction<Direction2DIn8> {
 
   @override
   Offset get toOffset => switch (this) {
-        top => KDirection.offset_top,
-        left => KDirection.offset_left,
-        right => KDirection.offset_right,
-        bottom => KDirection.offset_bottom,
-        topLeft => KDirection.offset_topLeft,
-        topRight => KDirection.offset_topRight,
-        bottomLeft => KDirection.offset_bottomLeft,
-        bottomRight => KDirection.offset_bottomRight,
+        top => Direction.offset_top,
+        left => Direction.offset_left,
+        right => Direction.offset_right,
+        bottom => Direction.offset_bottom,
+        topLeft => Direction.offset_topLeft,
+        topRight => Direction.offset_topRight,
+        bottomLeft => Direction.offset_bottomLeft,
+        bottomRight => Direction.offset_bottomRight,
       };
 
   @override
   Coordinate get toCoordinate => switch (this) {
-        top => KDirection.coordinate_top,
-        left => KDirection.coordinate_left,
-        right => KDirection.coordinate_right,
-        bottom => KDirection.coordinate_bottom,
-        topLeft => KDirection.coordinate_topLeft,
-        topRight => KDirection.coordinate_topRight,
-        bottomLeft => KDirection.coordinate_bottomLeft,
-        bottomRight => KDirection.coordinate_bottomRight,
+        top => Direction.coordinate_top,
+        left => Direction.coordinate_left,
+        right => Direction.coordinate_right,
+        bottom => Direction.coordinate_bottom,
+        topLeft => Direction.coordinate_topLeft,
+        topRight => Direction.coordinate_topRight,
+        bottomLeft => Direction.coordinate_bottomLeft,
+        bottomRight => Direction.coordinate_bottomRight,
       };
 
   Alignment get toAlignment => switch (this) {
@@ -1497,21 +1433,21 @@ enum Direction3DIn6 with Direction<Direction3DIn6> {
 
   @override
   Offset get toOffset => switch (this) {
-        Direction3DIn6.left => KDirection.offset_left,
-        Direction3DIn6.top => KDirection.offset_top,
-        Direction3DIn6.right => KDirection.offset_right,
-        Direction3DIn6.bottom => KDirection.offset_bottom,
+        Direction3DIn6.left => Direction.offset_left,
+        Direction3DIn6.top => Direction.offset_top,
+        Direction3DIn6.right => Direction.offset_right,
+        Direction3DIn6.bottom => Direction.offset_bottom,
         _ => throw UnimplementedError(),
       };
 
   @override
   Coordinate get toCoordinate => switch (this) {
-        Direction3DIn6.left => KDirection.coordinate_left,
-        Direction3DIn6.top => KDirection.coordinate_top,
-        Direction3DIn6.right => KDirection.coordinate_right,
-        Direction3DIn6.bottom => KDirection.coordinate_bottom,
-        Direction3DIn6.front => KDirection.coordinate_front,
-        Direction3DIn6.back => KDirection.coordinate_back,
+        Direction3DIn6.left => Direction.coordinate_left,
+        Direction3DIn6.top => Direction.coordinate_top,
+        Direction3DIn6.right => Direction.coordinate_right,
+        Direction3DIn6.bottom => Direction.coordinate_bottom,
+        Direction3DIn6.front => Direction.coordinate_front,
+        Direction3DIn6.back => Direction.coordinate_back,
       };
 
   ///
@@ -1625,29 +1561,29 @@ enum Direction3DIn14 with Direction<Direction3DIn14> {
 
   @override
   Offset get toOffset => switch (this) {
-        Direction3DIn14.left => KDirection.offset_left,
-        Direction3DIn14.top => KDirection.offset_top,
-        Direction3DIn14.right => KDirection.offset_right,
-        Direction3DIn14.bottom => KDirection.offset_bottom,
+        Direction3DIn14.left => Direction.offset_left,
+        Direction3DIn14.top => Direction.offset_top,
+        Direction3DIn14.right => Direction.offset_right,
+        Direction3DIn14.bottom => Direction.offset_bottom,
         _ => throw UnimplementedError(),
       };
 
   @override
   Coordinate get toCoordinate => switch (this) {
-        Direction3DIn14.left => KDirection.coordinate_left,
-        Direction3DIn14.top => KDirection.coordinate_top,
-        Direction3DIn14.right => KDirection.coordinate_right,
-        Direction3DIn14.bottom => KDirection.coordinate_bottom,
-        Direction3DIn14.front => KDirection.coordinate_front,
-        Direction3DIn14.frontLeft => KDirection.coordinate_frontLeft,
-        Direction3DIn14.frontTop => KDirection.coordinate_frontTop,
-        Direction3DIn14.frontRight => KDirection.coordinate_frontRight,
-        Direction3DIn14.frontBottom => KDirection.coordinate_frontBottom,
-        Direction3DIn14.back => KDirection.coordinate_back,
-        Direction3DIn14.backLeft => KDirection.coordinate_backLeft,
-        Direction3DIn14.backTop => KDirection.coordinate_backTop,
-        Direction3DIn14.backRight => KDirection.coordinate_backRight,
-        Direction3DIn14.backBottom => KDirection.coordinate_backBottom,
+        Direction3DIn14.left => Direction.coordinate_left,
+        Direction3DIn14.top => Direction.coordinate_top,
+        Direction3DIn14.right => Direction.coordinate_right,
+        Direction3DIn14.bottom => Direction.coordinate_bottom,
+        Direction3DIn14.front => Direction.coordinate_front,
+        Direction3DIn14.frontLeft => Direction.coordinate_frontLeft,
+        Direction3DIn14.frontTop => Direction.coordinate_frontTop,
+        Direction3DIn14.frontRight => Direction.coordinate_frontRight,
+        Direction3DIn14.frontBottom => Direction.coordinate_frontBottom,
+        Direction3DIn14.back => Direction.coordinate_back,
+        Direction3DIn14.backLeft => Direction.coordinate_backLeft,
+        Direction3DIn14.backTop => Direction.coordinate_backTop,
+        Direction3DIn14.backRight => Direction.coordinate_backRight,
+        Direction3DIn14.backBottom => Direction.coordinate_backBottom,
       };
 }
 

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:vector_math/vector_math_64.dart' show Vector3;
 
 part 'access/access.dart';
+part 'access/access_canvas.dart';
 part 'access/access_geometry.dart';
 part 'access/access_time.dart';
 part 'mationani_ani.dart';

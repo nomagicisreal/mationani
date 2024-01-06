@@ -4,7 +4,7 @@ version: 0.0.2
 repository: https://github.com/nomagicisreal/mationani
 
 environment:
-  sdk: ^2.17.0
+  sdk: ^3.2.3
 
 dependencies:
   flutter:

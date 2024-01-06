@@ -18,7 +18,7 @@ part of 'mationani.dart';
 ///     [MationPainter]
 ///   [Mations]
 ///     [MationTransform]
-///       * [_MationTransformDelegate]
+///       * [MationTransformDelegate]
 ///       * [_MationTransformBase]
 ///
 ///
@@ -86,6 +86,157 @@ class Mation<T> extends MationBase<T> {
         builder: __builder,
       );
 }
+
+///
+///
+///
+///
+/// mation sequence
+///
+/// [MationSequence]
+/// [MationSequenceStyle]
+/// [MationSequenceStep]
+/// [MationSequenceInterval]
+///
+///
+///
+///
+
+///
+/// see also [BetweenInterval], [Between.sequenceFromGenerator]
+///
+class MationSequence {
+  final List<MationBase<dynamic>> mations;
+  final List<Duration> durations;
+
+  const MationSequence._(this.mations, this.durations);
+
+  factory MationSequence({
+    required int totalStep,
+    required MationSequenceStyle style,
+    required Generator<MationSequenceStep> step,
+    required Generator<MationSequenceInterval> interval,
+  }) {
+    final durations = <Duration>[];
+    MationSequenceInterval intervalGenerator(int index) {
+      final i = interval(index);
+      durations.add(i.duration);
+      return i;
+    }
+
+    return MationSequence._(
+      ListExtension.linking<MationBase<dynamic>, MationSequenceStep,
+          MationSequenceInterval>(
+        totalStep: totalStep,
+        step: step,
+        interval: intervalGenerator,
+        sequencer: style.sequencer,
+      ),
+      durations,
+    );
+  }
+}
+
+enum MationSequenceStyle {
+  transformTRS,
+  transitionRotateSlideBezierCubic;
+
+  static bool _forwardOrReverse(int i) => i % 2 == 0;
+
+  static Translator<int, MationBase> _sequence({
+    Predicator<int> predicator = _forwardOrReverse,
+    required MationSequenceStep previous,
+    required MationSequenceStep next,
+    required Combiner<MationSequenceStep, MationBase> combine,
+  }) =>
+          (i) => combine(
+        predicator(i) ? previous : next,
+        predicator(i) ? next : previous,
+      );
+
+  MationSequencer get sequencer => switch (this) {
+  // rotation, translation, scaling
+
+    transformTRS => (previous, next, interval) {
+      final curve = interval.curves[0].toCurveFR;
+      return MationSequenceStyle._sequence(
+        previous: previous,
+        next: next,
+        combine: (begin, end) {
+          final a = begin.coordinates;
+          final b = end.coordinates;
+          return MationTransform.list(
+            [
+              MationTransformDelegate.translate
+                ..between = Between(begin: a[0], end: b[0], curve: curve)
+                ..alignment = Alignment.topLeft,
+              MationTransformDelegate.rotate
+                ..between = Between(begin: a[1], end: b[1], curve: curve)
+                ..alignment = Alignment.topLeft,
+              MationTransformDelegate.scale
+                ..between = Between(begin: a[2], end: b[2], curve: curve)
+                ..alignment = Alignment.topLeft,
+            ],
+          );
+        },
+      );
+    },
+
+  // rotate, slide in bezier cubic
+
+    transitionRotateSlideBezierCubic => (previous, next, interval) {
+      final curve = interval.curves[0].toCurveFR;
+      final controlPoints = interval.offsets;
+      return MationSequenceStyle._sequence(
+        previous: previous,
+        next: next,
+        combine: (begin, end) => Mations<dynamic, Mation<dynamic>>([
+          MationTransitionDouble.rotate(
+            begin.values[0],
+            end.values[0],
+            curve: curve,
+          ),
+          MationTransitionOffset.from(
+            BetweenSpline2D(
+              onLerp: FOnLerpSpline2D.bezierCubic(
+                begin.offsets[0],
+                end.offsets[0],
+                c1: previous.offsets[0] + controlPoints[0],
+                c2: previous.offsets[0] + controlPoints[1],
+              ),
+              curve: curve,
+            ),
+          ),
+        ]),
+      );
+    },
+  };
+}
+
+class MationSequenceStep {
+  final List<double> values;
+  final List<Offset> offsets;
+  final List<Coordinate> coordinates;
+
+  const MationSequenceStep({
+    this.values = const [],
+    this.offsets = const [],
+    this.coordinates = const [],
+  });
+}
+
+class MationSequenceInterval {
+  final Duration duration;
+  final List<Curve> curves;
+  final List<Offset> offsets; // for curving control, interval step
+
+  const MationSequenceInterval({
+    required this.duration,
+    required this.curves,
+    this.offsets = const [],
+  });
+}
+
 
 ///
 ///
@@ -328,14 +479,17 @@ class MationTransitionDouble extends MationTransition<double> {
 }
 
 class MationTransitionOffset extends MationTransition<Offset> {
-  MationTransitionOffset.at(Offset p)
-      : super(Between.constant(p), builder: MationTransition.slide);
-
   MationTransitionOffset(Offset begin, Offset end, {CurveFR? curve})
       : super(
           Between(begin: begin, end: end, curve: curve),
           builder: MationTransition.slide,
         );
+
+  MationTransitionOffset.at(Offset p)
+      : super(Between.constant(p), builder: MationTransition.slide);
+
+  MationTransitionOffset.from(super.between)
+      : super(builder: MationTransition.slide);
 
   MationTransitionOffset.zeroTo(Offset end, {CurveFR? curve})
       : super(
@@ -366,19 +520,13 @@ class MationTransitionOffset extends MationTransition<Offset> {
   MationTransitionOffset.ofDistance(
     double distance,
     Between<double> direction, {
+    Offset origin = Offset.zero,
     CurveFR? curve,
   }) : super(
-          BetweenSpline2D.arcCircle(
-            direction,
-            distance,
+          BetweenSpline2D(
+            onLerp: FOnLerpSpline2D.arcCircle(origin, distance, direction),
             curve: curve,
           ),
-          builder: MationTransition.slide,
-        );
-
-  MationTransitionOffset.from(Between<Offset> between, {CurveFR? curve})
-      : super(
-          between,
           builder: MationTransition.slide,
         );
 }
@@ -429,9 +577,9 @@ class MationClipper extends Mation<SizingPath> {
   final Clip behavior;
 
   MationClipper(
-    BetweenPath between, {
+    BetweenPath super.between, {
     this.behavior = Clip.antiAlias,
-  }) : super(between);
+  });
 
   @override
   AnimationBuilder get __builder => (animation, child) => ClipPath(
@@ -450,44 +598,43 @@ class MationClipper extends Mation<SizingPath> {
 class MationPainter extends Mation<SizingPath> {
   final bool isComplex;
   final bool willChange;
-  final CustomPainter? foregroundPainter;
+  final CustomPainter? foreground;
   final Size size;
-  final CanvasProcessor canvasListener;
+  final PaintingPath paintingPath;
   final SizingPaintFromCanvas sizingPaintingFromCanvas;
 
-  MationPainter._(
-    super.between, {
-    required this.isComplex,
-    required this.willChange,
-    required this.foregroundPainter,
-    required this.size,
-    required this.canvasListener,
-    required this.sizingPaintingFromCanvas,
-  });
-
   MationPainter.drawPathTweenWithPaint(
-    BetweenPath pathBetween, {
-    this.sizingPaintingFromCanvas = FPaintFromCanvasSize.redFill,
+    BetweenPath super.between, {
+    this.sizingPaintingFromCanvas = FSizingPaintFromCanvas.redFill,
   })  : isComplex = false,
         willChange = true,
         size = Size.zero,
-        foregroundPainter = null,
-        canvasListener = FCanvasProcessor.drawPathWithPaint,
-        super(pathBetween);
+        foreground = null,
+        paintingPath = Painting.draw;
 
   @override
   AnimationBuilder get __builder => (animation, child) => CustomPaint(
         painter: Painting.rePaintWhenDiff(
-          paintFromCanvasSize: sizingPaintingFromCanvas,
-          pathFromSize: animation.value,
-          canvasListener: canvasListener,
+          sizingPaintFromCanvas: sizingPaintingFromCanvas,
+          sizingPath: animation.value,
+          paintingPath: paintingPath,
         ),
-        foregroundPainter: foregroundPainter,
+        foregroundPainter: foreground,
         size: size,
         isComplex: isComplex,
         willChange: willChange,
         child: child,
       );
+
+  MationPainter._(
+    super.between, {
+    required this.isComplex,
+    required this.willChange,
+    required this.foreground,
+    required this.size,
+    required this.paintingPath,
+    required this.sizingPaintingFromCanvas,
+  });
 
   @override
   MationPainter mapBetween(Mapper<Between<SizingPath>> mapper) =>
@@ -495,9 +642,9 @@ class MationPainter extends Mation<SizingPath> {
         between,
         isComplex: isComplex,
         willChange: willChange,
-        foregroundPainter: foregroundPainter,
+        foreground: foreground,
         size: size,
-        canvasListener: canvasListener,
+        paintingPath: paintingPath,
         sizingPaintingFromCanvas: sizingPaintingFromCanvas,
       );
 }
@@ -520,8 +667,8 @@ class Mations<T, M extends Mation<T>> extends MationBase<T> {
 
   @override
   Iterable<Animation> _animationsOf(
-          AnimationController controller, Curve curve) =>
-      _list.map((mation) => mation._animationOf(controller, curve));
+          AnimationController c, Curve curve) =>
+      _list.map((mation) => mation._animationOf(c, curve));
 
   @override
   _AnimationsBuilder get _builder {
@@ -553,30 +700,30 @@ class Mations<T, M extends Mation<T>> extends MationBase<T> {
 ///
 ///
 
-class _MationTransformDelegate {
+class MationTransformDelegate {
   final int type;
   Between<Coordinate> between;
   AlignmentGeometry? alignment;
 
-  _MationTransformDelegate._(this.type, this.between);
+  MationTransformDelegate._(this.type, this.between);
 
-  static final _MationTransformDelegate translate = _MationTransformDelegate._(
+  static final MationTransformDelegate translate = MationTransformDelegate._(
     0,
     Between(begin: Coordinate.zero, end: Coordinate.zero),
   );
-  static final _MationTransformDelegate rotate = _MationTransformDelegate._(
+  static final MationTransformDelegate rotate = MationTransformDelegate._(
     1,
     Between(begin: Coordinate.zero, end: Coordinate.zero),
   );
-  static final _MationTransformDelegate scale = _MationTransformDelegate._(
+  static final MationTransformDelegate scale = MationTransformDelegate._(
     2,
     Between(begin: KCoordinate.cube_1, end: KCoordinate.cube_1),
   );
 
-  _OnAnimateMatrix4 get _onAnimate => switch (type) {
-        0 => _FOnAnimateMatrix4.translating,
-        1 => _FOnAnimateMatrix4.rotating,
-        2 => _FOnAnimateMatrix4.scaling,
+  OnAnimateMatrix4 get _onAnimate => switch (type) {
+        0 => FOnAnimateMatrix4._translating,
+        1 => FOnAnimateMatrix4._rotating,
+        2 => FOnAnimateMatrix4._scaling,
         _ => throw UnimplementedError(),
       };
 }
@@ -615,11 +762,11 @@ class _MationTransformDelegate {
 ///
 ///
 class _MationTransformBase extends Mation<Coordinate> {
-  final _OnAnimateMatrix4 onAnimate;
+  final OnAnimateMatrix4 onAnimate;
   final AlignmentGeometry? alignment;
   Matrix4 host;
 
-  AnimationBuilder _transform(_OnAnimateMatrix4 animate) =>
+  AnimationBuilder _transform(OnAnimateMatrix4 animate) =>
       ((animation, child) => Transform(
             transform: animate(host, animation.value),
             alignment: alignment,
@@ -642,21 +789,21 @@ class _MationTransformBase extends Mation<Coordinate> {
     Matrix4? host,
     this.alignment,
   })  : host = host ?? Matrix4.identity(),
-        onAnimate = _MationTransformDelegate.scale._onAnimate;
+        onAnimate = MationTransformDelegate.scale._onAnimate;
 
   _MationTransformBase._translate(
     super.between, {
     Matrix4? host,
     this.alignment,
   })  : host = host ?? Matrix4.identity(),
-        onAnimate = _MationTransformDelegate.translate._onAnimate;
+        onAnimate = MationTransformDelegate.translate._onAnimate;
 
   _MationTransformBase._rotate(
     super.between, {
     Matrix4? host,
     this.alignment,
   })  : host = host ?? Matrix4.identity(),
-        onAnimate = _MationTransformDelegate.rotate._onAnimate;
+        onAnimate = MationTransformDelegate.rotate._onAnimate;
 
   @override
   _MationTransformBase mapBetween(Mapper<Between<Coordinate>> mapper) =>
@@ -706,7 +853,7 @@ class MationTransform extends Mations<Coordinate, _MationTransformBase> {
         ]);
 
   MationTransform.list(
-    List<_MationTransformDelegate> delegates, {
+    List<MationTransformDelegate> delegates, {
     this.distanceToObserver,
   }) : super(delegates.foldWithIndex(
           [],
@@ -726,150 +873,3 @@ class MationTransform extends Mations<Coordinate, _MationTransformBase> {
       super._list.map((mation) => mation..link(host)).toList(growable: false);
 }
 
-///
-///
-///
-///
-/// mation sequence
-///
-/// [MationSequence]
-/// [MationSequenceStyle]
-/// [MationSequenceStep]
-/// [MationSequenceInterval]
-///
-///
-///
-///
-
-///
-/// see also [BetweenInterval], [Between.sequenceFromGenerator]
-///
-class MationSequence {
-  final List<MationBase<dynamic>> mations;
-  final List<Duration> durations;
-
-  const MationSequence._(this.mations, this.durations);
-
-  factory MationSequence({
-    required int totalStep,
-    required MationSequenceStyle style,
-    required Generator<MationSequenceStep> step,
-    required Generator<MationSequenceInterval> interval,
-  }) {
-    final durations = <Duration>[];
-    MationSequenceInterval intervalGenerator(int index) {
-      final i = interval(index);
-      durations.add(i.duration);
-      return i;
-    }
-
-    return MationSequence._(
-      ListExtension.linking<MationBase<dynamic>, MationSequenceStep,
-          MationSequenceInterval>(
-        totalStep: totalStep,
-        step: step,
-        interval: intervalGenerator,
-        sequencer: style.sequencer,
-      ),
-      durations,
-    );
-  }
-}
-
-enum MationSequenceStyle {
-  transformTRS,
-  transitionRotateSlideBezierCubic;
-
-  static bool _forwardOrReverse(int i) => i % 2 == 0;
-
-  static Translator<int, MationBase> _sequence({
-    Predicator<int> predicator = _forwardOrReverse,
-    required MationSequenceStep previous,
-    required MationSequenceStep next,
-    required Combiner<MationSequenceStep, MationBase> combine,
-  }) =>
-      (i) => combine(
-            predicator(i) ? previous : next,
-            predicator(i) ? next : previous,
-          );
-
-  MationSequencer get sequencer => switch (this) {
-        // rotation, translation, scaling
-
-        transformTRS => (previous, next, interval) {
-            final curve = interval.curves[0].toCurveFR;
-            return MationSequenceStyle._sequence(
-              previous: previous,
-              next: next,
-              combine: (begin, end) {
-                final a = begin.coordinates;
-                final b = end.coordinates;
-                return MationTransform.list(
-                  [
-                    _MationTransformDelegate.translate
-                      ..between = Between(begin: a[0], end: b[0], curve: curve)
-                      ..alignment = Alignment.topLeft,
-                    _MationTransformDelegate.rotate
-                      ..between = Between(begin: a[1], end: b[1], curve: curve)
-                      ..alignment = Alignment.topLeft,
-                    _MationTransformDelegate.scale
-                      ..between = Between(begin: a[2], end: b[2], curve: curve)
-                      ..alignment = Alignment.topLeft,
-                  ],
-                );
-              },
-            );
-          },
-
-        // rotate, slide in bezier cubic
-
-        transitionRotateSlideBezierCubic => (previous, next, interval) {
-            final curve = interval.curves[0].toCurveFR;
-            final controlPoints = interval.offsets;
-            return MationSequenceStyle._sequence(
-              previous: previous,
-              next: next,
-              combine: (begin, end) => Mations<dynamic, Mation<dynamic>>([
-                MationTransitionDouble.rotate(
-                  begin.values[0],
-                  end.values[0],
-                  curve: curve,
-                ),
-                MationTransitionOffset.from(
-                  BetweenSpline2D.bezierCubic(
-                    begin.offsets[0],
-                    end.offsets[0],
-                    c1: previous.offsets[0] + controlPoints[0],
-                    c2: previous.offsets[0] + controlPoints[1],
-                    curve: curve,
-                  ),
-                ),
-              ]),
-            );
-          },
-      };
-}
-
-class MationSequenceStep {
-  final List<double> values;
-  final List<Offset> offsets;
-  final List<Coordinate> coordinates;
-
-  const MationSequenceStep({
-    this.values = const [],
-    this.offsets = const [],
-    this.coordinates = const [],
-  });
-}
-
-class MationSequenceInterval {
-  final Duration duration;
-  final List<Curve> curves;
-  final List<Offset> offsets; // for curving control, interval step
-
-  const MationSequenceInterval({
-    required this.duration,
-    required this.curves,
-    this.offsets = const [],
-  });
-}

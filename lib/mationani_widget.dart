@@ -9,7 +9,8 @@ part of 'mationani.dart';
 ///
 ///
 ///
-/// [FClippingMationTransform], [FClippingMationTransformRowTransform]
+/// [FClipping], [FClippingMationTransform], [FClippingMationTransformRowTransform], ...
+/// [FPainting], [FCustomPaint],  [FMationPainter]
 ///
 ///
 ///
@@ -229,7 +230,7 @@ class MationaniPenetration extends StatelessWidget {
   final Color color;
   final Widget? child;
   final Between<Rect> rect;
-  final SizingRectingPath path;
+  final SizingPathWithRect path;
   final GestureTapCallback onTap;
 
   @override
@@ -257,6 +258,68 @@ class MationaniPenetration extends StatelessWidget {
       ),
     );
   }
+}
+
+///
+///
+///
+/// clip
+///
+///
+///
+
+extension FClipPath on CustomPaint {
+  static ClipPath rectFromZeroToSize({
+    Clip clipBehavior = Clip.antiAlias,
+    required Size size,
+    required Widget child,
+  }) =>
+      ClipPath(
+        clipBehavior: clipBehavior,
+        clipper: FClipping.rectOf(Offset.zero & size),
+        child: child,
+      );
+
+  static ClipPath reClipNeverOf({
+    Clip clipBehavior = Clip.antiAlias,
+    required SizingPath pathFromSize,
+    required Widget child,
+  }) =>
+      ClipPath(
+        clipBehavior: clipBehavior,
+        clipper: Clipping.reclipNever(pathFromSize),
+        child: child,
+      );
+
+  static ClipPath decoratedPolygon(
+      Decoration decoration,
+      RRegularPolygon polygon, {
+        DecorationPosition position = DecorationPosition.background,
+        Widget? child,
+      }) =>
+      ClipPath(
+        clipper: FClipping.polygonCubicCornerFromSize(polygon),
+        child: DecoratedBox(
+          decoration: decoration,
+          position: position,
+          child: child,
+        ),
+      );
+}
+
+extension FClipping on Clipping {
+  static Clipping rectOf(Rect rect) =>
+      Clipping.reclipNever(FSizingPath.rect(rect));
+
+  static Clipping rectFromZeroTo(Size size) => rectOf(Offset.zero & size);
+
+  static Clipping rectFromZeroToOffset(Offset corner) =>
+      rectOf(Rect.fromPoints(Offset.zero, corner));
+
+  static Clipping polygonCubicCornerFromSize(RRegularPolygon polygon) =>
+      Clipping.reclipNever(
+        FSizingPath.polygonCubicFromSize(polygon.cubicPoints),
+      );
 }
 
 extension FClippingMationTransform on Mationani {
@@ -307,7 +370,7 @@ extension FClippingMationTransformRowTransform on Mationani {
             FClippingMationTransform.rotate(
               tween: tweenFlip,
               alignment: Alignment.centerRight,
-              sizeToPath: FSizingPath.pieSizingOf(false),
+              sizeToPath: FSizingPath.pieOfLeftRight(false),
               ani: Ani(
                 duration: duration,
                 updateProcess: FAni.decideResetForward(!isFlipped),
@@ -322,11 +385,80 @@ extension FClippingMationTransformRowTransform on Mationani {
               ),
               tween: tweenFlip,
               alignment: Alignment.centerLeft,
-              sizeToPath: FSizingPath.pieSizingOf(true),
+              sizeToPath: FSizingPath.pieOfLeftRight(true),
               child: childRight,
             ),
           ],
           // children: [VContainerStyled.gradiantWhitRed],
+        ),
+      );
+}
+
+
+///
+///
+///
+///
+///
+/// paint
+///
+///
+///
+///
+///
+
+extension FPainting on Painting {
+  static Painting polygonCubicCorner(
+      SizingPaintFromCanvas paintFromCanvasSize,
+      RRegularPolygon polygon,
+      ) =>
+      Painting.rePaintNever(
+        sizingPaintFromCanvas: paintFromCanvasSize,
+        sizingPath: FSizingPath.polygonCubic(polygon.cubicPoints),
+      );
+}
+
+extension FCustomPaint on CustomPaint {
+  static CustomPaint polygonCanvasSizeToPaint(
+      RRegularPolygon polygon,
+      SizingPaintFromCanvas paintFromCanvasSize, {
+        Widget? child,
+      }) =>
+      CustomPaint(
+        painter: FPainting.polygonCubicCorner(paintFromCanvasSize, polygon),
+        child: child,
+      );
+}
+
+extension FMationPainter on MationPainter {
+  static MationPainter progressingCircles({
+    double initialCircleRadius = 5.0,
+    double circleRadiusFactor = 0.1,
+    required Ani setting,
+    required Paint paint,
+    required Tween<double> radiusOrbit,
+    required int circleCount,
+    required Companion<Vector3D, int> planetGenerator,
+  }) =>
+      MationPainter.drawPathTweenWithPaint(
+        sizingPaintingFromCanvas: (_, __) => paint,
+        BetweenPath(
+          Between<Vector3D>(
+            begin: Vector3D(Coordinate.zero, radiusOrbit.begin!),
+            end: Vector3D(KRadianCoordinate.angleZ_360, radiusOrbit.end!),
+          ),
+          onAnimate: (t, vector) => PathOperation.union._combineAll(
+            Iterable.generate(
+              circleCount,
+                  (i) => (size) => Path()
+                ..addOval(
+                  Rect.fromCircle(
+                    center: planetGenerator(vector, i).toCoordinate,
+                    radius: initialCircleRadius * (i + 1) * circleRadiusFactor,
+                  ),
+                ),
+            ),
+          ),
         ),
       );
 }
