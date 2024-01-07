@@ -10,6 +10,12 @@
       <excludeFolder url="file://$MODULE_DIR$/ios/Runner.xcodeproj/project.xcworkspace/xcshareddata/swiftpm" />
       <excludeFolder url="file://$MODULE_DIR$/ios/Runner.xcworkspace/xcshareddata/swiftpm" />
       <excludeFolder url="file://$MODULE_DIR$/macos/Flutter/ephemeral" />
+      <excludeFolder url="file://$MODULE_DIR$/android" />
+      <excludeFolder url="file://$MODULE_DIR$/ios" />
+      <excludeFolder url="file://$MODULE_DIR$/linux" />
+      <excludeFolder url="file://$MODULE_DIR$/macos" />
+      <excludeFolder url="file://$MODULE_DIR$/web" />
+      <excludeFolder url="file://$MODULE_DIR$/windows" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
