@@ -6,6 +6,7 @@ part of 'mationani.dart';
 /// [Mationani]
 ///   [MationaniSin]
 ///   [MationaniPenetration]
+///   []
 ///
 ///
 ///
@@ -260,6 +261,73 @@ class MationaniPenetration extends StatelessWidget {
   }
 }
 
+class MationaniCutting extends StatelessWidget {
+  const MationaniCutting({
+    super.key,
+    this.pieces = 2,
+    this.direction = Direction.radian2D_bottomRight,
+    this.curveFadeOut,
+    this.curve,
+    Ani? aniFadeOut,
+    required this.ani,
+    required this.rotation,
+    required this.distance,
+    required this.child,
+  })  : aniFadeOut = aniFadeOut ?? ani,
+        assert(pieces == 2 && direction == Direction.radian2D_bottomRight);
+
+  final int pieces;
+  final double direction;
+  final double rotation;
+  final double distance;
+  final Ani aniFadeOut;
+  final Ani ani;
+  final CurveFR? curveFadeOut;
+  final CurveFR? curve;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Mationani(
+      mation: MationTransitionDouble.fadeOut(curve: curveFadeOut),
+      ani: aniFadeOut,
+      child: Stack(
+        children: List.generate(
+          pieces,
+          (index) => Mationani(
+            mation: Mations<dynamic, Mation>([
+              MationTransitionDouble.rotateZeroTo(
+                index == 0 ? -rotation : rotation,
+                alignment: Alignment.bottomRight,
+                curve: curve,
+              ),
+              MationTransitionOffset.zeroTo(
+                index == 0
+                    ? Direction.offset_bottomLeft * distance
+                    : Direction.offset_topRight * distance,
+                curve: curve,
+              ),
+            ]),
+            ani: ani,
+            child: ClipPath(
+              clipper: Clipping.reclipNever(
+                index == 0
+                    ? (size) => Path()
+                      ..lineToPoint(size.bottomRight(Offset.zero))
+                      ..lineToPoint(size.bottomLeft(Offset.zero))
+                    : (size) => Path()
+                      ..lineToPoint(size.bottomRight(Offset.zero))
+                      ..lineToPoint(size.topRight(Offset.zero)),
+              ),
+              child: child,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 ///
 ///
 ///
@@ -292,11 +360,11 @@ extension FClipPath on CustomPaint {
       );
 
   static ClipPath decoratedPolygon(
-      Decoration decoration,
-      RRegularPolygon polygon, {
-        DecorationPosition position = DecorationPosition.background,
-        Widget? child,
-      }) =>
+    Decoration decoration,
+    RRegularPolygon polygon, {
+    DecorationPosition position = DecorationPosition.background,
+    Widget? child,
+  }) =>
       ClipPath(
         clipper: FClipping.polygonCubicCornerFromSize(polygon),
         child: DecoratedBox(
@@ -394,7 +462,6 @@ extension FClippingMationTransformRowTransform on Mationani {
       );
 }
 
-
 ///
 ///
 ///
@@ -409,9 +476,9 @@ extension FClippingMationTransformRowTransform on Mationani {
 
 extension FPainting on Painting {
   static Painting polygonCubicCorner(
-      SizingPaintFromCanvas paintFromCanvasSize,
-      RRegularPolygon polygon,
-      ) =>
+    SizingPaintFromCanvas paintFromCanvasSize,
+    RRegularPolygon polygon,
+  ) =>
       Painting.rePaintNever(
         sizingPaintFromCanvas: paintFromCanvasSize,
         sizingPath: FSizingPath.polygonCubic(polygon.cubicPoints),
@@ -420,10 +487,10 @@ extension FPainting on Painting {
 
 extension FCustomPaint on CustomPaint {
   static CustomPaint polygonCanvasSizeToPaint(
-      RRegularPolygon polygon,
-      SizingPaintFromCanvas paintFromCanvasSize, {
-        Widget? child,
-      }) =>
+    RRegularPolygon polygon,
+    SizingPaintFromCanvas paintFromCanvasSize, {
+    Widget? child,
+  }) =>
       CustomPaint(
         painter: FPainting.polygonCubicCorner(paintFromCanvasSize, polygon),
         child: child,
@@ -450,7 +517,7 @@ extension FMationPainter on MationPainter {
           onAnimate: (t, vector) => PathOperation.union._combineAll(
             Iterable.generate(
               circleCount,
-                  (i) => (size) => Path()
+              (i) => (size) => Path()
                 ..addOval(
                   Rect.fromCircle(
                     center: planetGenerator(vector, i).toCoordinate,

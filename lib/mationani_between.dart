@@ -1259,19 +1259,24 @@ base mixin Direction<D> {
 
   Coordinate get toCoordinate;
 
+  static const radian2D_right = 0;
+  static const radian2D_bottomRight = KRadian.angle_45;
+  static const radian2D_bottom = KRadian.angle_90;
+  static const radian2D_bottomLeft = KRadian.angle_135;
+  static const radian2D_left = KRadian.angle_180;
+  static const radian2D_topLeft = KRadian.angle_225;
+  static const radian2D_top = KRadian.angle_270;
+  static const radian2D_topRight = KRadian.angle_315;
+
   static const offset_top = Offset(0, -1);
   static const offset_left = Offset(-1, 0);
   static const offset_right = Offset(1, 0);
   static const offset_bottom = Offset(0, 1);
   static const offset_center = Offset.zero;
-  static const offset_topLeft =
-      Offset(-DoubleExtension.sqrt1_2, -DoubleExtension.sqrt1_2);
-  static const offset_topRight =
-      Offset(DoubleExtension.sqrt1_2, -DoubleExtension.sqrt1_2);
-  static const offset_bottomLeft =
-      Offset(-DoubleExtension.sqrt1_2, DoubleExtension.sqrt1_2);
-  static const offset_bottomRight =
-      Offset(DoubleExtension.sqrt1_2, DoubleExtension.sqrt1_2);
+  static const offset_topLeft = Offset(-math.sqrt1_2, -math.sqrt1_2);
+  static const offset_topRight = Offset(math.sqrt1_2, -math.sqrt1_2);
+  static const offset_bottomLeft = Offset(-math.sqrt1_2, math.sqrt1_2);
+  static const offset_bottomRight = Offset(math.sqrt1_2, math.sqrt1_2);
 
   static const coordinate_center = Coordinate.zero;
   static const coordinate_left = Coordinate.ofX(-1);
@@ -1282,29 +1287,29 @@ base mixin Direction<D> {
   static const coordinate_back = Coordinate.ofZ(-1);
 
   static const coordinate_topLeft =
-      Coordinate.ofXY(-DoubleExtension.sqrt1_2, -DoubleExtension.sqrt1_2);
+      Coordinate.ofXY(-math.sqrt1_2, -math.sqrt1_2);
   static const coordinate_topRight =
-      Coordinate.ofXY(DoubleExtension.sqrt1_2, -DoubleExtension.sqrt1_2);
+      Coordinate.ofXY(math.sqrt1_2, -math.sqrt1_2);
   static const coordinate_bottomLeft =
-      Coordinate.ofXY(-DoubleExtension.sqrt1_2, DoubleExtension.sqrt1_2);
+      Coordinate.ofXY(-math.sqrt1_2, math.sqrt1_2);
   static const coordinate_bottomRight =
-      Coordinate.ofXY(DoubleExtension.sqrt1_2, DoubleExtension.sqrt1_2);
+      Coordinate.ofXY(math.sqrt1_2, math.sqrt1_2);
   static const coordinate_frontLeft =
-      Coordinate.ofXZ(-DoubleExtension.sqrt1_2, DoubleExtension.sqrt1_2);
+      Coordinate.ofXZ(-math.sqrt1_2, math.sqrt1_2);
   static const coordinate_frontTop =
-      Coordinate.ofYZ(-DoubleExtension.sqrt1_2, DoubleExtension.sqrt1_2);
+      Coordinate.ofYZ(-math.sqrt1_2, math.sqrt1_2);
   static const coordinate_frontRight =
-      Coordinate.ofXZ(DoubleExtension.sqrt1_2, DoubleExtension.sqrt1_2);
+      Coordinate.ofXZ(math.sqrt1_2, math.sqrt1_2);
   static const coordinate_frontBottom =
-      Coordinate.ofYZ(DoubleExtension.sqrt1_2, DoubleExtension.sqrt1_2);
+      Coordinate.ofYZ(math.sqrt1_2, math.sqrt1_2);
   static const coordinate_backLeft =
-      Coordinate.ofXZ(-DoubleExtension.sqrt1_2, -DoubleExtension.sqrt1_2);
+      Coordinate.ofXZ(-math.sqrt1_2, -math.sqrt1_2);
   static const coordinate_backTop =
-      Coordinate.ofYZ(-DoubleExtension.sqrt1_2, -DoubleExtension.sqrt1_2);
+      Coordinate.ofYZ(-math.sqrt1_2, -math.sqrt1_2);
   static const coordinate_backRight =
-      Coordinate.ofXZ(DoubleExtension.sqrt1_2, -DoubleExtension.sqrt1_2);
+      Coordinate.ofXZ(math.sqrt1_2, -math.sqrt1_2);
   static const coordinate_backBottom =
-      Coordinate.ofYZ(DoubleExtension.sqrt1_2, -DoubleExtension.sqrt1_2);
+      Coordinate.ofYZ(math.sqrt1_2, -math.sqrt1_2);
 
   static const coordinate_frontTopLeft = Coordinate(-DoubleExtension.sqrt1_3,
       -DoubleExtension.sqrt1_3, DoubleExtension.sqrt1_3);

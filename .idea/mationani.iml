@@ -6,6 +6,10 @@
       <excludeFolder url="file://$MODULE_DIR$/build" />
       <excludeFolder url="file://$MODULE_DIR$/.dart_tool" />
       <excludeFolder url="file://$MODULE_DIR$/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/.idea/runConfigurations" />
+      <excludeFolder url="file://$MODULE_DIR$/ios/Runner.xcodeproj/project.xcworkspace/xcshareddata/swiftpm" />
+      <excludeFolder url="file://$MODULE_DIR$/ios/Runner.xcworkspace/xcshareddata/swiftpm" />
+      <excludeFolder url="file://$MODULE_DIR$/macos/Flutter/ephemeral" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

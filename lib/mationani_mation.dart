@@ -440,7 +440,7 @@ class MationTransitionDouble extends MationTransition<double> {
           builder: MationTransition.rotationOf(alignment),
         );
 
-  factory MationTransitionDouble.rotateFromZeroTo(
+  factory MationTransitionDouble.rotateZeroTo(
     double end, {
     Alignment alignment = Alignment.center,
     CurveFR? curve,
@@ -452,7 +452,7 @@ class MationTransitionDouble extends MationTransition<double> {
         curve: curve,
       );
 
-  factory MationTransitionDouble.rotateToZeroFrom(
+  factory MationTransitionDouble.rotateZeroFrom(
     double begin, {
     Alignment alignment = Alignment.center,
     CurveFR? curve,
@@ -464,7 +464,7 @@ class MationTransitionDouble extends MationTransition<double> {
         curve: curve,
       );
 
-  factory MationTransitionDouble.rotateBeginOrEndZero(
+  factory MationTransitionDouble.rotateZeroFromOrTo(
     double another, {
     required bool isEndZero,
     Alignment alignment = Alignment.center,
