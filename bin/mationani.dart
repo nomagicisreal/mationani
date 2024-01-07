@@ -34,7 +34,10 @@ class _MyHomeState extends State<MyHome> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      floatingActionButton: FloatingActionButton(onPressed: onPressed),
+      floatingActionButton: FloatingActionButton(
+        onPressed: onPressed,
+        child: const Icon(Icons.add),
+      ),
       backgroundColor: Colors.white38,
       body: Center(
         child: MationaniCutting(
