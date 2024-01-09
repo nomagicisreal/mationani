@@ -3,9 +3,6 @@ part of '../mationani.dart';
 
 ///
 /// this file contains:
-/// [SizeExtension], [OffsetExtension], [RectExtension]
-/// [AlignmentExtension]
-///
 /// [KSize], [KSize3Ratio4], [KSize9Ratio16], [KSize16Ratio9]
 /// [KDirection], [KOffset], [KOffsetPermutation4], [KCoordinate], [KVector]
 ///
@@ -15,276 +12,12 @@ part of '../mationani.dart';
 /// [KRadius], [KBorderRadius]
 /// [KEdgeInsets]
 ///
-/// [FMapper], [FMapperDouble]
-/// [KMapperCubicPointsPermutation]
-/// [FGeneratorOffset]
+/// [KDuration], [KDurationFR]
+/// [KCurveFR], [KInterval]
 ///
 ///
-
-extension SizeExtension on Size {
-  double get diagonal => math.sqrt(width * width + height * height);
-
-  Radius get toRadiusEllipse => Radius.elliptical(width, height);
-
-  Size extrudeHeight(double ratio) => Size(width, width * ratio);
-
-  Size extrudeWidth(double ratio) => Size(height * ratio, height);
-}
-
-extension OffsetExtension on Offset {
-  ///
-  ///
-  /// my usages ------------------------------------------------------------------------------------------------------
-  ///
-  Coordinate get toCoordinate => Coordinate.ofXY(dx, dy);
-
-  ///
-  /// ------------------------------------------------------------------------------------------------------
-  ///
-  ///
-  ///
-
-  ///
-  ///
-  /// instance methods
-  ///
-  ///
-  String toStringAsFixed1() =>
-      '(${dx.toStringAsFixed(1)}, ${dy.toStringAsFixed(1)})';
-
-  double directionTo(Offset p) => (p - this).direction;
-
-  double distanceTo(Offset p) => (p - this).distance;
-
-  double distanceHalfTo(Offset p) => (p - this).distance / 2;
-
-  Offset middleWith(Offset p) => (p + this) / 2;
-
-  Offset direct(double direction, [double distance = 1]) =>
-      this + Offset.fromDirection(direction, distance);
-
-  double directionPerpendicular({bool isCounterclockwise = true}) =>
-      direction + math.pi / 2 * (isCounterclockwise ? 1 : -1);
-
-  Offset get toPerpendicularUnit =>
-      Offset.fromDirection(directionPerpendicular());
-
-  Offset get toPerpendicular =>
-      Offset.fromDirection(directionPerpendicular(), distance);
-
-  bool isAtBottomRightOf(Offset offset) => this > offset;
-
-  bool isAtTopLeftOf(Offset offset) => this < offset;
-
-  bool isAtBottomLeftOf(Offset offset) => dx < offset.dx && dy > offset.dy;
-
-  bool isAtTopRightOf(Offset offset) => dx > offset.dx && dy < offset.dy;
-
-  ///
-  ///
-  /// instance getters
-  ///
-  ///
-
-  Size get toSize => Size(dx, dy);
-
-  Offset get toReciprocal => Offset(1 / dx, 1 / dy);
-
-  ///
-  ///
-  /// static methods:
-  ///
-  ///
-  static Offset square(double value) => Offset(value, value);
-
-  ///
-  /// [parallelUnitOf]
-  /// [parallelVectorOf]
-  /// [parallelOffsetOf]
-  /// [parallelOffsetUnitOf]
-  /// [parallelOffsetUnitOnCenterOf]
-  ///
-  static Offset parallelUnitOf(Offset a, Offset b) {
-    final offset = b - a;
-    return offset / offset.distance;
-  }
-
-  static Offset parallelVectorOf(Offset a, Offset b, double t) => (b - a) * t;
-
-  static Offset parallelOffsetOf(Offset a, Offset b, double t) =>
-      a + parallelVectorOf(a, b, t);
-
-  static Offset parallelOffsetUnitOf(Offset a, Offset b, double t) =>
-      a + parallelUnitOf(a, b) * t;
-
-  static Offset parallelOffsetUnitOnCenterOf(Offset a, Offset b, double t) =>
-      a.middleWith(b) + parallelUnitOf(a, b) * t;
-
-  ///
-  /// [perpendicularUnitOf]
-  /// [perpendicularVectorOf]
-  /// [perpendicularOffsetOf]
-  /// [perpendicularOffsetUnitOf]
-  /// [perpendicularOffsetUnitFromCenterOf]
-  ///
-  static Offset perpendicularUnitOf(Offset a, Offset b) =>
-      (b - a).toPerpendicularUnit;
-
-  static Offset perpendicularVectorOf(Offset a, Offset b, double t) =>
-      (b - a).toPerpendicular * t;
-
-  static Offset perpendicularOffsetOf(Offset a, Offset b, double t) =>
-      a + perpendicularVectorOf(a, b, t);
-
-  static Offset perpendicularOffsetUnitOf(Offset a, Offset b, double t) =>
-      a + perpendicularUnitOf(a, b) * t;
-
-  static Offset perpendicularOffsetUnitFromCenterOf(
-    Offset a,
-    Offset b,
-    double t,
-  ) =>
-      a.middleWith(b) + perpendicularUnitOf(a, b) * t;
-}
-
-extension RectExtension on Rect {
-  static Rect fromLTSize(double left, double top, Size size) =>
-      Rect.fromLTWH(left, top, size.width, size.height);
-
-  static Rect fromOffsetSize(Offset zero, Size size) =>
-      Rect.fromLTWH(zero.dx, zero.dy, size.width, size.height);
-
-  static Rect fromCenterSize(Offset center, Size size) =>
-      Rect.fromCenter(center: center, width: size.width, height: size.height);
-
-  static Rect fromCircle(Offset center, double radius) =>
-      Rect.fromCircle(center: center, radius: radius);
-
-  double get distanceDiagonal => size.diagonal;
-
-  Offset offsetFromAlignment(Alignment value) => switch (value) {
-        Alignment.topLeft => topLeft,
-        Alignment.topCenter => topCenter,
-        Alignment.topRight => topRight,
-        Alignment.centerLeft => centerLeft,
-        Alignment.center => center,
-        Alignment.centerRight => centerRight,
-        Alignment.bottomLeft => bottomLeft,
-        Alignment.bottomCenter => bottomCenter,
-        Alignment.bottomRight => bottomRight,
-        _ => throw UnimplementedError(),
-      };
-
-  ///
-  ///
-  /// my usages ------------------------------------------------------------------------------------------------------
-  ///
-  Offset offsetFromDirection(Direction2DIn8 value) => switch (value) {
-        Direction2DIn8.topLeft => topLeft,
-        Direction2DIn8.top => topCenter,
-        Direction2DIn8.topRight => topRight,
-        Direction2DIn8.left => centerLeft,
-        Direction2DIn8.right => centerRight,
-        Direction2DIn8.bottomLeft => bottomLeft,
-        Direction2DIn8.bottom => bottomCenter,
-        Direction2DIn8.bottomRight => bottomRight,
-      };
-
-  Rect expandToIncludeDirection({
-    required Direction2DIn8 direction,
-    required double width,
-    required double length,
-  }) {
-    final start = offsetFromDirection(direction);
-    return expandToInclude(
-      switch (direction) {
-        Direction2DIn8.top => Rect.fromPoints(
-            start + Offset(width / 2, 0),
-            start + Offset(-width / 2, -length),
-          ),
-        Direction2DIn8.bottom => Rect.fromPoints(
-            start + Offset(width / 2, 0),
-            start + Offset(-width / 2, length),
-          ),
-        Direction2DIn8.left => Rect.fromPoints(
-            start + Offset(0, width / 2),
-            start + Offset(-length, -width / 2),
-          ),
-        Direction2DIn8.right => Rect.fromPoints(
-            start + Offset(0, width / 2),
-            start + Offset(length, -width / 2),
-          ),
-        Direction2DIn8.topLeft => Rect.fromPoints(
-            start,
-            start + Offset(-length, -length) * DoubleExtension.sqrt1_2,
-          ),
-        Direction2DIn8.topRight => Rect.fromPoints(
-            start,
-            start + Offset(length, -length) * DoubleExtension.sqrt1_2,
-          ),
-        Direction2DIn8.bottomLeft => Rect.fromPoints(
-            start,
-            start + Offset(-length, length) * DoubleExtension.sqrt1_2,
-          ),
-        Direction2DIn8.bottomRight => Rect.fromPoints(
-            start,
-            start + Offset(length, length) * DoubleExtension.sqrt1_2,
-          ),
-      },
-    );
-  }
-
-  ///
-  /// ------------------------------------------------------------------------------------------------------
-  ///
-  ///
-}
-
-extension AlignmentExtension on Alignment {
-  double get radianRangeForSide {
-    final boundary = radianBoundaryForSide;
-    return boundary.$2 - boundary.$1;
-  }
-
-  (double, double) get radianBoundaryForSide => switch (this) {
-        Alignment.center => (0, KRadian.angle_360),
-        Alignment.centerLeft => (-KRadian.angle_90, KRadian.angle_90),
-        Alignment.centerRight => (KRadian.angle_90, KRadian.angle_270),
-        Alignment.topCenter => (0, KRadian.angle_180),
-        Alignment.topLeft => (0, KRadian.angle_90),
-        Alignment.topRight => (KRadian.angle_90, KRadian.angle_180),
-        Alignment.bottomCenter => (KRadian.angle_180, KRadian.angle_360),
-        Alignment.bottomLeft => (KRadian.angle_270, KRadian.angle_360),
-        Alignment.bottomRight => (KRadian.angle_180, KRadian.angle_270),
-        _ => throw UnimplementedError(),
-      };
-
-  double radianRangeForSideStepOf(int count) =>
-      radianRangeForSide / (this == Alignment.center ? count : count - 1);
-
-  ///
-  ///
-  /// my usages ------------------------------------------------------------------------------------------------------
-  ///
-  Generator<double> directionOfSideSpace(bool isClockwise, int count) {
-    final boundary = radianBoundaryForSide;
-    final origin = isClockwise ? boundary.$1 : boundary.$2;
-    final step = radianRangeForSideStepOf(count);
-
-    return isClockwise
-        ? (index) => origin + step * index
-        : (index) => origin - step * index;
-  }
-
-  ///
-  /// ------------------------------------------------------------------------------------------------------
-  ///
-  ///
-}
-
-extension BetweenOffsetExtension on Between<Offset> {
-  double get direction => begin.directionTo(end);
-}
+///
+///
 
 extension KSize on Size {
   static const square_1 = Size.square(1);
@@ -990,156 +723,303 @@ extension KEdgeInsets on EdgeInsets {
 
 ///
 ///
-/// mapper
 ///
 ///
+///
+///
+/// duration, curve, interval
+///
+///
+///
+///
+///
+///
+///
 
-extension FMapper on Mapper {
-  static T keep<T>(T value) => value;
 
-  static Offset offset(Offset v) => v;
-
-  static Iterable<Offset> ofOffsetIterable(Iterable<Offset> v) => v;
-
-  static Coordinate ofCoordinate(Coordinate v) => v;
-
-  static Size ofSize(Size v) => v;
-
-  static Curve ofCurve(Curve v) => v;
-
-  static Curve ofCurveFlipped(Curve v) => v.flipped;
+extension KDuration on Duration {
+  static const milli5 = Duration(milliseconds: 5);
+  static const milli10 = Duration(milliseconds: 10);
+  static const milli20 = Duration(milliseconds: 20);
+  static const milli30 = Duration(milliseconds: 30);
+  static const milli40 = Duration(milliseconds: 40);
+  static const milli50 = Duration(milliseconds: 50);
+  static const milli60 = Duration(milliseconds: 60);
+  static const milli70 = Duration(milliseconds: 70);
+  static const milli80 = Duration(milliseconds: 80);
+  static const milli90 = Duration(milliseconds: 90);
+  static const milli100 = Duration(milliseconds: 100);
+  static const milli110 = Duration(milliseconds: 110);
+  static const milli120 = Duration(milliseconds: 120);
+  static const milli130 = Duration(milliseconds: 130);
+  static const milli140 = Duration(milliseconds: 140);
+  static const milli150 = Duration(milliseconds: 150);
+  static const milli160 = Duration(milliseconds: 160);
+  static const milli170 = Duration(milliseconds: 170);
+  static const milli180 = Duration(milliseconds: 180);
+  static const milli190 = Duration(milliseconds: 190);
+  static const milli200 = Duration(milliseconds: 200);
+  static const milli210 = Duration(milliseconds: 210);
+  static const milli220 = Duration(milliseconds: 220);
+  static const milli230 = Duration(milliseconds: 230);
+  static const milli240 = Duration(milliseconds: 240);
+  static const milli250 = Duration(milliseconds: 250);
+  static const milli260 = Duration(milliseconds: 260);
+  static const milli270 = Duration(milliseconds: 270);
+  static const milli280 = Duration(milliseconds: 280);
+  static const milli290 = Duration(milliseconds: 290);
+  static const milli295 = Duration(milliseconds: 295);
+  static const milli300 = Duration(milliseconds: 300);
+  static const milli306 = Duration(milliseconds: 306);
+  static const milli307 = Duration(milliseconds: 307);
+  static const milli308 = Duration(milliseconds: 308);
+  static const milli310 = Duration(milliseconds: 310);
+  static const milli320 = Duration(milliseconds: 320);
+  static const milli330 = Duration(milliseconds: 330);
+  static const milli335 = Duration(milliseconds: 335);
+  static const milli340 = Duration(milliseconds: 340);
+  static const milli350 = Duration(milliseconds: 350);
+  static const milli360 = Duration(milliseconds: 360);
+  static const milli370 = Duration(milliseconds: 370);
+  static const milli380 = Duration(milliseconds: 380);
+  static const milli390 = Duration(milliseconds: 390);
+  static const milli400 = Duration(milliseconds: 400);
+  static const milli410 = Duration(milliseconds: 410);
+  static const milli420 = Duration(milliseconds: 420);
+  static const milli430 = Duration(milliseconds: 430);
+  static const milli440 = Duration(milliseconds: 440);
+  static const milli450 = Duration(milliseconds: 450);
+  static const milli460 = Duration(milliseconds: 460);
+  static const milli466 = Duration(milliseconds: 466);
+  static const milli467 = Duration(milliseconds: 467);
+  static const milli468 = Duration(milliseconds: 468);
+  static const milli470 = Duration(milliseconds: 470);
+  static const milli480 = Duration(milliseconds: 480);
+  static const milli490 = Duration(milliseconds: 490);
+  static const milli500 = Duration(milliseconds: 500);
+  static const milli600 = Duration(milliseconds: 600);
+  static const milli700 = Duration(milliseconds: 700);
+  static const milli800 = Duration(milliseconds: 800);
+  static const milli810 = Duration(milliseconds: 810);
+  static const milli820 = Duration(milliseconds: 820);
+  static const milli830 = Duration(milliseconds: 830);
+  static const milli840 = Duration(milliseconds: 840);
+  static const milli850 = Duration(milliseconds: 850);
+  static const milli860 = Duration(milliseconds: 860);
+  static const milli870 = Duration(milliseconds: 870);
+  static const milli880 = Duration(milliseconds: 880);
+  static const milli890 = Duration(milliseconds: 890);
+  static const milli900 = Duration(milliseconds: 900);
+  static const milli910 = Duration(milliseconds: 910);
+  static const milli920 = Duration(milliseconds: 920);
+  static const milli930 = Duration(milliseconds: 930);
+  static const milli940 = Duration(milliseconds: 940);
+  static const milli950 = Duration(milliseconds: 950);
+  static const milli960 = Duration(milliseconds: 960);
+  static const milli970 = Duration(milliseconds: 970);
+  static const milli980 = Duration(milliseconds: 980);
+  static const milli990 = Duration(milliseconds: 990);
+  static const milli1100 = Duration(milliseconds: 1100);
+  static const milli1200 = Duration(milliseconds: 1200);
+  static const milli1300 = Duration(milliseconds: 1300);
+  static const milli1400 = Duration(milliseconds: 1400);
+  static const milli1500 = Duration(milliseconds: 1500);
+  static const milli1600 = Duration(milliseconds: 1600);
+  static const milli1700 = Duration(milliseconds: 1700);
+  static const milli1800 = Duration(milliseconds: 1800);
+  static const milli1900 = Duration(milliseconds: 1900);
+  static const milli1933 = Duration(milliseconds: 1933);
+  static const milli1934 = Duration(milliseconds: 1934);
+  static const milli1936 = Duration(milliseconds: 1936);
+  static const milli1940 = Duration(milliseconds: 1940);
+  static const milli1950 = Duration(milliseconds: 1950);
+  static const milli2100 = Duration(milliseconds: 2100);
+  static const milli2200 = Duration(milliseconds: 2200);
+  static const milli2300 = Duration(milliseconds: 2300);
+  static const milli2400 = Duration(milliseconds: 2400);
+  static const milli2500 = Duration(milliseconds: 2500);
+  static const milli2600 = Duration(milliseconds: 2600);
+  static const milli2700 = Duration(milliseconds: 2700);
+  static const milli2800 = Duration(milliseconds: 2800);
+  static const milli2900 = Duration(milliseconds: 2900);
+  static const milli3800 = Duration(milliseconds: 3800);
+  static const milli3822 = Duration(milliseconds: 3822);
+  static const milli3833 = Duration(milliseconds: 3833);
+  static const milli3866 = Duration(milliseconds: 3866);
+  static const milli4500 = Duration(milliseconds: 4500);
+  static const second1 = Duration(seconds: 1);
+  static const second2 = Duration(seconds: 2);
+  static const second3 = Duration(seconds: 3);
+  static const second4 = Duration(seconds: 4);
+  static const second5 = Duration(seconds: 5);
+  static const second6 = Duration(seconds: 6);
+  static const second7 = Duration(seconds: 7);
+  static const second8 = Duration(seconds: 8);
+  static const second9 = Duration(seconds: 9);
+  static const second10 = Duration(seconds: 10);
+  static const second14 = Duration(seconds: 14);
+  static const second15 = Duration(seconds: 15);
+  static const second20 = Duration(seconds: 20);
+  static const second30 = Duration(seconds: 30);
+  static const second40 = Duration(seconds: 40);
+  static const second50 = Duration(seconds: 50);
+  static const second58 = Duration(seconds: 58);
+  static const min1 = Duration(minutes: 1);
 }
 
-extension FMapperDouble on Mapper<double> {
-  static double of(double v) => v;
-
-  static double zero(double value) => 0;
-
-  static double keep(double value) => value;
-
-  ///
-  /// operate
-  ///
-  static Mapper<double> plus(double value) => (v) => v + value;
-
-  static Mapper<double> minus(double value) => (v) => v - value;
-
-  static Mapper<double> multiply(double value) => (v) => v * value;
-
-  static Mapper<double> divide(double value) => (v) => v / value;
-
-  static Mapper<double> operate(Operator operator, double value) =>
-      operator.doubleCompanion(value);
-
-  ///
-  /// sin
-  ///
-  static Mapper<double> sinFromFactor(double timeFactor, double factor) =>
-      (value) => math.sin(timeFactor * value) * factor;
-
-  // return "times of period" of (0 ~ 1 ~ 0 ~ -1 ~ 0)
-  static Mapper<double> sinFromPeriod(double times) {
-    final tween = Tween(
-      begin: 0.0,
-      end: switch (times) {
-        double.infinity || double.negativeInfinity => throw UnimplementedError(
-            'instead of times infinity, pls use [Ani] to repeat animation',
-          ),
-        _ => KRadian.angle_360 * times,
-      },
-    );
-    return (value) => math.sin(tween.transform(value));
-  }
-}
-
-extension KMapperCubicPointsPermutation on Mapper<Map<Offset, List<Offset>>> {
-  static const Mapper<Map<Offset, List<Offset>>> p0231 = _0231;
-  static const Mapper<Map<Offset, List<Offset>>> p1230 = _1230;
-
-  static Map<Offset, List<Offset>> _0231(Map<Offset, List<Offset>> points) =>
-      points.map(
-        (points, cubicPoints) => MapEntry(
-          points,
-          KOffsetPermutation4.p0231(cubicPoints),
-        ),
-      );
-
-  static Map<Offset, List<Offset>> _1230(Map<Offset, List<Offset>> points) =>
-      points.map(
-        (points, cubicPoints) => MapEntry(
-          points,
-          KOffsetPermutation4.p1230(cubicPoints),
-        ),
-      );
-
-  static Mapper<Map<Offset, List<Offset>>> of(Mapper<List<Offset>> mapper) =>
-      (points) => points
-          .map((points, cubicPoints) => MapEntry(points, mapper(cubicPoints)));
+extension KDurationFR on DurationFR {
+  static const milli100 = DurationFR.constant(KDuration.milli100);
+  static const milli300 = DurationFR.constant(KDuration.milli300);
+  static const milli500 = DurationFR.constant(KDuration.milli500);
+  static const milli800 = DurationFR.constant(KDuration.milli800);
+  static const milli1500 = DurationFR.constant(KDuration.milli1500);
+  static const milli2500 = DurationFR.constant(KDuration.milli2500);
+  static const second1 = DurationFR.constant(KDuration.second1);
+  static const second2 = DurationFR.constant(KDuration.second2);
+  static const second3 = DurationFR.constant(KDuration.second3);
+  static const second4 = DurationFR.constant(KDuration.second4);
+  static const second5 = DurationFR.constant(KDuration.second5);
+  static const second6 = DurationFR.constant(KDuration.second6);
+  static const second7 = DurationFR.constant(KDuration.second7);
+  static const second8 = DurationFR.constant(KDuration.second8);
+  static const second9 = DurationFR.constant(KDuration.second9);
+  static const second10 = DurationFR.constant(KDuration.second10);
+  static const second20 = DurationFR.constant(KDuration.second20);
+  static const second30 = DurationFR.constant(KDuration.second30);
+  static const min1 = DurationFR.constant(KDuration.min1);
 }
 
 ///
 ///
 ///
+/// curve
 ///
 ///
-/// generator
 ///
+
+
+extension KCurveFR on CurveFR {
+  /// list.length == 43, see https://api.flutter.dev/flutter/animation/Curves-class.html?gclid=CjwKCAiA-bmsBhAGEiwAoaQNmg9ZfimSGJRAty3QNZ0AA32ztq51qPlJfFPBsFc5Iv1n-EgFQtULyxoC8q0QAvD_BwE&gclsrc=aw.ds
+  static const List<CurveFR> all = [
+    linear,
+    decelerate,
+    fastLinearToSlowEaseIn,
+    fastEaseInToSlowEaseOut,
+    ease,
+    easeInToLinear,
+    linearToEaseOut,
+    easeIn,
+    easeInSine,
+    easeInQuad,
+    easeInCubic,
+    easeInQuart,
+    easeInQuint,
+    easeInExpo,
+    easeInCirc,
+    easeInBack,
+    easeOut,
+    easeOutSine,
+    easeOutQuad,
+    easeOutCubic,
+    easeOutQuart,
+    easeOutQuint,
+    easeOutExpo,
+    easeOutCirc,
+    easeOutBack,
+    easeInOut,
+    easeInOutSine,
+    easeInOutQuad,
+    easeInOutCubic,
+    easeInOutCubicEmphasized,
+    easeInOutQuart,
+    easeInOutQuint,
+    easeInOutExpo,
+    easeInOutCirc,
+    easeInOutBack,
+    fastOutSlowIn,
+    slowMiddle,
+    bounceIn,
+    bounceOut,
+    bounceInOut,
+    elasticIn,
+    elasticOut,
+    elasticInOut,
+  ];
+
+  static const linear = CurveFR.symmetry(Curves.linear);
+  static const decelerate = CurveFR.symmetry(Curves.decelerate);
+  static const fastLinearToSlowEaseIn =
+  CurveFR.symmetry(Curves.fastLinearToSlowEaseIn);
+  static const fastEaseInToSlowEaseOut =
+  CurveFR.symmetry(Curves.fastEaseInToSlowEaseOut);
+  static const ease = CurveFR.symmetry(Curves.ease);
+  static const easeInToLinear = CurveFR.symmetry(Curves.easeInToLinear);
+  static const linearToEaseOut = CurveFR.symmetry(Curves.linearToEaseOut);
+  static const easeIn = CurveFR.symmetry(Curves.easeIn);
+  static const easeInSine = CurveFR.symmetry(Curves.easeInSine);
+  static const easeInQuad = CurveFR.symmetry(Curves.easeInQuad);
+  static const easeInCubic = CurveFR.symmetry(Curves.easeInCubic);
+  static const easeInQuart = CurveFR.symmetry(Curves.easeInQuart);
+  static const easeInQuint = CurveFR.symmetry(Curves.easeInQuint);
+  static const easeInExpo = CurveFR.symmetry(Curves.easeInExpo);
+  static const easeInCirc = CurveFR.symmetry(Curves.easeInCirc);
+  static const easeInBack = CurveFR.symmetry(Curves.easeInBack);
+  static const easeOut = CurveFR.symmetry(Curves.easeOut);
+  static const easeOutSine = CurveFR.symmetry(Curves.easeOutSine);
+  static const easeOutQuad = CurveFR.symmetry(Curves.easeOutQuad);
+  static const easeOutCubic = CurveFR.symmetry(Curves.easeOutCubic);
+  static const easeOutQuart = CurveFR.symmetry(Curves.easeOutQuart);
+  static const easeOutQuint = CurveFR.symmetry(Curves.easeOutQuint);
+  static const easeOutExpo = CurveFR.symmetry(Curves.easeOutExpo);
+  static const easeOutCirc = CurveFR.symmetry(Curves.easeOutCirc);
+  static const easeOutBack = CurveFR.symmetry(Curves.easeOutBack);
+  static const easeInOut = CurveFR.symmetry(Curves.easeInOut);
+  static const easeInOutSine = CurveFR.symmetry(Curves.easeInOutSine);
+  static const easeInOutQuad = CurveFR.symmetry(Curves.easeInOutQuad);
+  static const easeInOutCubic = CurveFR.symmetry(Curves.easeInOutCubic);
+  static const easeInOutCubicEmphasized =
+  CurveFR.symmetry(Curves.easeInOutCubicEmphasized);
+  static const easeInOutQuart = CurveFR.symmetry(Curves.easeInOutQuart);
+  static const easeInOutQuint = CurveFR.symmetry(Curves.easeInOutQuint);
+  static const easeInOutExpo = CurveFR.symmetry(Curves.easeInOutExpo);
+  static const easeInOutCirc = CurveFR.symmetry(Curves.easeInOutCirc);
+  static const easeInOutBack = CurveFR.symmetry(Curves.easeInOutBack);
+  static const fastOutSlowIn = CurveFR.symmetry(Curves.fastOutSlowIn);
+  static const slowMiddle = CurveFR.symmetry(Curves.slowMiddle);
+  static const bounceIn = CurveFR.symmetry(Curves.bounceIn);
+  static const bounceOut = CurveFR.symmetry(Curves.bounceOut);
+  static const bounceInOut = CurveFR.symmetry(Curves.bounceInOut);
+  static const elasticIn = CurveFR.symmetry(Curves.elasticIn);
+  static const elasticOut = CurveFR.symmetry(Curves.elasticOut);
+  static const elasticInOut = CurveFR.symmetry(Curves.elasticInOut);
+
+  ///
+  /// f, r
+  ///
+  static const fastOutSlowIn_easeOutQuad =
+  CurveFR(Curves.fastOutSlowIn, Curves.easeOutQuad);
+
+  ///
+  /// interval
+  ///
+  static const easeInOut_00_04 = CurveFR.symmetry(KInterval.easeInOut_00_04);
+}
+
+///
+///
+///
+/// interval
 ///
 ///
 ///
 ///
 
-extension FGeneratorOffset on Generator<Offset> {
-  static Generator<Offset> withValue(
-    double value,
-    Offset Function(int index, double value) generator,
-  ) =>
-      (index) => generator(index, value);
-
-  static Generator<Offset> leftRightLeftRight(
-    double dX,
-    double dY, {
-    required Offset topLeft,
-    required Offset Function(int line, double dX, double dY) left,
-    required Offset Function(int line, double dX, double dY) right,
-  }) =>
-      (i) {
-        final indexLine = i ~/ 2;
-        return topLeft +
-            (i % 2 == 0 ? left(indexLine, dX, dY) : right(indexLine, dX, dY));
-      };
-
-  static Generator<Offset> grouping2({
-    required double dX,
-    required double dY,
-    required int modulusX,
-    required int modulusY,
-    required double constantX,
-    required double constantY,
-    required double group2ConstantX,
-    required double group2ConstantY,
-    required int group2ThresholdX,
-    required int group2ThresholdY,
-  }) =>
-      (index) => Offset(
-            constantX +
-                (index % modulusX) * dX +
-                (index > group2ThresholdX ? group2ConstantX : 0),
-            constantY +
-                (index % modulusY) * dY +
-                (index > group2ThresholdY ? group2ConstantY : 0),
-          );
-
-  static Generator<Offset> topBottomStyle1(double group2ConstantY) => grouping2(
-        dX: 78,
-        dY: 12,
-        modulusX: 6,
-        modulusY: 24,
-        constantX: -25,
-        constantY: -60,
-        group2ConstantX: 0,
-        group2ConstantY: group2ConstantY,
-        group2ThresholdX: 0,
-        group2ThresholdY: 11,
-      );
+extension KInterval on Interval {
+  static const easeInOut_00_04 = Interval(0, 0.4, curve: Curves.easeInOut);
+  static const easeInOut_00_05 = Interval(0, 0.5, curve: Curves.easeInOut);
+  static const easeOut_00_06 = Interval(0, 0.6, curve: Curves.easeOut);
+  static const easeInOut_02_08 = Interval(0.2, 0.8, curve: Curves.easeInOut);
+  static const easeInOut_04_10 = Interval(0.4, 1, curve: Curves.easeInOut);
+  static const fastOutSlowIn_00_05 =
+  Interval(0, 0.5, curve: Curves.fastOutSlowIn);
 }

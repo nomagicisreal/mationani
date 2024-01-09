@@ -455,9 +455,9 @@ class BetweenPathPolygon extends _BetweenPathConcurrent<double> {
   }) : super(
           BetweenConcurrent(
             betweens: [
-              cornerRadius?.call(polygon) ?? FBetweenDouble.zero,
-              edgeVectorTimes ?? FBetweenDouble.zero,
-              scale ?? FBetweenDouble.k1,
+              cornerRadius?.call(polygon) ?? BetweenDoubleExtension.zero,
+              edgeVectorTimes ?? BetweenDoubleExtension.zero,
+              scale ?? BetweenDoubleExtension.k1,
             ],
             onAnimate: (t, values) => FSizingPath.polygonCubicFromSize(
               polygon._cubicPointsOf(values[0], values[1]),

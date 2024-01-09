@@ -22,18 +22,6 @@ part of '../mationani.dart';
 ///
 ///
 
-///
-///
-///
-///
-/// path, canvas, paint, clipper, painter
-///
-///
-///
-///
-///
-///
-
 extension PathExtension on Path {
   ///
   ///

@@ -149,68 +149,68 @@ enum MationSequenceStyle {
     required MationSequenceStep next,
     required Combiner<MationSequenceStep, MationBase> combine,
   }) =>
-          (i) => combine(
-        predicator(i) ? previous : next,
-        predicator(i) ? next : previous,
-      );
+      (i) => combine(
+            predicator(i) ? previous : next,
+            predicator(i) ? next : previous,
+          );
 
   MationSequencer get sequencer => switch (this) {
-  // rotation, translation, scaling
+        // rotation, translation, scaling
 
-    transformTRS => (previous, next, interval) {
-      final curve = interval.curves[0].toCurveFR;
-      return MationSequenceStyle._sequence(
-        previous: previous,
-        next: next,
-        combine: (begin, end) {
-          final a = begin.coordinates;
-          final b = end.coordinates;
-          return MationTransform.list(
-            [
-              MationTransformDelegate.translate
-                ..between = Between(begin: a[0], end: b[0], curve: curve)
-                ..alignment = Alignment.topLeft,
-              MationTransformDelegate.rotate
-                ..between = Between(begin: a[1], end: b[1], curve: curve)
-                ..alignment = Alignment.topLeft,
-              MationTransformDelegate.scale
-                ..between = Between(begin: a[2], end: b[2], curve: curve)
-                ..alignment = Alignment.topLeft,
-            ],
-          );
-        },
-      );
-    },
+        transformTRS => (previous, next, interval) {
+            final curve = interval.curves[0].toCurveFR;
+            return MationSequenceStyle._sequence(
+              previous: previous,
+              next: next,
+              combine: (begin, end) {
+                final a = begin.coordinates;
+                final b = end.coordinates;
+                return MationTransform.list(
+                  [
+                    MationTransformDelegate.translate
+                      ..between = Between(begin: a[0], end: b[0], curve: curve)
+                      ..alignment = Alignment.topLeft,
+                    MationTransformDelegate.rotate
+                      ..between = Between(begin: a[1], end: b[1], curve: curve)
+                      ..alignment = Alignment.topLeft,
+                    MationTransformDelegate.scale
+                      ..between = Between(begin: a[2], end: b[2], curve: curve)
+                      ..alignment = Alignment.topLeft,
+                  ],
+                );
+              },
+            );
+          },
 
-  // rotate, slide in bezier cubic
+        // rotate, slide in bezier cubic
 
-    transitionRotateSlideBezierCubic => (previous, next, interval) {
-      final curve = interval.curves[0].toCurveFR;
-      final controlPoints = interval.offsets;
-      return MationSequenceStyle._sequence(
-        previous: previous,
-        next: next,
-        combine: (begin, end) => Mations<dynamic, Mation<dynamic>>([
-          MationTransitionDouble.rotate(
-            begin.values[0],
-            end.values[0],
-            curve: curve,
-          ),
-          MationTransitionOffset.from(
-            BetweenSpline2D(
-              onLerp: FOnLerpSpline2D.bezierCubic(
-                begin.offsets[0],
-                end.offsets[0],
-                c1: previous.offsets[0] + controlPoints[0],
-                c2: previous.offsets[0] + controlPoints[1],
-              ),
-              curve: curve,
-            ),
-          ),
-        ]),
-      );
-    },
-  };
+        transitionRotateSlideBezierCubic => (previous, next, interval) {
+            final curve = interval.curves[0].toCurveFR;
+            final controlPoints = interval.offsets;
+            return MationSequenceStyle._sequence(
+              previous: previous,
+              next: next,
+              combine: (begin, end) => Mations<dynamic, Mation<dynamic>>([
+                MationTransitionDouble.rotate(
+                  begin.values[0],
+                  end.values[0],
+                  curve: curve,
+                ),
+                MationTransitionOffset.from(
+                  BetweenSpline2D(
+                    onLerp: FOnLerpSpline2D.bezierCubic(
+                      begin.offsets[0],
+                      end.offsets[0],
+                      c1: previous.offsets[0] + controlPoints[0],
+                      c2: previous.offsets[0] + controlPoints[1],
+                    ),
+                    curve: curve,
+                  ),
+                ),
+              ]),
+            );
+          },
+      };
 }
 
 class MationSequenceStep {
@@ -236,7 +236,6 @@ class MationSequenceInterval {
     this.offsets = const [],
   });
 }
-
 
 ///
 ///
@@ -346,10 +345,10 @@ class MationTransitionDouble extends MationTransition<double> {
             builder: MationTransition.fade);
 
   MationTransitionDouble.fadeIn({CurveFR? curve})
-      : super(FBetweenDouble.zeroTo(1), builder: MationTransition.fade);
+      : super(BetweenDoubleExtension.zeroTo(1), builder: MationTransition.fade);
 
   MationTransitionDouble.fadeOut({CurveFR? curve})
-      : super(FBetweenDouble.oneTo(0), builder: MationTransition.fade);
+      : super(BetweenDoubleExtension.oneTo(0), builder: MationTransition.fade);
 
   factory MationTransitionDouble.fadeWithValue(
     double value, {
@@ -493,13 +492,13 @@ class MationTransitionOffset extends MationTransition<Offset> {
 
   MationTransitionOffset.zeroTo(Offset end, {CurveFR? curve})
       : super(
-          FBetweenOffset.zeroTo(end, curve: curve),
+          BetweenOffsetExtension.zeroTo(end, curve: curve),
           builder: MationTransition.slide,
         );
 
   MationTransitionOffset.zeroFrom(Offset begin, {CurveFR? curve})
       : super(
-          FBetweenOffset.zeroFrom(begin, curve: curve),
+          BetweenOffsetExtension.zeroFrom(begin, curve: curve),
           builder: MationTransition.slide,
         );
 
@@ -666,8 +665,7 @@ class Mations<T, M extends Mation<T>> extends MationBase<T> {
   String toString() => 'Mations: $_list';
 
   @override
-  Iterable<Animation> _animationsOf(
-          AnimationController c, Curve curve) =>
+  Iterable<Animation> _animationsOf(AnimationController c, Curve curve) =>
       _list.map((mation) => mation._animationOf(c, curve));
 
   @override
@@ -872,4 +870,3 @@ class MationTransform extends Mations<Coordinate, _MationTransformBase> {
   List<_MationTransformBase> get _list =>
       super._list.map((mation) => mation..link(host)).toList(growable: false);
 }
-
