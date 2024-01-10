@@ -3,21 +3,43 @@ part of '../mationani.dart';
 
 ///
 /// this file contains:
+/// constants:
+/// [KColor]
 /// [KSize], [KSize3Ratio4], [KSize9Ratio16], [KSize16Ratio9]
 /// [KDirection], [KOffset], [KOffsetPermutation4], [KCoordinate], [KVector]
-///
-/// [KRadian], [FRadian], [KRadianCoordinate], [FRadianCoordinate]
-/// [FRect]
-///
+/// [KRadian], [KRadianCoordinate]
 /// [KRadius], [KBorderRadius]
 /// [KEdgeInsets]
-///
 /// [KDuration], [KDurationFR]
 /// [KCurveFR], [KInterval]
 ///
+/// static methods:
+/// [FRadian], [FRadianCoordinate]
 ///
 ///
 ///
+
+extension KColor on Color {
+  static const pureRed = Color(0xFFff0000);
+  static const pureRedGreen = Color(0xFFffff00);
+  static const pureGreen = Color(0xFF00ff00);
+  static const pureGreenBlue = Color(0xFF00ffff);
+  static const pureBlue = Color(0xFF0000ff);
+  static const pureBlueRed = Color(0xFFff00ff);
+
+  static const burgundy = Color(0xff880d1e);
+  static const orange = Color(0xffefa47f);
+  static const blue = Color(0xff8d8ce7);
+  static const lightGrey = Color(0xffa28a8a);
+  static const white = Color(0xfff5f5f5);
+  static const grey = Color(0xffaeaeae);
+  static const grey2 = Color(0xffE8E8E8);
+  static const indyBlue = Color(0xff414361);
+  static const spaceCadet = Color(0xff2a2d43);
+
+  static const constant_200 = Color.fromARGB(255, 200, 200, 200);
+  static const rice = Color.fromARGB(255, 240, 232, 200);
+}
 
 extension KSize on Size {
   static const square_1 = Size.square(1);
@@ -378,66 +400,6 @@ extension KRadian on double {
   static const angle_001 = angle_1 / 100;
 }
 
-extension FRadian on double {
-  static double modulus1Round(double radian) => radian % KRadian.angle_360;
-
-  static double angleOf(double radian) => radian / KRadian.angle_1;
-
-  static double radianOf(double angle) => angle * KRadian.angle_1;
-
-  static double complementaryOf(double radian) {
-    assert(radian >= 0 && radian <= KRadian.angle_90);
-    return radianOf(90 - angleOf(radian));
-  }
-
-  static double supplementaryOf(double radian) {
-    assert(radian >= 0 && radian <= KRadian.angle_180);
-    return radianOf(180 - angleOf(radian));
-  }
-
-  static double restrictWithinAngle180_180N(double radian) {
-    final r = radian % 360;
-    return r >= KRadian.angle_180 ? r - KRadian.angle_360 : r;
-  }
-
-  ///
-  /// if
-  ///
-  static bool ifWithinAngle90_90N(double radian) =>
-      radian.abs() < KRadian.angle_90;
-
-  static bool ifOverAngle90_90N(double radian) =>
-      radian.abs() > KRadian.angle_90;
-
-  static bool ifWithinAngle0_180(double radian) =>
-      radian > 0 && radian < KRadian.angle_180;
-
-  static bool ifWithinAngle0_180N(double radian) =>
-      radian > -KRadian.angle_180 && radian < 0;
-
-  static bool ifOnRight(double radian) =>
-      ifWithinAngle90_90N(modulus1Round(radian));
-
-  static bool ifOnLeft(double radian) =>
-      ifOverAngle90_90N(modulus1Round(radian));
-
-  static bool ifOnTop(
-    double radian, {
-    bool isInMathDiscussion = false,
-  }) {
-    final r = modulus1Round(radian);
-    return isInMathDiscussion ? ifWithinAngle0_180(r) : ifWithinAngle0_180N(r);
-  }
-
-  static bool ifOnBottom(
-    double radian, {
-    bool isInMathDiscussion = false,
-  }) {
-    final r = modulus1Round(radian);
-    return isInMathDiscussion ? ifWithinAngle0_180N(r) : ifWithinAngle0_180(r);
-  }
-}
-
 extension KRadianCoordinate on Coordinate {
   static const angleX_360 = Coordinate.ofX(KRadian.angle_360);
   static const angleY_360 = Coordinate.ofY(KRadian.angle_360);
@@ -568,39 +530,15 @@ extension KRadianCoordinate on Coordinate {
       Coordinate.ofXY(KRadian.angle_001, KRadian.angle_001);
 }
 
-extension FRadianCoordinate on Coordinate {
-  static Coordinate complementaryOf(Coordinate radian) => Coordinate(
-        FRadian.complementaryOf(radian.dx),
-        FRadian.complementaryOf(radian.dy),
-        FRadian.complementaryOf(radian.dz),
-      );
-
-  static Coordinate supplementaryOf(Coordinate radian) => Coordinate(
-        FRadian.supplementaryOf(radian.dx),
-        FRadian.supplementaryOf(radian.dy),
-        FRadian.supplementaryOf(radian.dz),
-      );
-
-  static Coordinate restrictInAngle180Of(Coordinate radian) => Coordinate(
-        FRadian.restrictWithinAngle180_180N(radian.dx),
-        FRadian.restrictWithinAngle180_180N(radian.dy),
-        FRadian.restrictWithinAngle180_180N(radian.dz),
-      );
-}
-
 ///
 ///
 ///
 ///
-/// rect, radius
+/// radius
 ///
 ///
 ///
 ///
-
-extension FRect on Rect {
-  static Rect fromZeroTo(Size size) => Offset.zero & size;
-}
 
 extension KRadius on Radius {
   static const circular1 = Radius.circular(1);
@@ -1022,4 +960,95 @@ extension KInterval on Interval {
   static const easeInOut_04_10 = Interval(0.4, 1, curve: Curves.easeInOut);
   static const fastOutSlowIn_00_05 =
   Interval(0, 0.5, curve: Curves.fastOutSlowIn);
+}
+
+
+///
+///
+///
+///
+///
+///
+///
+///
+///
+
+extension FRadian on double {
+  static double modulus1Round(double radian) => radian % KRadian.angle_360;
+
+  static double angleOf(double radian) => radian / KRadian.angle_1;
+
+  static double radianOf(double angle) => angle * KRadian.angle_1;
+
+  static double complementaryOf(double radian) {
+    assert(radian >= 0 && radian <= KRadian.angle_90);
+    return radianOf(90 - angleOf(radian));
+  }
+
+  static double supplementaryOf(double radian) {
+    assert(radian >= 0 && radian <= KRadian.angle_180);
+    return radianOf(180 - angleOf(radian));
+  }
+
+  static double restrictWithinAngle180_180N(double radian) {
+    final r = radian % 360;
+    return r >= KRadian.angle_180 ? r - KRadian.angle_360 : r;
+  }
+
+  ///
+  /// if
+  ///
+  static bool ifWithinAngle90_90N(double radian) =>
+      radian.abs() < KRadian.angle_90;
+
+  static bool ifOverAngle90_90N(double radian) =>
+      radian.abs() > KRadian.angle_90;
+
+  static bool ifWithinAngle0_180(double radian) =>
+      radian > 0 && radian < KRadian.angle_180;
+
+  static bool ifWithinAngle0_180N(double radian) =>
+      radian > -KRadian.angle_180 && radian < 0;
+
+  static bool ifOnRight(double radian) =>
+      ifWithinAngle90_90N(modulus1Round(radian));
+
+  static bool ifOnLeft(double radian) =>
+      ifOverAngle90_90N(modulus1Round(radian));
+
+  static bool ifOnTop(
+      double radian, {
+        bool isInMathDiscussion = false,
+      }) {
+    final r = modulus1Round(radian);
+    return isInMathDiscussion ? ifWithinAngle0_180(r) : ifWithinAngle0_180N(r);
+  }
+
+  static bool ifOnBottom(
+      double radian, {
+        bool isInMathDiscussion = false,
+      }) {
+    final r = modulus1Round(radian);
+    return isInMathDiscussion ? ifWithinAngle0_180N(r) : ifWithinAngle0_180(r);
+  }
+}
+
+extension FRadianCoordinate on Coordinate {
+  static Coordinate complementaryOf(Coordinate radian) => Coordinate(
+    FRadian.complementaryOf(radian.dx),
+    FRadian.complementaryOf(radian.dy),
+    FRadian.complementaryOf(radian.dz),
+  );
+
+  static Coordinate supplementaryOf(Coordinate radian) => Coordinate(
+    FRadian.supplementaryOf(radian.dx),
+    FRadian.supplementaryOf(radian.dy),
+    FRadian.supplementaryOf(radian.dz),
+  );
+
+  static Coordinate restrictInAngle180Of(Coordinate radian) => Coordinate(
+    FRadian.restrictWithinAngle180_180N(radian.dx),
+    FRadian.restrictWithinAngle180_180N(radian.dy),
+    FRadian.restrictWithinAngle180_180N(radian.dz),
+  );
 }

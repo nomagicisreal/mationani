@@ -7,6 +7,7 @@ part of '../mationani.dart';
 /// [SizeExtension], [OffsetExtension], [RectExtension]
 /// [AlignmentExtension]
 /// [DurationExtension], [CurveExtension]
+/// [ColorExtension]
 ///
 /// [BetweenDoubleExtension], [BetweenOffsetExtension]
 /// [BetweenCoordinateExtension], [BetweenCoordinateRadianExtension]
@@ -232,6 +233,8 @@ extension OffsetExtension on Offset {
 }
 
 extension RectExtension on Rect {
+  static Rect fromZeroTo(Size size) => Offset.zero & size;
+
   static Rect fromLTSize(double left, double top, Size size) =>
       Rect.fromLTWH(left, top, size.width, size.height);
 
@@ -346,10 +349,34 @@ extension AlignmentExtension on Alignment {
   double radianRangeForSideStepOf(int count) =>
       radianRangeForSide / (this == Alignment.center ? count : count - 1);
 
-  ///
-  ///
-  /// my usages ------------------------------------------------------------------------------------------------------
-  ///
+  Mapper<Widget> get deviateBuilder {
+    Row rowOf(List<Widget> children) => Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: children,
+        );
+
+    final rowBuilder = switch (x) {
+      0 => (child) => rowOf([child]),
+      1 => (child) => rowOf([child, WSizedBox.expand]),
+      -1 => (child) => rowOf([WSizedBox.expand, child]),
+      _ => throw UnimplementedError(),
+    };
+
+    Column columnOf(List<Widget> children) => Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: children,
+        );
+
+    final columnBuilder = switch (y) {
+      0 => (child) => columnOf([child]),
+      1 => (child) => columnOf([rowBuilder(child), WSizedBox.expand]),
+      -1 => (child) => columnOf([WSizedBox.expand, rowBuilder(child)]),
+      _ => throw UnimplementedError(),
+    };
+
+    return (child) => columnBuilder(child);
+  }
+
   Generator<double> directionOfSideSpace(bool isClockwise, int count) {
     final boundary = radianBoundaryForSide;
     final origin = isClockwise ? boundary.$1 : boundary.$2;
@@ -372,6 +399,46 @@ extension DurationExtension on Duration {
 
 extension CurveExtension on Curve {
   CurveFR get toCurveFR => CurveFR(this, this);
+}
+
+extension ColorExtension on Color {
+  static Color get randomPrimary => Colors.primaries[math.Random().nextInt(18)];
+
+  Color plusARGB(int alpha, int red, int green, int blue) => Color.fromARGB(
+        this.alpha + alpha,
+        this.red + red,
+        this.green + green,
+        this.blue + blue,
+      );
+
+  Color minusARGB(int alpha, int red, int green, int blue) => Color.fromARGB(
+        this.alpha - alpha,
+        this.red - red,
+        this.green - green,
+        this.blue - blue,
+      );
+
+  Color multiplyARGB(int alpha, int red, int green, int blue) => Color.fromARGB(
+        this.alpha * alpha,
+        this.red * red,
+        this.green * green,
+        this.blue * blue,
+      );
+
+  Color divideARGB(int alpha, int red, int green, int blue) => Color.fromARGB(
+        this.alpha ~/ alpha,
+        this.red ~/ red,
+        this.green ~/ green,
+        this.blue ~/ blue,
+      );
+
+  Color operateWithValue(Operator operator, int value) => switch (operator) {
+        Operator.plus => plusARGB(0, value, value, value),
+        Operator.minus => minusARGB(0, value, value, value),
+        Operator.multiply => multiplyARGB(1, value, value, value),
+        Operator.divide => divideARGB(1, value, value, value),
+        Operator.modulus => throw UnimplementedError(),
+      };
 }
 
 ///
