@@ -33,6 +33,7 @@ class Ani {
   final AnimationStatusListener? initialStatusListener;
   final Consumer<AnimationController>? updateProcess;
   final AnimatingProcessor? onAnimating;
+  final bool rebuildWhenUpdate;
 
   AnimationController _initializing(TickerProvider ticker) =>
       (initializer ?? FAni.initialize)(
@@ -73,10 +74,11 @@ class Ani {
   WidgetBuilder _updating({
     required AnimationController controller,
     required Mationani oldWidget,
-    required Mationani widget,
+    required MationBase mation,
+    required Widget child,
   }) {
     if (controller.isAnimating) {
-      (onAnimating ?? FOnAnimatingProcessor.nothing)(
+      (onAnimating ?? FOnAnimatingProcessor.back)(
         controller,
         controller.status == AnimationStatus.forward,
       );
@@ -87,7 +89,7 @@ class Ani {
       }
       (updateProcess ?? FAni.processNothing)(controller);
     }
-    return _building(controller, widget.mation, widget.child);
+    return _building(controller, mation, child);
   }
 
   const Ani({
@@ -97,6 +99,7 @@ class Ani {
     this.updateProcess,
     this.onAnimating,
     this.curve,
+    this.rebuildWhenUpdate = true,
   });
 
   /// init
@@ -107,6 +110,7 @@ class Ani {
     this.updateProcess,
     this.onAnimating,
     this.curve,
+    this.rebuildWhenUpdate = true,
   }) : initializer = FAni.initializeForward;
 
   const Ani.initForwardReset({
@@ -115,6 +119,7 @@ class Ani {
     this.updateProcess,
     this.onAnimating,
     this.curve,
+    this.rebuildWhenUpdate = true,
   }) : initializer = FAni.initializeForwardReset;
 
   const Ani.initRepeat({
@@ -124,6 +129,7 @@ class Ani {
     this.updateProcess,
     this.onAnimating,
     this.curve,
+    this.rebuildWhenUpdate = true,
   }) : initializer = reverseEnable
             ? FAni.initializeRepeatReverse
             : FAni.initializeRepeat;
@@ -133,6 +139,7 @@ class Ani {
     this.initialStatusListener,
     this.onAnimating,
     this.curve,
+    this.rebuildWhenUpdate = true,
   })  : initializer = FAni.initializeForward,
         updateProcess = FAni.processReverse;
 
@@ -142,6 +149,7 @@ class Ani {
     this.initialStatusListener,
     this.onAnimating,
     this.curve,
+    this.rebuildWhenUpdate = true,
   })  : initializer = FAni.initializeForward,
         updateProcess =
             reverseEnable ? FAni.processRepeat : FAni.processRepeatReverse;
@@ -151,6 +159,7 @@ class Ani {
     this.initialStatusListener,
     this.onAnimating,
     this.curve,
+    this.rebuildWhenUpdate = true,
   })  : initializer = FAni.initializeForward,
         updateProcess = FAni.processResetForward;
 
@@ -159,6 +168,7 @@ class Ani {
     this.initialStatusListener,
     this.onAnimating,
     this.curve,
+    this.rebuildWhenUpdate = true,
   })  : initializer = FAni.initializeForward,
         updateProcess = FAni.processForwardOrReverse;
 
@@ -167,6 +177,7 @@ class Ani {
     this.initialStatusListener,
     this.onAnimating,
     this.curve,
+    this.rebuildWhenUpdate = true,
   })  : initializer = FAni.initializeForwardReset,
         updateProcess = FAni.processForwardReset;
 
@@ -178,6 +189,7 @@ class Ani {
     this.initialStatusListener,
     this.onAnimating,
     this.curve,
+    this.rebuildWhenUpdate = true,
   }) : updateProcess = FAni.processForward;
 
   Ani.updateForwardWhen(
@@ -187,6 +199,7 @@ class Ani {
     this.initialStatusListener,
     this.onAnimating,
     this.curve,
+    this.rebuildWhenUpdate = true,
   }) : updateProcess = FAni._decideForward(trigger);
 
   Ani.updateForwardResetWhen(
@@ -196,6 +209,7 @@ class Ani {
     this.initialStatusListener,
     this.onAnimating,
     this.curve,
+    this.rebuildWhenUpdate = true,
   }) : updateProcess = FAni._decideForwardReset(trigger);
 
   const Ani.updateForwardOrReverse({
@@ -204,6 +218,7 @@ class Ani {
     this.initialStatusListener,
     this.onAnimating,
     this.curve,
+    this.rebuildWhenUpdate = true,
   }) : updateProcess = FAni.processForwardOrReverse;
 
   Ani.updateForwardOrReverseWhen(
@@ -213,6 +228,7 @@ class Ani {
     this.initialStatusListener,
     this.onAnimating,
     this.curve,
+    this.rebuildWhenUpdate = true,
   }) : updateProcess = FAni._decideForwardOrReverse(trigger);
 
   Ani.updateSequencingWhen(
@@ -222,6 +238,7 @@ class Ani {
     this.initialStatusListener,
     this.onAnimating,
     Curve? curve,
+    this.rebuildWhenUpdate = true,
   })  : curve = curve?.toCurveFR,
         duration = duration.toDurationFR,
         updateProcess = FAni._decideForwardOrReverse(trigger);
@@ -233,6 +250,7 @@ class Ani {
     this.initialStatusListener,
     this.onAnimating,
     this.curve,
+    this.rebuildWhenUpdate = true,
   }) : updateProcess = FAni._decideReverse(trigger);
 }
 
@@ -460,12 +478,9 @@ extension FAnimationStatusListener on AnimationStatusListener {
 }
 
 extension FOnAnimatingProcessor on AnimatingProcessor {
-  static const AnimatingProcessor back = _back;
-  static const AnimatingProcessor nothing = _nothing;
+  static void nothing(AnimationController controller, bool isForward) {}
 
-  static void _nothing(AnimationController controller, bool isForward) {}
-
-  static void _back(AnimationController controller, bool isForward) => isForward
+  static void back(AnimationController controller, bool isForward) => isForward
       ? controller.reverse(from: controller.value)
       : controller.forward(from: controller.value);
 }

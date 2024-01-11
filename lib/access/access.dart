@@ -574,6 +574,7 @@ extension BetweenCoordinateRadianExtension on Between<Coordinate> {
 ///
 /// [hasElement], [notContains], [search]
 /// [mapToList]
+/// [reduceToNum]
 /// [reduceWithIndex], [foldWithIndex], [accompany],
 /// [flat], [chunk]
 ///
@@ -603,6 +604,19 @@ extension IterableExtension<I> on Iterable<I> {
   }) {
     int index = -1;
     return reduce((value, element) => combine(++index, value, element));
+  }
+
+  N reduceToNum<N extends num>(
+    Translator<I, N> translate, {
+    Combiner<N, N>? combine,
+  }) {
+    final combining = combine ?? math.max<N>;
+    final iterator = this.iterator..moveNext();
+    N val = translate(iterator.current);
+    while (iterator.moveNext()) {
+      val = combining(translate(iterator.current), val);
+    }
+    return val;
   }
 
   T foldWithIndex<T>(

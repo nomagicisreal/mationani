@@ -91,11 +91,15 @@ class MationaniState extends State<Mationani>
 
   @override
   void didUpdateWidget(covariant Mationani oldWidget) {
-    _builder = widget.ani._updating(
-      controller: controller,
-      oldWidget: oldWidget,
-      widget: widget,
-    );
+    final ani = widget.ani;
+    if (ani.rebuildWhenUpdate) {
+      _builder = ani._updating(
+        controller: controller,
+        oldWidget: oldWidget,
+        mation: widget.mation,
+        child: widget.child,
+      );
+    }
 
     super.didUpdateWidget(oldWidget);
   }
