@@ -15,6 +15,7 @@ part of '../mationani.dart';
 ///
 /// static methods:
 /// [FRadian], [FRadianCoordinate]
+/// [FStream]
 ///
 ///
 ///
@@ -674,7 +675,6 @@ extension KEdgeInsets on EdgeInsets {
 ///
 ///
 
-
 extension KDuration on Duration {
   static const milli5 = Duration(milliseconds: 5);
   static const milli10 = Duration(milliseconds: 10);
@@ -835,7 +835,6 @@ extension KDurationFR on DurationFR {
 ///
 ///
 
-
 extension KCurveFR on CurveFR {
   /// list.length == 43, see https://api.flutter.dev/flutter/animation/Curves-class.html?gclid=CjwKCAiA-bmsBhAGEiwAoaQNmg9ZfimSGJRAty3QNZ0AA32ztq51qPlJfFPBsFc5Iv1n-EgFQtULyxoC8q0QAvD_BwE&gclsrc=aw.ds
   static const List<CurveFR> all = [
@@ -887,9 +886,9 @@ extension KCurveFR on CurveFR {
   static const linear = CurveFR.symmetry(Curves.linear);
   static const decelerate = CurveFR.symmetry(Curves.decelerate);
   static const fastLinearToSlowEaseIn =
-  CurveFR.symmetry(Curves.fastLinearToSlowEaseIn);
+      CurveFR.symmetry(Curves.fastLinearToSlowEaseIn);
   static const fastEaseInToSlowEaseOut =
-  CurveFR.symmetry(Curves.fastEaseInToSlowEaseOut);
+      CurveFR.symmetry(Curves.fastEaseInToSlowEaseOut);
   static const ease = CurveFR.symmetry(Curves.ease);
   static const easeInToLinear = CurveFR.symmetry(Curves.easeInToLinear);
   static const linearToEaseOut = CurveFR.symmetry(Curves.linearToEaseOut);
@@ -916,7 +915,7 @@ extension KCurveFR on CurveFR {
   static const easeInOutQuad = CurveFR.symmetry(Curves.easeInOutQuad);
   static const easeInOutCubic = CurveFR.symmetry(Curves.easeInOutCubic);
   static const easeInOutCubicEmphasized =
-  CurveFR.symmetry(Curves.easeInOutCubicEmphasized);
+      CurveFR.symmetry(Curves.easeInOutCubicEmphasized);
   static const easeInOutQuart = CurveFR.symmetry(Curves.easeInOutQuart);
   static const easeInOutQuint = CurveFR.symmetry(Curves.easeInOutQuint);
   static const easeInOutExpo = CurveFR.symmetry(Curves.easeInOutExpo);
@@ -935,7 +934,7 @@ extension KCurveFR on CurveFR {
   /// f, r
   ///
   static const fastOutSlowIn_easeOutQuad =
-  CurveFR(Curves.fastOutSlowIn, Curves.easeOutQuad);
+      CurveFR(Curves.fastOutSlowIn, Curves.easeOutQuad);
 
   ///
   /// interval
@@ -959,9 +958,8 @@ extension KInterval on Interval {
   static const easeInOut_02_08 = Interval(0.2, 0.8, curve: Curves.easeInOut);
   static const easeInOut_04_10 = Interval(0.4, 1, curve: Curves.easeInOut);
   static const fastOutSlowIn_00_05 =
-  Interval(0, 0.5, curve: Curves.fastOutSlowIn);
+      Interval(0, 0.5, curve: Curves.fastOutSlowIn);
 }
-
 
 ///
 ///
@@ -1017,17 +1015,17 @@ extension FRadian on double {
       ifOverAngle90_90N(modulus1Round(radian));
 
   static bool ifOnTop(
-      double radian, {
-        bool isInMathDiscussion = false,
-      }) {
+    double radian, {
+    bool isInMathDiscussion = false,
+  }) {
     final r = modulus1Round(radian);
     return isInMathDiscussion ? ifWithinAngle0_180(r) : ifWithinAngle0_180N(r);
   }
 
   static bool ifOnBottom(
-      double radian, {
-        bool isInMathDiscussion = false,
-      }) {
+    double radian, {
+    bool isInMathDiscussion = false,
+  }) {
     final r = modulus1Round(radian);
     return isInMathDiscussion ? ifWithinAngle0_180N(r) : ifWithinAngle0_180(r);
   }
@@ -1035,20 +1033,53 @@ extension FRadian on double {
 
 extension FRadianCoordinate on Coordinate {
   static Coordinate complementaryOf(Coordinate radian) => Coordinate(
-    FRadian.complementaryOf(radian.dx),
-    FRadian.complementaryOf(radian.dy),
-    FRadian.complementaryOf(radian.dz),
-  );
+        FRadian.complementaryOf(radian.dx),
+        FRadian.complementaryOf(radian.dy),
+        FRadian.complementaryOf(radian.dz),
+      );
 
   static Coordinate supplementaryOf(Coordinate radian) => Coordinate(
-    FRadian.supplementaryOf(radian.dx),
-    FRadian.supplementaryOf(radian.dy),
-    FRadian.supplementaryOf(radian.dz),
-  );
+        FRadian.supplementaryOf(radian.dx),
+        FRadian.supplementaryOf(radian.dy),
+        FRadian.supplementaryOf(radian.dz),
+      );
 
   static Coordinate restrictInAngle180Of(Coordinate radian) => Coordinate(
-    FRadian.restrictWithinAngle180_180N(radian.dx),
-    FRadian.restrictWithinAngle180_180N(radian.dy),
-    FRadian.restrictWithinAngle180_180N(radian.dz),
-  );
+        FRadian.restrictWithinAngle180_180N(radian.dx),
+        FRadian.restrictWithinAngle180_180N(radian.dy),
+        FRadian.restrictWithinAngle180_180N(radian.dz),
+      );
+}
+
+extension FStream on Stream {
+  static Stream<T> generateFromIterable<T>(
+    int count, {
+    Generator<T>? generator,
+  }) =>
+      Stream.fromIterable(Iterable.generate(count, generator));
+
+  static Stream<int> intOf({
+    int start = 1,
+    int end = 10,
+    Duration interval = KDuration.second1,
+    bool startWithDelay = true,
+  }) async* {
+    Future<int> yielding(int value) async =>
+        Future.delayed(interval).then((_) => value);
+
+    Future<void> delay() async =>
+        startWithDelay ? Future.delayed(interval) : null;
+
+    if (end >= start) {
+      await delay();
+      for (var value = start; value <= end; value++) {
+        yield await yielding(value);
+      }
+    } else {
+      await delay();
+      for (var value = start; value >= end; value--) {
+        yield await yielding(value);
+      }
+    }
+  }
 }

@@ -724,12 +724,18 @@ extension IterableSetExtension<I> on Iterable<Set<I>> {
 ///
 /// instance methods:
 /// [swap]
+///
 /// [add2]
 /// [addIfNotNull]
-/// [addFirstAndRemoveFirst]
-/// [addFirstAndRemoveFirstAndGet]
-/// [getOrDefault]
-/// [removeFirst]
+/// [addFirstAndRemoveFirst], [addFirstAndRemoveFirstAndGet]
+///
+/// [getOrDefault],
+///
+/// [update], [updateWithMapper]
+/// [updateAll], [updateAllWithMapper]
+///
+/// [removeFirst], [removeWhereAndGet]
+///
 /// [rearrangeAs]
 /// [intersectionWith]
 /// [differenceWith], [differenceIndexWith]
@@ -763,6 +769,25 @@ extension ListExtension<T> on List<T> {
 
   T getOrDefault(int position, T defaultValue) =>
       position < length ? this[position] : defaultValue;
+
+  void update(int index, T value) => this[index] = value;
+
+  void updateWithMapper(int index, Mapper<T> mapper) =>
+      this[index] = mapper(this[index]);
+
+  void updateAll(T value) {
+    final length = this.length;
+    for (var i = 0; i < length; i++) {
+      this[i] = value;
+    }
+  }
+
+  void updateAllWithMapper(Mapper<T> mapper) {
+    final length = this.length;
+    for (var i = 0; i < length; i++) {
+      this[i] = mapper(this[i]);
+    }
+  }
 
   T removeFirst() => removeAt(0);
 
