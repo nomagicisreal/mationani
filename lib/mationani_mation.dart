@@ -69,7 +69,7 @@ class Mation<T> extends MationBase<T> {
   static Widget _animationBuilder(Animation animation, Widget child) => child;
 
   Animation<T> _animationOf(AnimationController c, Curve curve) =>
-      between.animate(c);
+      between.animate(c.drive(CurveTween(curve: curve)));
 
   @override
   Iterable<Animation> _animationsOf(AnimationController c, Curve curve) =>

@@ -126,6 +126,10 @@ extension KMapperCubicPointsPermutation on Mapper<Map<Offset, List<Offset>>> {
 ///
 ///
 
+extension FGenerator on Generator {
+  static Generator<T> fill<T>(T value) => (i) => value;
+}
+
 extension FGeneratorOffset on Generator<Offset> {
   static Generator<Offset> withValue(
     double value,

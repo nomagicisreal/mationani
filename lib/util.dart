@@ -9,15 +9,17 @@ part of 'mationani.dart';
 /// [Decider]          (return [Consumer], with 1 argument)
 /// [Mapper]           (return value that has the same type with argument)
 /// [Generator]        (return value from index)
+/// [Supporter]        (return value from index [Supplier])
 /// [Translator]       (return valur from argument in different type)
 /// [Sequencer]        (return [Translator]<[int], [R]> that comes from "previous", "next", "interval" for list generation)
 /// [Companion]        (return value that has the same type with first argument with a companion argument)
 ///
 /// [AnimationBuilder]
-/// [AnimatingProcessor]
 /// [AnimationControllerInitializer], [AnimationControllerDecider], [AnimationControllerDeciderTernary], ...
 /// [MationBuilder], [MationSequencer],
+/// [FollowerBuilder]
 /// [SizingPath], [SizingOffset], ..., [SizingPaintFromCanvas], ...
+/// [IfAnimating]
 /// [OnLerp], [OnAnimate], [OnAnimatePath], [OnAnimateMatrix4]
 ///
 /// private usages:
@@ -40,6 +42,7 @@ typedef Combiner<T, S> = S Function(T v1, T v2);
 typedef Decider<T, S> = Consumer<T> Function(S toggle);
 typedef Mapper<T> = T Function(T value);
 typedef Generator<T> = T Function(int index);
+typedef Supporter<T> = T Function(Supplier<int> indexing);
 typedef Translator<T, S> = S Function(T value);
 typedef Sequencer<R, S, I> = Translator<int, R> Function(
   S previous,
@@ -48,17 +51,13 @@ typedef Sequencer<R, S, I> = Translator<int, R> Function(
 );
 typedef Companion<T, S> = T Function(T host, S value);
 
+
 ///
 /// others
 ///
 typedef AnimationBuilder<T> = Widget Function(
   Animation<T> animation,
   Widget child,
-);
-
-typedef AnimatingProcessor = void Function(
-  AnimationController controller,
-  bool isForward,
 );
 
 typedef AnimationControllerDecider = Consumer<AnimationController> Function(
@@ -86,6 +85,10 @@ typedef MationSequencer<T> = Translator<int, MationBase<T>> Function(
   MationSequenceStep next,
   MationSequenceInterval interval,
 );
+
+typedef FollowerBuilder
+= Supporter<OverlayInsertionFading<CompositedTransformFollower>> Function(
+    LayerLink link);
 
 ///
 ///
@@ -165,6 +168,11 @@ extension FComparingPredicatorTernary on Combiner {
 typedef _AnimationsBuilder<T> = Widget Function(
   Iterable<Animation<T>> animations,
   Widget child,
+);
+
+typedef IfAnimating = void Function(
+  AnimationController controller,
+  bool isForward,
 );
 
 ///

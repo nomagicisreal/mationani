@@ -28,11 +28,11 @@ part of 'mationani.dart';
 ///
 class Ani {
   final DurationFR duration;
-  final CurveFR? curve;
+  final Curve? curve;
   final AnimationControllerInitializer? initializer;
   final AnimationStatusListener? initialStatusListener;
   final Consumer<AnimationController>? updateProcess;
-  final AnimatingProcessor? onAnimating;
+  final IfAnimating? onAnimating;
 
   AnimationController _initializing(TickerProvider ticker) =>
       (initializer ?? FAni.initialize)(
@@ -46,18 +46,9 @@ class Ani {
     MationBase mation,
     Widget child,
   ) {
-    final status = controller.status;
     final animations = mation._animationsOf(
       controller,
-      switch (status) {
-            AnimationStatus.forward ||
-            AnimationStatus.dismissed =>
-              curve?.forward,
-            AnimationStatus.reverse ||
-            AnimationStatus.completed =>
-              curve?.reverse,
-          } ??
-          Curves.linear,
+      curve ?? Curves.linear,
     );
     Widget build(BuildContext context) => mation._builder(animations, child);
 
@@ -206,9 +197,8 @@ class Ani {
     required Duration duration,
     this.initialStatusListener,
     this.onAnimating,
-    Curve? curve,
+    this.curve,
   })  : initializer = FAni.initializeForward,
-        curve = curve?.toCurveFR,
         duration = duration.toDurationFR,
         updateProcess = FAni._decideForwardOrReverse(trigger);
 
@@ -245,9 +235,8 @@ class Ani {
     this.initializer,
     this.initialStatusListener,
     this.onAnimating,
-    Curve? curve,
-  })  : curve = curve?.toCurveFR,
-        duration = duration.toDurationFR,
+    this.curve,
+  })  : duration = duration.toDurationFR,
         updateProcess = FAni._decideForwardOrReverse(trigger);
 
   Ani.updateReverseWhen(
@@ -491,7 +480,7 @@ extension FAnimationStatusListener on AnimationStatusListener {
           : null;
 }
 
-extension FOnAnimatingProcessor on AnimatingProcessor {
+extension FOnAnimatingProcessor on IfAnimating {
   static void nothing(AnimationController controller, bool isForward) {}
 
   static void back(AnimationController controller, bool isForward) => isForward

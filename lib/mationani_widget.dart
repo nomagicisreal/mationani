@@ -6,7 +6,15 @@ part of 'mationani.dart';
 /// [Mationani]
 ///   [MationaniSin]
 ///   [MationaniPenetration]
-///   []
+///   ...
+///
+/// [OverlayMixin]
+/// [OverlayInsertion]
+///   [OverlayInsertionFading]
+/// [OverlayFadingStream]
+///   [Leader]
+///
+///
 ///
 ///
 ///
@@ -43,7 +51,7 @@ class Mationani extends StatefulWidget {
     required Widget child,
     AnimationControllerInitializer? initializer,
     AnimationStatusListener? initialStatusListener,
-    AnimatingProcessor? onAnimating,
+    IfAnimating? onAnimating,
     Curve? curve,
   }) {
     final i = step ?? 0;
@@ -106,9 +114,9 @@ class MationaniState extends State<Mationani>
 }
 
 ///
-/// [MyAnimationSin.shaker]
-/// [MyAnimationSin.flicker]
-/// [MyAnimationSin.slider]
+/// [MationaniSin.shaker]
+/// [MationaniSin.flicker]
+/// [MationaniSin.slider]
 ///
 ///
 
@@ -331,8 +339,261 @@ class MationaniCutting extends StatelessWidget {
 
 ///
 ///
+/// overlay
+///
+///
+
+///
+///
+///
+/// [context]
+/// [entries]
+/// [_insertEntry]
+/// [_updateEntry]
+/// [_removeEntry]
+///
+/// [overlayInsert]
+/// [overlayUpdate]
+/// [overlayRemove]
+/// [overlayInsertFading]
+///
+///
+mixin OverlayMixin {
+  BuildContext get context;
+
+  final List<OverlayEntry> entries = [];
+
+  OverlayEntry _insertEntry(
+      OverlayEntry entry, {
+        OverlayEntry? below,
+        OverlayEntry? above,
+      }) {
+    Overlay.of(context).insert(entry, below: below, above: above);
+    entries.add(entry);
+    return entry;
+  }
+
+  void _updateEntry(OverlayEntry entry) => entry.markNeedsBuild();
+
+  void _removeEntry(OverlayEntry entry) {
+    entry.remove();
+    entries.remove(entry);
+  }
+
+  OverlayEntry overlayInsert(OverlayInsertion insertion) => _insertEntry(
+    insertion.entry,
+    below: insertion.below,
+    above: insertion.above,
+  );
+
+  void overlayUpdate([int? index]) {
+    final i = index ?? entries.length - 1;
+    assert(i >= 0);
+    _updateEntry(entries[i]);
+  }
+
+  void overlayRemove([int? index]) {
+    final i = index ?? entries.length - 1;
+    assert(i >= 0);
+    entries[i].remove();
+    entries.removeAt(i);
+  }
+
+  OverlayEntry overlayInsertFading(
+      OverlayInsertionFading insertion, {
+        required VoidCallback onRemoveEntry,
+      }) {
+    late final OverlayEntry entry;
+    entry = insertion.entry;
+    final onRemove = insertion.onRemoveEntry;
+    insertion.onRemoveEntry = () {
+      onRemove();
+      onRemoveEntry();
+      _removeEntry(entry);
+    };
+    return _insertEntry(entry, below: insertion.below, above: insertion.above);
+  }
+}
+
+class OverlayInsertion<T extends Widget> {
+  final Translator<BuildContext, T> builder;
+  final bool opaque;
+  final bool maintainState;
+  final OverlayEntry? below;
+  final OverlayEntry? above;
+
+  const OverlayInsertion({
+    required this.builder,
+    this.opaque = false,
+    this.maintainState = false,
+    this.below,
+    this.above,
+  });
+
+  OverlayEntry get entry => OverlayEntry(
+    builder: builder,
+    opaque: opaque,
+    maintainState: maintainState,
+  );
+}
+
+class OverlayInsertionFading<T extends Widget> extends OverlayInsertion<T> {
+  final DurationFR duration;
+  final Supplier<bool> shouldFadeOut;
+  final IfAnimating onAnimating;
+  final CurveFR? curveFade;
+  final Curve? curveAni;
+  VoidCallback onRemoveEntry;
+
+  OverlayInsertionFading({
+    super.opaque,
+    super.maintainState,
+    super.below,
+    super.above,
+    required super.builder,
+    required this.duration,
+    required this.shouldFadeOut,
+    required this.onRemoveEntry,
+    this.onAnimating = FOnAnimatingProcessor.nothing,
+    this.curveFade,
+    this.curveAni,
+  });
+
+  @override
+  OverlayEntry get entry => OverlayEntry(
+    opaque: opaque,
+    maintainState: maintainState,
+    builder: (context) => Mationani(
+      mation: MationTransitionDouble.fadeIn(curve: curveFade),
+      ani: Ani.initForwardAndUpdateReverseWhen(
+        shouldFadeOut(),
+        curve: curveAni,
+        duration: duration,
+        onAnimating: onAnimating,
+        initialStatusListener:
+        FAnimationStatusListener.dismissedListen(onRemoveEntry),
+      ),
+      child: builder(context),
+    ),
+  );
+}
+
+class OverlayFadingStream extends StatefulWidget {
+  const OverlayFadingStream({
+    super.key,
+    this.updateToResetCount = false,
+    required this.insert,
+    required this.update,
+    required this.insertions,
+    required this.child,
+  });
+
+  final Stream<int> insert;
+  final Stream<int> update;
+  final Supporter<OverlayInsertionFading> insertions;
+  final bool updateToResetCount;
+  final Widget child;
+
+  @override
+  State<OverlayFadingStream> createState() => _OverlayFadingStreamState();
+}
+
+class _OverlayFadingStreamState extends State<OverlayFadingStream>
+    with OverlayMixin {
+  late final StreamSubscription<int> subscription;
+  late final StreamSubscription<int> subscriptionUpdate;
+  final List<int> keys = [];
+  int key = 0;
+
+  @override
+  void initState() {
+    subscription = widget.insert.listen(
+          (builder) {
+        final key = this.key;
+        keys.add(key);
+
+        overlayInsertFading(
+          widget.insertions(() => keys.indexOf(key)),
+          onRemoveEntry: () => keys.remove(key),
+        );
+
+        this.key++;
+      },
+    );
+
+    subscriptionUpdate = widget.update.listen((i) => overlayUpdate(i));
+
+    super.initState();
+  }
+
+  @override
+  void didUpdateWidget(covariant OverlayFadingStream oldWidget) {
+    if (widget.updateToResetCount) {
+      key = 0;
+    }
+    super.didUpdateWidget(oldWidget);
+  }
+
+  @override
+  void dispose() {
+    subscription.cancel();
+    subscriptionUpdate.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
+}
+
+class Leader extends StatelessWidget {
+  const Leader({
+    super.key,
+    this.updateToResetKey = true,
+    required this.link,
+    required this.following,
+    required this.followingUpdate,
+    required this.builder,
+    required this.child,
+  });
+
+  final LayerLink link;
+  final Stream<int> following;
+  final Stream<int> followingUpdate;
+  final FollowerBuilder builder;
+  final bool updateToResetKey;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return OverlayFadingStream(
+      insert: following,
+      update: followingUpdate,
+      updateToResetCount: updateToResetKey,
+      insertions: builder(link),
+      child: CompositedTransformTarget(
+        link: link,
+
+        // leader
+        child: child,
+      ),
+    );
+  }
+}
+
+
+
+
+
+///
+///
+///
+///
+///
 ///
 /// clip
+///
+///
+///
 ///
 ///
 ///
