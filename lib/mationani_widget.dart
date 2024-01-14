@@ -1,30 +1,50 @@
 part of 'mationani.dart';
 
 ///
-///
 /// this file contains:
+///
 /// [Mationani]
 ///   [MationaniSin]
 ///   [MationaniPenetration]
 ///   ...
 ///
-/// [OverlayMixin]
-/// [OverlayInsertion]
-///   [OverlayInsertionFading]
+/// * [OverlayMixin]
+/// * [OverlayInsertion]
+///   * [OverlayInsertionFading]
 /// [OverlayFadingStream]
 ///   [Leader]
 ///
+/// [FabExpandable]
+///   * [_FabExpandableElements]
+///   * [FabExpandableSetup]
+///     * [FFabExpandableSetupOrbit]
+///     * [FFabExpandableSetupLine]
 ///
 ///
 ///
 ///
-/// [FClipping], [FClippingMationTransform], [FClippingMationTransformRowTransform], ...
-/// [FPainting], [FCustomPaint],  [FMationPainter]
+///
+///
+///
+///
+///
+///
+///
+///
 ///
 ///
 ///
 ///
 
+///
+///
+/// [Mationani.sequence]
+///
+/// [Mationani.rotateClipping]
+/// [Mationani.rotateSemicircleRowClipping]
+///
+///
+///
 class Mationani extends StatefulWidget {
   final MationBase mation;
   final Ani ani;
@@ -69,6 +89,83 @@ class Mationani extends StatefulWidget {
       child: child,
     );
   }
+
+  ///
+  ///
+  ///
+  /// other factories
+  ///
+  ///
+  ///
+
+  factory Mationani.rotateClipping({
+    Clip clipBehavior = Clip.antiAlias,
+    required AlignmentGeometry alignment,
+    required Ani ani,
+    required Between<Coordinate> tween,
+    required SizingPath sizeToPath,
+    required Widget child,
+  }) =>
+      Mationani(
+        ani: ani,
+        mation: _MationTransformBase._rotate(alignment: alignment, tween),
+        child: ClipPath(
+          clipper: Clipping.reclipNever(sizeToPath),
+          clipBehavior: clipBehavior,
+          child: child,
+        ),
+      );
+
+  factory Mationani.rotateSemicircleRowClipping({
+    MainAxisAlignment semicircleAlignment = MainAxisAlignment.center,
+    required DurationFR duration,
+    required Between<Coordinate> tweenRotate,
+    required Between<Coordinate> tweenFlip,
+    required AnimationStatusListener statusListenerRotate,
+    required AnimationStatusListener statusListenerFlip,
+    required bool isFlipped,
+    required Widget childRight,
+    required Widget childLeft,
+  }) =>
+      Mationani(
+        ani: Ani(
+          duration: duration,
+          initializer: Ani.initializeForward,
+          initialStatusListener: statusListenerRotate,
+          updateConsumer: Ani.decideResetForward(isFlipped),
+        ),
+        mation: _MationTransformBase._rotate(
+          alignment: Alignment.center,
+          tweenRotate,
+        ),
+        child: Row(
+          mainAxisAlignment: semicircleAlignment,
+          children: [
+            Mationani.rotateClipping(
+              tween: tweenFlip,
+              alignment: Alignment.centerRight,
+              sizeToPath: FSizingPath.pieOfLeftRight(false),
+              ani: Ani(
+                duration: duration,
+                updateConsumer: Ani.decideResetForward(!isFlipped),
+              ),
+              child: childLeft,
+            ),
+            Mationani.rotateClipping(
+              ani: Ani(
+                duration: duration,
+                initialStatusListener: statusListenerFlip,
+                updateConsumer: Ani.decideResetForward(!isFlipped),
+              ),
+              tween: tweenFlip,
+              alignment: Alignment.centerLeft,
+              sizeToPath: FSizingPath.pieOfLeftRight(true),
+              child: childRight,
+            ),
+          ],
+          // children: [VContainerStyled.gradiantWhitRed],
+        ),
+      );
 
   @override
   State<Mationani> createState() => MationaniState();
@@ -138,8 +235,8 @@ class MationaniSin extends StatelessWidget {
     Key? key,
     Alignment alignment = Alignment.center,
     bool adjustStart = true,
-    AnimationControllerInitializer initializer = FAni.initialize,
-    Consumer<AnimationController> updateListener = FAni.processNothing,
+    AnimationControllerInitializer initializer = Ani.initialize,
+    Consumer<AnimationController> updateListener = Ani.consumeNothing,
   }) =>
       MationaniSin._(
         key: key,
@@ -161,8 +258,8 @@ class MationaniSin extends StatelessWidget {
     required double amplitudeOpacity,
     required Widget child,
     Key? key,
-    AnimationControllerInitializer initializer = FAni.initialize,
-    Consumer<AnimationController> updateListener = FAni.processNothing,
+    AnimationControllerInitializer initializer = Ani.initialize,
+    Consumer<AnimationController> updateListener = Ani.consumeNothing,
   }) =>
       MationaniSin._(
         key: key,
@@ -183,8 +280,8 @@ class MationaniSin extends StatelessWidget {
     required Offset amplitudePosition,
     required Widget child,
     Key? key,
-    AnimationControllerInitializer initializer = FAni.initialize,
-    Consumer<AnimationController> updateListener = FAni.processNothing,
+    AnimationControllerInitializer initializer = Ani.initialize,
+    Consumer<AnimationController> updateListener = Ani.consumeNothing,
   }) =>
       MationaniSin._(
         key: key,
@@ -210,7 +307,7 @@ class MationaniSin extends StatelessWidget {
         ani: Ani(
           duration: duration,
           initializer: initializer,
-          updateProcess: updateListener,
+          updateConsumer: updateListener,
         ),
         mation: mation,
         child: child,
@@ -225,8 +322,8 @@ class MationaniPenetration extends StatelessWidget {
     required this.path,
     super.key,
     this.opacityEnd = 1.0,
-    this.curveFade = KCurveFR.fastOutSlowIn_easeOutQuad,
-    this.curveClipper = KCurveFR.fastOutSlowIn_easeOutQuad,
+    this.curveFade,
+    this.curveClipper,
     this.clip = Clip.antiAlias,
     this.color = Colors.black54,
     this.child,
@@ -234,8 +331,8 @@ class MationaniPenetration extends StatelessWidget {
 
   final Ani ani;
   final double opacityEnd;
-  final CurveFR curveFade;
-  final CurveFR curveClipper;
+  final CurveFR? curveFade;
+  final CurveFR? curveClipper;
   final Clip clip;
   final Color color;
   final Widget? child;
@@ -343,141 +440,6 @@ class MationaniCutting extends StatelessWidget {
 ///
 ///
 
-///
-///
-///
-/// [context]
-/// [entries]
-/// [_insertEntry]
-/// [_updateEntry]
-/// [_removeEntry]
-///
-/// [overlayInsert]
-/// [overlayUpdate]
-/// [overlayRemove]
-/// [overlayInsertFading]
-///
-///
-mixin OverlayMixin {
-  BuildContext get context;
-
-  final List<OverlayEntry> entries = [];
-
-  OverlayEntry _insertEntry(
-      OverlayEntry entry, {
-        OverlayEntry? below,
-        OverlayEntry? above,
-      }) {
-    Overlay.of(context).insert(entry, below: below, above: above);
-    entries.add(entry);
-    return entry;
-  }
-
-  void _updateEntry(OverlayEntry entry) => entry.markNeedsBuild();
-
-  void _removeEntry(OverlayEntry entry) {
-    entry.remove();
-    entries.remove(entry);
-  }
-
-  OverlayEntry overlayInsert(OverlayInsertion insertion) => _insertEntry(
-    insertion.entry,
-    below: insertion.below,
-    above: insertion.above,
-  );
-
-  void overlayUpdate([int? index]) {
-    final i = index ?? entries.length - 1;
-    assert(i >= 0);
-    _updateEntry(entries[i]);
-  }
-
-  void overlayRemove([int? index]) {
-    final i = index ?? entries.length - 1;
-    assert(i >= 0);
-    entries[i].remove();
-    entries.removeAt(i);
-  }
-
-  OverlayEntry overlayInsertFading(
-      OverlayInsertionFading insertion, {
-        required VoidCallback onRemoveEntry,
-      }) {
-    late final OverlayEntry entry;
-    entry = insertion.entry;
-    final onRemove = insertion.onRemoveEntry;
-    insertion.onRemoveEntry = () {
-      onRemove();
-      onRemoveEntry();
-      _removeEntry(entry);
-    };
-    return _insertEntry(entry, below: insertion.below, above: insertion.above);
-  }
-}
-
-class OverlayInsertion<T extends Widget> {
-  final Translator<BuildContext, T> builder;
-  final bool opaque;
-  final bool maintainState;
-  final OverlayEntry? below;
-  final OverlayEntry? above;
-
-  const OverlayInsertion({
-    required this.builder,
-    this.opaque = false,
-    this.maintainState = false,
-    this.below,
-    this.above,
-  });
-
-  OverlayEntry get entry => OverlayEntry(
-    builder: builder,
-    opaque: opaque,
-    maintainState: maintainState,
-  );
-}
-
-class OverlayInsertionFading<T extends Widget> extends OverlayInsertion<T> {
-  final DurationFR duration;
-  final Supplier<bool> shouldFadeOut;
-  final IfAnimating onAnimating;
-  final CurveFR? curveFade;
-  final Curve? curveAni;
-  VoidCallback onRemoveEntry;
-
-  OverlayInsertionFading({
-    super.opaque,
-    super.maintainState,
-    super.below,
-    super.above,
-    required super.builder,
-    required this.duration,
-    required this.shouldFadeOut,
-    required this.onRemoveEntry,
-    this.onAnimating = FOnAnimatingProcessor.nothing,
-    this.curveFade,
-    this.curveAni,
-  });
-
-  @override
-  OverlayEntry get entry => OverlayEntry(
-    opaque: opaque,
-    maintainState: maintainState,
-    builder: (context) => Mationani(
-      mation: MationTransitionDouble.fadeIn(curve: curveFade),
-      ani: Ani.initForwardAndUpdateReverseWhen(
-        shouldFadeOut(),
-        curve: curveAni,
-        duration: duration,
-        onAnimating: onAnimating,
-        initialStatusListener:
-        FAnimationStatusListener.dismissedListen(onRemoveEntry),
-      ),
-      child: builder(context),
-    ),
-  );
-}
-
 class OverlayFadingStream extends StatefulWidget {
   const OverlayFadingStream({
     super.key,
@@ -545,6 +507,140 @@ class _OverlayFadingStreamState extends State<OverlayFadingStream>
   Widget build(BuildContext context) => widget.child;
 }
 
+///
+///
+///
+/// [context]
+/// [entries]
+/// [_insertEntry]
+/// [_updateEntry]
+/// [_removeEntry]
+///
+/// [overlayInsert]
+/// [overlayUpdate]
+/// [overlayRemove]
+/// [overlayInsertFading]
+///
+///
+mixin OverlayMixin {
+  BuildContext get context;
+
+  final List<OverlayEntry> entries = [];
+
+  OverlayEntry _insertEntry(
+    OverlayEntry entry, {
+    OverlayEntry? below,
+    OverlayEntry? above,
+  }) {
+    Overlay.of(context).insert(entry, below: below, above: above);
+    entries.add(entry);
+    return entry;
+  }
+
+  void _updateEntry(OverlayEntry entry) => entry.markNeedsBuild();
+
+  void _removeEntry(OverlayEntry entry) {
+    entry.remove();
+    entries.remove(entry);
+  }
+
+  OverlayEntry overlayInsert(OverlayInsertion insertion) => _insertEntry(
+        insertion.entry,
+        below: insertion.below,
+        above: insertion.above,
+      );
+
+  void overlayUpdate([int? index]) {
+    final i = index ?? entries.length - 1;
+    assert(i >= 0);
+    _updateEntry(entries[i]);
+  }
+
+  void overlayRemove([int? index]) {
+    final i = index ?? entries.length - 1;
+    assert(i >= 0);
+    entries[i].remove();
+    entries.removeAt(i);
+  }
+
+  OverlayEntry overlayInsertFading(
+    OverlayInsertionFading insertion, {
+    required VoidCallback onRemoveEntry,
+  }) {
+    late final OverlayEntry entry;
+    entry = insertion.entry;
+    final onRemove = insertion.onRemoveEntry;
+    insertion.onRemoveEntry = () {
+      onRemove();
+      onRemoveEntry();
+      _removeEntry(entry);
+    };
+    return _insertEntry(entry, below: insertion.below, above: insertion.above);
+  }
+}
+
+class OverlayInsertion<T extends Widget> {
+  final Translator<BuildContext, T> builder;
+  final bool opaque;
+  final bool maintainState;
+  final OverlayEntry? below;
+  final OverlayEntry? above;
+
+  const OverlayInsertion({
+    required this.builder,
+    this.opaque = false,
+    this.maintainState = false,
+    this.below,
+    this.above,
+  });
+
+  OverlayEntry get entry => OverlayEntry(
+        builder: builder,
+        opaque: opaque,
+        maintainState: maintainState,
+      );
+}
+
+class OverlayInsertionFading<T extends Widget> extends OverlayInsertion<T> {
+  final DurationFR duration;
+  final Supplier<bool> shouldFadeOut;
+  final IfAnimating onAnimating;
+  final CurveFR? curveFade;
+  final Curve? curveAni;
+  VoidCallback onRemoveEntry;
+
+  OverlayInsertionFading({
+    super.opaque,
+    super.maintainState,
+    super.below,
+    super.above,
+    required super.builder,
+    required this.duration,
+    required this.shouldFadeOut,
+    required this.onRemoveEntry,
+    this.onAnimating = Ani.animatingNothing,
+    this.curveFade,
+    this.curveAni,
+  });
+
+  @override
+  OverlayEntry get entry => OverlayEntry(
+        opaque: opaque,
+        maintainState: maintainState,
+        builder: (context) => Mationani(
+          mation: MationTransitionDouble.fadeIn(curve: curveFade),
+          ani: Ani.initForwardAndUpdateReverseWhen(
+            shouldFadeOut(),
+            curve: curveAni,
+            duration: duration,
+            onAnimating: onAnimating,
+            initialStatusListener: Ani.listenDismissed(onRemoveEntry),
+          ),
+          child: builder(context),
+        ),
+      );
+}
+
 class Leader extends StatelessWidget {
   const Leader({
     super.key,
@@ -559,7 +655,7 @@ class Leader extends StatelessWidget {
   final LayerLink link;
   final Stream<int> following;
   final Stream<int> followingUpdate;
-  final FollowerBuilder builder;
+  final FollowerInitializer builder;
   final bool updateToResetKey;
   final Widget child;
 
@@ -580,214 +676,341 @@ class Leader extends StatelessWidget {
   }
 }
 
+///
+///
+///
+///
+///
+///
+///
+/// fab (floating action button)
+///
+///
+///
+///
+///
+///
+///
+///
 
+///
+///
+/// TODO: layout every elements no matter size
+///
+///
+class FabExpandable extends StatefulWidget {
+  const FabExpandable({
+    super.key,
+    this.initialOpen = false,
+    this.openIcon = WIconMaterial.create,
+    this.closeIcon = WIconMaterial.close,
+    this.durationFadeOut = KDuration.milli250,
+    this.curveFadeOut = KCurveFR.easeInOut,
+    this.alignment = Alignment.bottomRight,
+    this.initializer = FFabExpandableSetupOrbit.clockwise_2,
+    required this.elements,
+  });
 
+  final bool initialOpen;
+  final Icon openIcon;
+  final Icon closeIcon;
+  final Duration durationFadeOut;
+  final CurveFR curveFadeOut;
+  final Alignment alignment;
+  final List<IconAction> elements;
+  final FabExpandableSetupInitializer initializer;
 
-
-///
-///
-///
-///
-///
-///
-/// clip
-///
-///
-///
-///
-///
-///
-
-extension FClipPath on CustomPaint {
-  static ClipPath rectFromZeroToSize({
-    Clip clipBehavior = Clip.antiAlias,
-    required Size size,
-    required Widget child,
-  }) =>
-      ClipPath(
-        clipBehavior: clipBehavior,
-        clipper: FClipping.rectOf(Offset.zero & size),
-        child: child,
-      );
-
-  static ClipPath reClipNeverOf({
-    Clip clipBehavior = Clip.antiAlias,
-    required SizingPath pathFromSize,
-    required Widget child,
-  }) =>
-      ClipPath(
-        clipBehavior: clipBehavior,
-        clipper: Clipping.reclipNever(pathFromSize),
-        child: child,
-      );
-
-  static ClipPath decoratedPolygon(
-    Decoration decoration,
-    RRegularPolygon polygon, {
-    DecorationPosition position = DecorationPosition.background,
-    Widget? child,
-  }) =>
-      ClipPath(
-        clipper: FClipping.polygonCubicCornerFromSize(polygon),
-        child: DecoratedBox(
-          decoration: decoration,
-          position: position,
-          child: child,
-        ),
-      );
+  @override
+  State<FabExpandable> createState() => _FabExpandableState();
 }
 
-extension FClipping on Clipping {
-  static Clipping rectOf(Rect rect) =>
-      Clipping.reclipNever(FSizingPath.rect(rect));
+class _FabExpandableState extends State<FabExpandable>
+    with SingleTickerProviderStateMixin, OverlayMixin {
+  final GlobalKey _openIconKey = GlobalKey();
+  bool _isOpen = false;
 
-  static Clipping rectFromZeroTo(Size size) => rectOf(Offset.zero & size);
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialOpen) {
+      _toggle();
+    }
+  }
 
-  static Clipping rectFromZeroToOffset(Offset corner) =>
-      rectOf(Rect.fromPoints(Offset.zero, corner));
-
-  static Clipping polygonCubicCornerFromSize(RRegularPolygon polygon) =>
-      Clipping.reclipNever(
-        FSizingPath.polygonCubicFromSize(polygon.cubicPoints),
-      );
-}
-
-extension FClippingMationTransform on Mationani {
-  static Mationani rotate({
-    Clip clipBehavior = Clip.antiAlias,
-    required AlignmentGeometry alignment,
-    required Ani ani,
-    required Between<Coordinate> tween,
-    required SizingPath sizeToPath,
-    required Widget child,
-  }) =>
-      Mationani(
-        ani: ani,
-        mation: _MationTransformBase._rotate(alignment: alignment, tween),
-        child: ClipPath(
-          clipper: Clipping.reclipNever(sizeToPath),
-          clipBehavior: clipBehavior,
-          child: child,
-        ),
-      );
-}
-
-extension FClippingMationTransformRowTransform on Mationani {
-  static Mationani rotateSemicircleFlip({
-    MainAxisAlignment semicircleAlignment = MainAxisAlignment.center,
-    required DurationFR duration,
-    required Between<Coordinate> tweenRotate,
-    required Between<Coordinate> tweenFlip,
-    required AnimationStatusListener statusListenerRotate,
-    required AnimationStatusListener statusListenerFlip,
-    required bool isFlipped,
-    required Widget childRight,
-    required Widget childLeft,
-  }) =>
-      Mationani(
-        ani: Ani.initForward(
-          duration: duration,
-          initialStatusListener: statusListenerRotate,
-          updateProcess: FAni.decideResetForward(isFlipped),
-        ),
-        mation: _MationTransformBase._rotate(
-          alignment: Alignment.center,
-          tweenRotate,
-        ),
-        child: Row(
-          mainAxisAlignment: semicircleAlignment,
-          children: [
-            FClippingMationTransform.rotate(
-              tween: tweenFlip,
-              alignment: Alignment.centerRight,
-              sizeToPath: FSizingPath.pieOfLeftRight(false),
-              ani: Ani(
-                duration: duration,
-                updateProcess: FAni.decideResetForward(!isFlipped),
+  ///
+  ///
+  /// If included element buttons built in stack, the elements buttons constraint by parent's size of [FabExpandable].
+  /// When elements constraint by parent's size, if elements are translated outside of constraints,
+  /// they won't be response when user tapping them; therefore,
+  /// it's more flexible to use [OverlayEntry] to have more generic 'floating animation, onTap function',
+  /// see [Positioned.fromRect] in [_FabExpandableElements] to specify how much space elements need.
+  ///
+  ///
+  void _toggle() => setState(() {
+        _isOpen = !_isOpen;
+        if (entries.isEmpty) {
+          overlayInsert(OverlayInsertion(
+            builder: (context) => _FabExpandableElements(
+              isOpen: _isOpen,
+              setup: widget.initializer(
+                duration: KDuration.second1.toDurationFR,
+                context: context,
+                openIconRect: _openIconKey.renderRect,
+                openIconAlignment: widget.alignment,
+                icons: widget.elements,
               ),
-              child: childLeft,
             ),
-            FClippingMationTransform.rotate(
-              ani: Ani(
-                duration: duration,
-                initialStatusListener: statusListenerFlip,
-                updateProcess: FAni.decideResetForward(!isFlipped),
-              ),
-              tween: tweenFlip,
-              alignment: Alignment.centerLeft,
-              sizeToPath: FSizingPath.pieOfLeftRight(true),
-              child: childRight,
-            ),
-          ],
-          // children: [VContainerStyled.gradiantWhitRed],
-        ),
-      );
-}
+          ));
+        }
+        overlayUpdate();
+      });
 
-///
-///
-///
-///
-///
-/// paint
-///
-///
-///
-///
-///
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox.expand(
+      child: Stack(
+        alignment: widget.alignment,
+        clipBehavior: Clip.none,
+        children: [_closeButton, _openButton],
+      ),
+    );
+  }
 
-extension FPainting on Painting {
-  static Painting polygonCubicCorner(
-    SizingPaintFromCanvas paintFromCanvasSize,
-    RRegularPolygon polygon,
-  ) =>
-      Painting.rePaintNever(
-        sizingPaintFromCanvas: paintFromCanvasSize,
-        sizingPath: FSizingPath.polygonCubic(polygon.cubicPoints),
-      );
-}
-
-extension FCustomPaint on CustomPaint {
-  static CustomPaint polygonCanvasSizeToPaint(
-    RRegularPolygon polygon,
-    SizingPaintFromCanvas paintFromCanvasSize, {
-    Widget? child,
-  }) =>
-      CustomPaint(
-        painter: FPainting.polygonCubicCorner(paintFromCanvasSize, polygon),
-        child: child,
-      );
-}
-
-extension FMationPainter on MationPainter {
-  static MationPainter progressingCircles({
-    double initialCircleRadius = 5.0,
-    double circleRadiusFactor = 0.1,
-    required Ani setting,
-    required Paint paint,
-    required Tween<double> radiusOrbit,
-    required int circleCount,
-    required Companion<Vector3D, int> planetGenerator,
-  }) =>
-      MationPainter.drawPathTweenWithPaint(
-        sizingPaintingFromCanvas: (_, __) => paint,
-        BetweenPath(
-          Between<Vector3D>(
-            begin: Vector3D(Coordinate.zero, radiusOrbit.begin!),
-            end: Vector3D(KRadianCoordinate.angleZ_360, radiusOrbit.end!),
+  Widget get _openButton => IgnorePointer(
+        key: _openIconKey,
+        ignoring: _isOpen,
+        child: Mationani(
+          ani: Ani(
+            duration: DurationFR.constant(widget.durationFadeOut),
+            updateConsumer: Ani.decideForwardOrReverse(_isOpen),
           ),
-          onAnimate: (t, vector) => PathOperation.union._combineAll(
-            Iterable.generate(
-              circleCount,
-              (i) => (size) => Path()
-                ..addOval(
-                  Rect.fromCircle(
-                    center: planetGenerator(vector, i).toCoordinate,
-                    radius: initialCircleRadius * (i + 1) * circleRadiusFactor,
-                  ),
+          mation: Mations([
+            MationTransitionDouble.fadeOut(),
+            MationTransitionDouble.scale(
+              1.0,
+              0.7,
+              curve: widget.curveFadeOut,
+              alignment: Alignment.center,
+            ),
+          ]),
+          child: FloatingActionButton(
+            onPressed: _toggle,
+            child: widget.openIcon,
+          ),
+        ),
+      );
+
+  Widget get _closeButton => SizedBoxCenter.fromSize(
+        size: KSize.square_56,
+        child: MaterialInkWellPadding(
+          shape: FBorderOutlined.circle(side: BorderSide.none),
+          clipBehavior: Clip.antiAlias,
+          elevation: 4,
+          onTap: _toggle,
+          padding: KEdgeInsets.all_1 * 8,
+          child: widget.closeIcon,
+        ),
+      );
+}
+
+class _FabExpandableElements extends StatelessWidget {
+  const _FabExpandableElements({
+    required this.isOpen,
+    required this.setup,
+  });
+
+  final bool isOpen;
+  final FabExpandableSetup setup;
+
+  @override
+  Widget build(BuildContext context) {
+    final icons = setup.icons;
+    return Positioned.fromRect(
+      rect: setup.positioned,
+      child: IgnorePointer(
+        ignoring: !isOpen,
+        child: Stack(
+          alignment: setup.alignment,
+          children: List.generate(
+            icons.length,
+            (index) {
+              final element = icons[index];
+              return Mationani(
+                ani: setup.aniOf(isOpen),
+                mation: setup.mationsGenerator(index),
+                child: MaterialIconButton(
+                  onPressed: element.action,
+                  child: element.icon,
                 ),
-            ),
+              );
+            },
           ),
         ),
+      ),
+    );
+  }
+}
+
+class FabExpandableSetup {
+  final Rect positioned;
+  final Alignment alignment;
+  final DurationFR duration;
+  final Decider<AnimationController, bool> updateHear;
+  final Generator<MationBase> mationsGenerator;
+  final List<IconAction> icons;
+
+  Ani aniOf(bool open) => Ani(
+        duration: duration,
+        initializer: Ani.initializeForward,
+        updateConsumer: updateHear(open),
+        onAnimating: Ani.animatingBack,
       );
+
+  FabExpandableSetup._({
+    required this.positioned,
+    required this.alignment,
+    required this.duration,
+    required this.updateHear,
+    required this.mationsGenerator,
+    required this.icons,
+  });
+
+  static Generator<Mations<dynamic, Mation>> _orbitOnOpenIcon(
+    Generator<double> direction,
+    double distance,
+    CurveFR curve,
+  ) =>
+      (index) => Mations<dynamic, Mation>([
+            MationTransitionDouble.fade(0, 1, curve: curve),
+            MationTransitionOffset.ofDirection(
+              direction(index),
+              0,
+              distance,
+              curve: CurveFR.intervalFlip(0.2 * index, 1.0, curve),
+            ),
+          ]);
+
+  factory FabExpandableSetup.orbitOnOpenIcon({
+    required DurationFR duration,
+    required BuildContext context,
+    required Rect openIconRect,
+    required Generator<double> direction,
+    required List<IconAction> icons,
+    double distance = 2,
+    double maxElementsIconSize = 24,
+    CurveFR curve = KCurveFR.fastOutSlowIn,
+    Decider<AnimationController, bool> updateHear = Ani.decideForwardOrReverse,
+    Generator<Mations<dynamic, Mation>>? mations,
+  }) {
+    final maxElementsIconSize = icons.maxSizeOf(context);
+    return FabExpandableSetup._(
+      positioned: RectExtension.fromCircle(
+        openIconRect.center,
+        maxElementsIconSize * (1 + 2 * distance),
+      ),
+      alignment: Alignment.center,
+      duration: duration,
+      updateHear: updateHear,
+      mationsGenerator: mations ?? _orbitOnOpenIcon(direction, distance, curve),
+      icons: icons,
+    );
+  }
+
+  static Generator<Mations<dynamic, Mation>> _line(
+    Direction2DIn8 direction,
+    double distance,
+    CurveFR curve,
+  ) =>
+      (index) => Mations<dynamic, Mation>([
+            MationTransitionOffset.zeroTo(
+              direction.toOffset * distance * (index + 1).toDouble(),
+              curve: curve,
+            ),
+            MationTransitionDouble.scale(
+              0.0,
+              1.0,
+              curve: CurveFR.intervalFlip(0.2 * index, 1.0, curve),
+            ),
+          ]);
+
+  factory FabExpandableSetup.line({
+    required DurationFR duration,
+    required BuildContext context,
+    required Rect openIconRect,
+    required Direction2DIn8 direction,
+    required List<IconAction> icons,
+    double distance = 1.2,
+    CurveFR curve = KCurveFR.ease,
+    AnimationControllerDecider updateHear = Ani.decideForwardOrReverse,
+    Generator<Mations<dynamic, Mation>>? mations,
+  }) {
+    final maxElementsIconSize = icons.maxSizeOf(context);
+    return FabExpandableSetup._(
+      positioned: openIconRect.expandToIncludeDirection(
+        direction: direction,
+        width: maxElementsIconSize * 2,
+        length: maxElementsIconSize * 2 * distance * icons.length,
+      ),
+      alignment: direction.flipped.toAlignment,
+      duration: duration,
+      updateHear: updateHear,
+      mationsGenerator: mations ?? _line(direction, distance, curve),
+      icons: icons,
+    );
+  }
+}
+
+extension FFabExpandableSetupOrbit on FabExpandableSetupInitializer {
+  static const clockwise_2 = _clockwise_2;
+  static const counterClockwise_2 = _counterClockwise_2;
+
+  static FabExpandableSetup _clockwise_2({
+    required DurationFR duration,
+    required BuildContext context,
+    required Rect openIconRect,
+    required Alignment openIconAlignment,
+    required List<IconAction> icons,
+  }) =>
+      FabExpandableSetup.orbitOnOpenIcon(
+        duration: duration,
+        context: context,
+        openIconRect: openIconRect,
+        direction: openIconAlignment.directionOfSideSpace(
+          true,
+          icons.length,
+        ),
+        icons: icons,
+      );
+
+  static FabExpandableSetup _counterClockwise_2({
+    required DurationFR duration,
+    required BuildContext context,
+    required Rect openIconRect,
+    required Alignment openIconAlignment,
+    required List<IconAction> icons,
+  }) =>
+      FabExpandableSetup.orbitOnOpenIcon(
+        duration: duration,
+        context: context,
+        openIconRect: openIconRect,
+        direction: openIconAlignment.directionOfSideSpace(false, icons.length),
+        icons: icons,
+      );
+}
+
+extension FFabExpandableSetupLine on FabExpandableSetupInitializer {
+  static FabExpandableSetupInitializer line1d2Of(Direction2DIn8 direction) => ({
+        required DurationFR duration,
+        required BuildContext context,
+        required Rect openIconRect,
+        required Alignment openIconAlignment,
+        required List<IconAction> icons,
+      }) =>
+          FabExpandableSetup.line(
+            duration: duration,
+            context: context,
+            openIconRect: openIconRect,
+            direction: direction,
+            icons: icons,
+          );
 }

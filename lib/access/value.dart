@@ -1,24 +1,44 @@
-// ignore_for_file: constant_identifier_names
+// ignore_for_file: constant_identifier_names, non_constant_identifier_names
 part of '../mationani.dart';
 
 ///
 /// this file contains:
+///
+/// [kVoidCallback]
+///
 /// constants:
-/// [KColor]
+/// [KColor], [KColorStyle1]
+/// [KTextStyle]
+///
 /// [KSize], [KSize3Ratio4], [KSize9Ratio16], [KSize16Ratio9]
-/// [KDirection], [KOffset], [KOffsetPermutation4], [KCoordinate], [KVector]
+/// [KDirection]
+/// [KOffset], [KOffsetPermutation4], [KMapperCubicPointsPermutation]
+/// [KCoordinate], [KVector]
 /// [KRadian], [KRadianCoordinate]
 /// [KRadius], [KBorderRadius]
 /// [KEdgeInsets]
+///
 /// [KDuration], [KDurationFR]
 /// [KCurveFR], [KInterval]
 ///
-/// static methods:
-/// [FRadian], [FRadianCoordinate]
-/// [FStream]
+/// [KMaskFilter]
+///
+/// values:
+/// [VThemeData]
+/// [VPaintFill], [VPaintStroke]
 ///
 ///
 ///
+///
+///
+///
+///
+///
+///
+
+const VoidCallback kVoidCallback = _voidCallback;
+
+void _voidCallback() {}
 
 extension KColor on Color {
   static const pureRed = Color(0xFFff0000);
@@ -41,6 +61,121 @@ extension KColor on Color {
   static const constant_200 = Color.fromARGB(255, 200, 200, 200);
   static const rice = Color.fromARGB(255, 240, 232, 200);
 }
+
+extension KColorStyle1 on Color {
+  /// R
+  static const redB1 = Color(0xFFffdddd);
+  static const redB2 = Color(0xFFeecccc);
+  static const redB3 = Color(0xFFdd9999);
+  static const redPrimary = Color(0xFFdd7777);
+  static const redD3 = Color(0xFFbb4444);
+  static const redD2 = Color(0xFFaa1111);
+  static const redD1 = Color(0xFF880000);
+
+  /// G
+  static const greenB1 = Color(0xFFddffdd);
+  static const greenB2 = Color(0xFFcceecc);
+  static const greenB3 = Color(0xFFaaddaa);
+  static const greenPrimary = Color(0xFF88aa88);
+  static const greenD3 = Color(0xFF559955);
+  static const greenD2 = Color(0xFF227722);
+  static const greenD1 = Color(0xFF005500);
+
+  /// B
+  static const blueB1 = Color(0xFFddddff);
+  static const blueB2 = Color(0xFFbbbbee);
+  static const blueB3 = Color(0xFF8888dd);
+  static const bluePrimary = Color(0xFF6666cc);
+  static const blueD3 = Color(0xFF4444bb);
+  static const blueD2 = Color(0xFF222288);
+  static const blueD1 = Color(0xFF111155);
+
+  /// oranges that G over B oranges
+  static const orangeB1 = Color(0xFFffeecc);
+  static const orangeB2 = Color(0xFFffccaa);
+  static const orangeB3 = Color(0xFFeeaa88);
+  static const orangePrimary = Color(0xFFcc8866);
+  static const orangeD3 = Color(0xFFaa5533);
+  static const orangeD2 = Color(0xFF773322);
+  static const orangeD1 = Color(0xFF551100);
+
+  /// yellows that R over G
+  static const yellowB1 = Color(0xFFffffbb);
+  static const yellowB1_1 = Color(0xFFeeeeaa);
+  static const yellowB2 = Color(0xFFeedd99);
+  static const yellowB3 = Color(0xFFddcc66);
+  static const yellowPrimary = Color(0xffccbb22);
+  static const yellowD3 = Color(0xFFccbb33);
+  static const yellowD2 = Color(0xFFbbaa22);
+  static const yellowD1 = Color(0xFF998811);
+
+  /// purples that B over R
+  static const purpleB1 = Color(0xFFeeccff);
+  static const purpleB2 = Color(0xFFddbbee);
+  static const purpleB3 = Color(0xFFaa88dd);
+  static const purpleB4 = Color(0xFF9977cc);
+  static const purplePrimary = Color(0xff8866cc);
+  static const purpleD3 = Color(0xFF8844bb);
+  static const purpleD2 = Color(0xFF6622aa);
+  static const purpleD1 = Color(0xFF440099);
+}
+
+extension KTextStyle on TextStyle {
+  static const size_10 = TextStyle(fontSize: 10);
+  static const size_20 = TextStyle(fontSize: 20);
+  static const size_30 = TextStyle(fontSize: 30);
+  static const size_40 = TextStyle(fontSize: 40);
+  static const size_50 = TextStyle(fontSize: 50);
+  static const white = TextStyle(color: Colors.white);
+  static const black = TextStyle(color: Colors.black);
+  static const black12 = TextStyle(color: Colors.black12);
+  static const black26 = TextStyle(color: Colors.black26);
+  static const black38 = TextStyle(color: Colors.black38);
+  static const black45 = TextStyle(color: Colors.black45);
+  static const black54 = TextStyle(color: Colors.black54);
+  static const black87 = TextStyle(color: Colors.black87);
+
+  static const white_24 = TextStyle(color: Colors.white, fontSize: 24);
+  static const white_28 = TextStyle(color: Colors.white, fontSize: 28);
+  static const boldWhite = TextStyle(
+    fontWeight: FontWeight.bold,
+    color: Colors.white,
+  );
+  static const boldBlack = TextStyle(
+    fontWeight: FontWeight.bold,
+    color: Colors.black,
+  );
+
+  static const boldBlack_30 = TextStyle(
+    fontWeight: FontWeight.bold,
+    color: Colors.black,
+    fontSize: 30,
+  );
+
+  static const boldItalicSpaceCadet = TextStyle(
+    fontWeight: FontWeight.bold,
+    fontStyle: FontStyle.italic,
+    color: KColor.spaceCadet,
+  );
+
+  static const italicGrey_12 = TextStyle(
+    fontStyle: FontStyle.italic,
+    color: Colors.grey,
+    fontSize: 12,
+  );
+}
+
+
+///
+///
+///
+///
+/// geometry
+///
+///
+///
+///
+///
 
 extension KSize on Size {
   static const square_1 = Size.square(1);
@@ -327,6 +462,31 @@ extension KOffsetPermutation4 on List<Offset> {
       p2103(list)..addFirstAndRemoveFirst();
 }
 
+extension KMapperCubicPointsPermutation on Mapper<Map<Offset, List<Offset>>> {
+  static const Mapper<Map<Offset, List<Offset>>> p0231 = _0231;
+  static const Mapper<Map<Offset, List<Offset>>> p1230 = _1230;
+
+  static Map<Offset, List<Offset>> _0231(Map<Offset, List<Offset>> points) =>
+      points.map(
+            (points, cubicPoints) => MapEntry(
+          points,
+          KOffsetPermutation4.p0231(cubicPoints),
+        ),
+      );
+
+  static Map<Offset, List<Offset>> _1230(Map<Offset, List<Offset>> points) =>
+      points.map(
+            (points, cubicPoints) => MapEntry(
+          points,
+          KOffsetPermutation4.p1230(cubicPoints),
+        ),
+      );
+
+  static Mapper<Map<Offset, List<Offset>>> of(Mapper<List<Offset>> mapper) =>
+          (points) => points
+          .map((points, cubicPoints) => MapEntry(points, mapper(cubicPoints)));
+}
+
 extension KCoordinate on Coordinate {
   static const cube_01 = Coordinate.cube(0.1);
   static const cube_02 = Coordinate.cube(0.2);
@@ -543,51 +703,33 @@ extension KRadianCoordinate on Coordinate {
 
 extension KRadius on Radius {
   static const circular1 = Radius.circular(1);
+  static const circular2 = Radius.circular(2);
+  static const circular3 = Radius.circular(3);
+  static const circular4 = Radius.circular(4);
+  static const circular5 = Radius.circular(5);
+  static const circular6 = Radius.circular(6);
+  static const circular7 = Radius.circular(7);
+  static const circular8 = Radius.circular(8);
+  static const circular9 = Radius.circular(9);
   static const circular10 = Radius.circular(10);
-  static const circular20 = Radius.circular(20);
-  static const circular30 = Radius.circular(30);
-  static const circular40 = Radius.circular(40);
-  static const circular50 = Radius.circular(50);
-  static const circular60 = Radius.circular(60);
-  static const circular70 = Radius.circular(70);
-  static const circular80 = Radius.circular(80);
-  static const circular90 = Radius.circular(90);
   static const circular100 = Radius.circular(100);
 }
 
 extension KBorderRadius on BorderRadius {
   static const zero = BorderRadius.all(Radius.zero);
   static const allCircular_1 = BorderRadius.all(KRadius.circular1);
+  static const allCircular_2 = BorderRadius.all(KRadius.circular2);
+  static const allCircular_3 = BorderRadius.all(KRadius.circular3);
+  static const allCircular_4 = BorderRadius.all(KRadius.circular4);
+  static const allCircular_5 = BorderRadius.all(KRadius.circular5);
+  static const allCircular_6 = BorderRadius.all(KRadius.circular6);
+  static const allCircular_7 = BorderRadius.all(KRadius.circular7);
+  static const allCircular_8 = BorderRadius.all(KRadius.circular8);
+  static const allCircular_9 = BorderRadius.all(KRadius.circular9);
   static const allCircular_10 = BorderRadius.all(KRadius.circular10);
-  static const allCircular_20 = BorderRadius.all(KRadius.circular20);
-  static const allCircular_30 = BorderRadius.all(KRadius.circular30);
-  static const allCircular_40 = BorderRadius.all(KRadius.circular40);
-  static const allCircular_50 = BorderRadius.all(KRadius.circular50);
-  static const allCircular_60 = BorderRadius.all(KRadius.circular60);
-  static const allCircular_70 = BorderRadius.all(KRadius.circular70);
-  static const allCircular_80 = BorderRadius.all(KRadius.circular80);
-  static const allCircular_90 = BorderRadius.all(KRadius.circular90);
   static const allCircular_100 = BorderRadius.all(KRadius.circular100);
-  static const vertical_0_10 =
-      BorderRadius.vertical(bottom: KRadius.circular10);
-  static const vertical_0_20 =
-      BorderRadius.vertical(bottom: KRadius.circular20);
-  static const vertical_0_30 =
-      BorderRadius.vertical(bottom: KRadius.circular30);
-  static const vertical_0_40 =
-      BorderRadius.vertical(bottom: KRadius.circular40);
-  static const vertical_0_50 =
-      BorderRadius.vertical(bottom: KRadius.circular50);
-  static const vertical_0_60 =
-      BorderRadius.vertical(bottom: KRadius.circular60);
-  static const vertical_0_70 =
-      BorderRadius.vertical(bottom: KRadius.circular70);
-  static const vertical_0_80 =
-      BorderRadius.vertical(bottom: KRadius.circular80);
-  static const vertical_0_90 =
-      BorderRadius.vertical(bottom: KRadius.circular90);
-  static const vertical_0_100 =
-      BorderRadius.vertical(bottom: KRadius.circular100);
+  static const bottom_10 = BorderRadius.vertical(bottom: KRadius.circular10);
+  static const top_4 = BorderRadius.vertical(top: Radius.circular(4.0));
 }
 
 ///
@@ -931,25 +1073,10 @@ extension KCurveFR on CurveFR {
   static const elasticInOut = CurveFR.symmetry(Curves.elasticInOut);
 
   ///
-  /// f, r
-  ///
-  static const fastOutSlowIn_easeOutQuad =
-      CurveFR(Curves.fastOutSlowIn, Curves.easeOutQuad);
-
-  ///
   /// interval
   ///
   static const easeInOut_00_04 = CurveFR.symmetry(KInterval.easeInOut_00_04);
 }
-
-///
-///
-///
-/// interval
-///
-///
-///
-///
 
 extension KInterval on Interval {
   static const easeInOut_00_04 = Interval(0, 0.4, curve: Curves.easeInOut);
@@ -961,125 +1088,124 @@ extension KInterval on Interval {
       Interval(0, 0.5, curve: Curves.fastOutSlowIn);
 }
 
-///
-///
-///
-///
-///
-///
-///
-///
-///
+extension KMaskFilter on Paint {
+  /// normal
+  static const MaskFilter normal_05 = MaskFilter.blur(BlurStyle.normal, 0.5);
+  static const MaskFilter normal_1 = MaskFilter.blur(BlurStyle.normal, 1);
+  static const MaskFilter normal_2 = MaskFilter.blur(BlurStyle.normal, 2);
+  static const MaskFilter normal_3 = MaskFilter.blur(BlurStyle.normal, 3);
+  static const MaskFilter normal_4 = MaskFilter.blur(BlurStyle.normal, 4);
+  static const MaskFilter normal_5 = MaskFilter.blur(BlurStyle.normal, 5);
+  static const MaskFilter normal_6 = MaskFilter.blur(BlurStyle.normal, 6);
+  static const MaskFilter normal_7 = MaskFilter.blur(BlurStyle.normal, 7);
+  static const MaskFilter normal_8 = MaskFilter.blur(BlurStyle.normal, 8);
+  static const MaskFilter normal_9 = MaskFilter.blur(BlurStyle.normal, 9);
+  static const MaskFilter normal_10 = MaskFilter.blur(BlurStyle.normal, 10);
 
-extension FRadian on double {
-  static double modulus1Round(double radian) => radian % KRadian.angle_360;
-
-  static double angleOf(double radian) => radian / KRadian.angle_1;
-
-  static double radianOf(double angle) => angle * KRadian.angle_1;
-
-  static double complementaryOf(double radian) {
-    assert(radian >= 0 && radian <= KRadian.angle_90);
-    return radianOf(90 - angleOf(radian));
-  }
-
-  static double supplementaryOf(double radian) {
-    assert(radian >= 0 && radian <= KRadian.angle_180);
-    return radianOf(180 - angleOf(radian));
-  }
-
-  static double restrictWithinAngle180_180N(double radian) {
-    final r = radian % 360;
-    return r >= KRadian.angle_180 ? r - KRadian.angle_360 : r;
-  }
-
-  ///
-  /// if
-  ///
-  static bool ifWithinAngle90_90N(double radian) =>
-      radian.abs() < KRadian.angle_90;
-
-  static bool ifOverAngle90_90N(double radian) =>
-      radian.abs() > KRadian.angle_90;
-
-  static bool ifWithinAngle0_180(double radian) =>
-      radian > 0 && radian < KRadian.angle_180;
-
-  static bool ifWithinAngle0_180N(double radian) =>
-      radian > -KRadian.angle_180 && radian < 0;
-
-  static bool ifOnRight(double radian) =>
-      ifWithinAngle90_90N(modulus1Round(radian));
-
-  static bool ifOnLeft(double radian) =>
-      ifOverAngle90_90N(modulus1Round(radian));
-
-  static bool ifOnTop(
-    double radian, {
-    bool isInMathDiscussion = false,
-  }) {
-    final r = modulus1Round(radian);
-    return isInMathDiscussion ? ifWithinAngle0_180(r) : ifWithinAngle0_180N(r);
-  }
-
-  static bool ifOnBottom(
-    double radian, {
-    bool isInMathDiscussion = false,
-  }) {
-    final r = modulus1Round(radian);
-    return isInMathDiscussion ? ifWithinAngle0_180N(r) : ifWithinAngle0_180(r);
-  }
+  /// solid
+  static const MaskFilter solid_05 = MaskFilter.blur(BlurStyle.solid, 0.5);
 }
 
-extension FRadianCoordinate on Coordinate {
-  static Coordinate complementaryOf(Coordinate radian) => Coordinate(
-        FRadian.complementaryOf(radian.dx),
-        FRadian.complementaryOf(radian.dy),
-        FRadian.complementaryOf(radian.dz),
-      );
+///
+///
+///
+///
+/// values
+///
+///
+///
+///
+///
 
-  static Coordinate supplementaryOf(Coordinate radian) => Coordinate(
-        FRadian.supplementaryOf(radian.dx),
-        FRadian.supplementaryOf(radian.dy),
-        FRadian.supplementaryOf(radian.dz),
-      );
+extension VThemeData on ThemeData {
+  static ThemeData get dark => ThemeData(
+    useMaterial3: true,
+    brightness: Brightness.dark,
+  );
 
-  static Coordinate restrictInAngle180Of(Coordinate radian) => Coordinate(
-        FRadian.restrictWithinAngle180_180N(radian.dx),
-        FRadian.restrictWithinAngle180_180N(radian.dy),
-        FRadian.restrictWithinAngle180_180N(radian.dz),
-      );
+  static ThemeData get style1 {
+    const primaryBrown = Color.fromARGB(255, 189, 166, 158);
+    const secondaryBrown = Color.fromARGB(255, 109, 92, 90);
+
+    return ThemeData(
+      useMaterial3: true,
+      primaryColor: primaryBrown,
+      primarySwatch: Colors.brown,
+      appBarTheme: const AppBarTheme(
+        backgroundColor: primaryBrown,
+        elevation: 0,
+      ),
+      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+        backgroundColor: primaryBrown,
+        selectedItemColor: Colors.black,
+        elevation: 0,
+      ),
+      floatingActionButtonTheme: const FloatingActionButtonThemeData(
+        backgroundColor: secondaryBrown,
+        elevation: 10,
+      ),
+      fontFamily: 'Setofont',
+      textTheme: const TextTheme(
+        // headlineSmall, Medium, Large, 1-6:
+        // bodySmall, Medium, Large, 1-3:
+      ),
+    );
+  }
+
+  static ThemeData get style2 => ThemeData(
+    primaryColor: KColor.spaceCadet,
+    scaffoldBackgroundColor: Colors.white,
+    appBarTheme: const AppBarTheme(backgroundColor: KColor.spaceCadet),
+    colorScheme:
+    ColorScheme.fromSwatch().copyWith(secondary: Colors.blueGrey),
+  );
 }
 
-extension FStream on Stream {
-  static Stream<T> generateFromIterable<T>(
-    int count, {
-    Generator<T>? generator,
-  }) =>
-      Stream.fromIterable(Iterable.generate(count, generator));
+extension VPaintFill on Paint {
+  static Paint get _fill => Paint()..style = PaintingStyle.fill;
 
-  static Stream<int> intOf({
-    int start = 1,
-    int end = 10,
-    Duration interval = KDuration.second1,
-    bool startWithDelay = true,
-  }) async* {
-    Future<int> yielding(int value) async =>
-        Future.delayed(interval).then((_) => value);
+  ///
+  /// blur
+  ///
+  static Paint get blurNormal_05 => _fill..maskFilter = KMaskFilter.normal_05;
+  static Paint get blurNormal_1 => _fill..maskFilter = KMaskFilter.normal_1;
+  static Paint get blurNormal_2 => _fill..maskFilter = KMaskFilter.normal_2;
+  static Paint get blurNormal_3 => _fill..maskFilter = KMaskFilter.normal_3;
+  static Paint get blurNormal_4 => _fill..maskFilter = KMaskFilter.normal_4;
+  static Paint get blurNormal_5 => _fill..maskFilter = KMaskFilter.normal_5;
 
-    Future<void> delay() async =>
-        startWithDelay ? Future.delayed(interval) : null;
+  ///
+  /// colored
+  ///
+  static Paint get black => _fill..color = Colors.black;
 
-    if (end >= start) {
-      await delay();
-      for (var value = start; value <= end; value++) {
-        yield await yielding(value);
-      }
-    } else {
-      await delay();
-      for (var value = start; value >= end; value--) {
-        yield await yielding(value);
-      }
-    }
-  }
+  static Paint get white => _fill..color = Colors.white;
+
+  static Paint get red => _fill..color = Colors.red;
+
+  static Paint get orange => _fill..color = Colors.orange;
+
+  static Paint get yellow => _fill..color = Colors.yellow;
+
+  static Paint get green => _fill..color = Colors.green;
+
+  static Paint get blue => _fill..color = Colors.blue;
+
+  static Paint get blueAccent => _fill..color = Colors.blueAccent;
+
+  static Paint get purple => _fill..color = Colors.purple;
+}
+
+extension VPaintStroke on Paint {
+  static Paint get _stroke => Paint()..style = PaintingStyle.stroke;
+
+  static Paint get capRound => _stroke..strokeCap = StrokeCap.round;
+
+  static Paint get capSquare => _stroke..strokeCap = StrokeCap.square;
+
+  static Paint get capButt => _stroke..strokeCap = StrokeCap.butt;
+
+  static Paint get eraser => _stroke
+    ..color = Colors.transparent
+    ..blendMode = BlendMode.clear;
 }

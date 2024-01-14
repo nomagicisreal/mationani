@@ -1,8 +1,8 @@
 part of '../mationani.dart';
 
 ///
-///
 /// this file contains:
+///
 /// stateful widget:
 /// [WProgressIndicator]
 ///
@@ -17,6 +17,19 @@ part of '../mationani.dart';
 /// render object widget:
 /// [WSizedBox]
 /// [WColoredBox]
+///
+/// function for widget creation
+/// [FClipPath], [FCustomPaint]
+///
+///
+///
+///
+///
+///
+///
+///
+///
+///
 ///
 ///
 /// 
@@ -259,4 +272,71 @@ extension WColoredBox on ColoredBox {
   static const ColoredBox blue = ColoredBox(color: Colors.blue);
   static const ColoredBox blueAccent = ColoredBox(color: Colors.blueAccent);
   static const ColoredBox purple = ColoredBox(color: Colors.purple);
+}
+
+///
+///
+///
+///
+///
+///
+/// functions
+///
+///
+///
+///
+///
+///
+///
+
+extension FClipPath on CustomPaint {
+  static ClipPath rectFromZeroToSize({
+    Clip clipBehavior = Clip.antiAlias,
+    required Size size,
+    required Widget child,
+  }) =>
+      ClipPath(
+        clipBehavior: clipBehavior,
+        clipper: Clipping.rectOf(Offset.zero & size),
+        child: child,
+      );
+
+  static ClipPath reClipNeverOf({
+    Clip clipBehavior = Clip.antiAlias,
+    required SizingPath pathFromSize,
+    required Widget child,
+  }) =>
+      ClipPath(
+        clipBehavior: clipBehavior,
+        clipper: Clipping.reclipNever(pathFromSize),
+        child: child,
+      );
+
+  static ClipPath decoratedPolygon(
+      Decoration decoration,
+      RRegularPolygon polygon, {
+        DecorationPosition position = DecorationPosition.background,
+        Widget? child,
+      }) =>
+      ClipPath(
+        clipper: Clipping.polygonCubicCornerFromSize(polygon),
+        child: DecoratedBox(
+          decoration: decoration,
+          position: position,
+          child: child,
+        ),
+      );
+}
+
+
+extension FCustomPaint on CustomPaint {
+  static CustomPaint polygonCanvasSizeToPaint(
+      RRegularPolygon polygon,
+      SizingPaintFromCanvas paintFromCanvasSize, {
+        Widget? child,
+      }) =>
+      CustomPaint(
+        painter: Painting.polygonCubicCorner(paintFromCanvasSize, polygon),
+        child: child,
+      );
 }

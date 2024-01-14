@@ -1,8 +1,14 @@
-part of 'mationani.dart';
+part of '../mationani.dart';
 
 ///
-///
 /// this file contains:
+///
+/// [Ani]
+///   * [_AniBase]
+///   --[AniProgress]
+///     [AniProgressBool]
+///     [AniProgressTernary]
+///
 /// [MationBase]
 ///   [Mation]
 ///     * [MationSequence]
@@ -23,6 +29,453 @@ part of 'mationani.dart';
 ///
 ///
 ///
+///
+///
+///
+///
+///
+///
+
+///
+/// [initializer] see [Ani.initialize], ...
+/// [initialStatusListener] see [Ani.listenForward]
+/// [onAnimating] see [Ani.animatingNothing], [Ani.animatingBack]
+/// [updateConsumer] see [Ani.consumeNothing], ..., [Ani.decideNothing], ...
+///
+class Ani extends _AniBase {
+  const Ani({
+    required super.duration,
+    super.initializer,
+    super.initialStatusListener,
+    super.updateConsumer,
+    super.onAnimating,
+    super.curve,
+  });
+
+  const Ani.initRepeat({
+    bool reverseEnable = false,
+    required super.duration,
+    super.initialStatusListener,
+    super.updateConsumer,
+    super.onAnimating,
+    super.curve,
+  }) : super(
+      initializer: reverseEnable
+          ? Ani.initializeRepeatReverse
+          : Ani.initializeRepeat);
+
+  const Ani.initForwardAndUpdateReverse({
+    required super.duration,
+    super.initialStatusListener,
+    super.onAnimating,
+    super.curve,
+  }) : super(
+      initializer: Ani.initializeForward,
+      updateConsumer: Ani.consumeReverse);
+
+  const Ani.initForwardAndUpdateRepeat({
+    bool reverseEnable = false,
+    required super.duration,
+    super.initialStatusListener,
+    super.onAnimating,
+    super.curve,
+  }) : super(
+      initializer: Ani.initializeForward,
+      updateConsumer:
+      reverseEnable ? Ani.consumeRepeat : Ani.consumeRepeatReverse);
+
+  const Ani.initForwardAndUpdateResetForward({
+    required super.duration,
+    super.initialStatusListener,
+    super.onAnimating,
+    super.curve,
+  }) : super(
+      initializer: Ani.initializeForward,
+      updateConsumer: Ani.consumeResetForward);
+
+  const Ani.initForwardAndUpdateForwardOrReverse({
+    required super.duration,
+    super.initialStatusListener,
+    super.onAnimating,
+    super.curve,
+  }) : super(
+      initializer: Ani.initializeForward,
+      updateConsumer: Ani.consumeForwardOrReverse);
+
+  const Ani.initForwardResetAndUpdateForwardReset({
+    required super.duration,
+    super.initialStatusListener,
+    super.onAnimating,
+    super.curve,
+  }) : super(
+      initializer: Ani.initializeForwardReset,
+      updateConsumer: Ani.consumeForwardReset);
+
+  Ani.initForwardAndUpdateReverseWhen(
+      bool trigger, {
+        required super.duration,
+        super.initialStatusListener,
+        super.onAnimating,
+        super.curve,
+      }) : super(
+      initializer: Ani.initializeForward,
+      updateConsumer: Ani.decideReverse(trigger));
+
+  Ani.initForwardAndUpdateSequencingWhen(
+      bool? trigger, {
+        required Duration duration,
+        super.initialStatusListener,
+        super.onAnimating,
+        super.curve,
+      }) : super(
+    initializer: Ani.initializeForward,
+    duration: duration.toDurationFR,
+    updateConsumer: Ani.decideForwardOrReverse(trigger),
+  );
+
+  Ani.updateForwardWhen(
+      bool trigger, {
+        required super.duration,
+        super.initializer,
+        super.initialStatusListener,
+        super.onAnimating,
+        super.curve,
+      }) : super(updateConsumer: Ani.decideForward(trigger));
+
+  Ani.updateSequencingWhen(
+      bool? trigger, {
+        required Duration duration,
+        super.initializer,
+        super.initialStatusListener,
+        super.onAnimating,
+        super.curve,
+      }) : super(
+      duration: duration.toDurationFR,
+      updateConsumer: Ani.decideForwardOrReverse(trigger));
+
+  ///
+  ///
+  /// belows are variables for [initializer],
+  ///
+  /// [initialize]
+  /// [initializeForward]
+  /// [initializeForwardReset]
+  /// [initializeRepeat]
+  /// [initializeRepeatReverse]
+  ///
+  ///
+
+  static AnimationController initialize(
+      TickerProvider tickerProvider,
+      Duration forward,
+      Duration reverse,
+      ) =>
+      AnimationController(
+        vsync: tickerProvider,
+        duration: forward,
+        reverseDuration: reverse,
+      );
+
+  static AnimationController initializeForward(
+      TickerProvider tickerProvider,
+      Duration forward,
+      Duration reverse,
+      ) =>
+      initialize(tickerProvider, forward, reverse)..forward();
+
+  static AnimationController initializeForwardReset(
+      TickerProvider tickerProvider,
+      Duration forward,
+      Duration reverse,
+      ) =>
+      initialize(tickerProvider, forward, reverse)..forwardReset();
+
+  static AnimationController initializeRepeat(
+      TickerProvider tickerProvider,
+      Duration forward,
+      Duration reverse,
+      ) =>
+      initialize(tickerProvider, forward, reverse)..repeat();
+
+  static AnimationController initializeRepeatReverse(
+      TickerProvider tickerProvider,
+      Duration forward,
+      Duration reverse,
+      ) =>
+      initialize(tickerProvider, forward, reverse)..repeat(reverse: true);
+
+  ///
+  ///
+  /// belows are variables for [initialStatusListener],
+  ///
+  /// [listenForward]
+  /// [listenReverse]
+  /// [listenCompleted]
+  /// [listenDismissed]
+  /// [listenCompletedOrDismissed]
+  ///
+  ///
+
+  static AnimationStatusListener listenForward(VoidCallback listener) =>
+          (status) => status == AnimationStatus.forward ? listener() : null;
+
+  static AnimationStatusListener listenReverse(VoidCallback listener) =>
+          (status) => status == AnimationStatus.reverse ? listener() : null;
+
+  static AnimationStatusListener listenCompleted(VoidCallback listener) =>
+          (status) => status == AnimationStatus.completed ? listener() : null;
+
+  static AnimationStatusListener listenDismissed(VoidCallback listener) =>
+          (status) => status == AnimationStatus.dismissed ? listener() : null;
+
+  static AnimationStatusListener listenCompletedOrDismissed(
+      VoidCallback listener,
+      ) =>
+          (status) => status == AnimationStatus.completed ||
+          status == AnimationStatus.dismissed
+          ? listener()
+          : null;
+
+  ///
+  ///
+  /// belows are variables for [onAnimating],
+  ///
+  /// [animatingNothing]
+  /// [animatingBack]
+  ///
+  ///
+  static void animatingNothing(
+      AnimationController controller, bool isForward) {}
+
+  static void animatingBack(AnimationController controller, bool isForward) =>
+      isForward
+          ? controller.reverse(from: controller.value)
+          : controller.forward(from: controller.value);
+
+  ///
+  ///
+  /// belows are variables for [updateConsumer],
+  ///
+  /// [consumeNothing]
+  /// [consumeForward]
+  /// [consumeForwardReset]
+  /// [consumeForwardOrReverse]
+  /// [consumeReverse]
+  /// [consumeRepeat]
+  /// [consumeRepeatReverse]
+  /// [consumeResetForward]
+  ///
+  ///
+  static void consumeNothing(AnimationController c) {}
+
+  static void consumeForward(AnimationController c) => c.forward();
+
+  static void consumeForwardReset(AnimationController c) => c.forwardReset();
+
+  static void consumeForwardOrReverse(AnimationController controller) =>
+      controller.status == AnimationStatus.dismissed
+          ? controller.forward()
+          : controller.reverse();
+
+  static void consumeReverse(AnimationController c) => c.reverse();
+
+  static void consumeRepeat(AnimationController c) => c.repeat();
+
+  static void consumeRepeatReverse(AnimationController c) =>
+      c.repeat(reverse: true);
+
+  static void consumeResetForward(AnimationController c) => c.resetForward();
+
+  ///
+  ///
+  /// belows are variables for [updateConsumer], too,
+  ///
+  /// [decideNothing]
+  /// [decideForward]
+  /// [decideReverse]
+  /// [decideForwardReset]
+  /// [decideRepeat]
+  /// [decideResetForward]
+  /// [decideForwardOrReverse]
+  /// [decideForwardOrRepeat]
+  ///
+  ///
+  static Consumer<AnimationController> decideNothing(bool trigger) =>
+      consumeNothing;
+
+  static Consumer<AnimationController> decideForward(bool trigger) =>
+      trigger ? consumeForward : consumeNothing;
+
+  static Consumer<AnimationController> decideReverse(bool trigger) =>
+      trigger ? consumeReverse : consumeNothing;
+
+  static Consumer<AnimationController> decideForwardReset(bool trigger) =>
+      trigger ? consumeForwardReset : consumeNothing;
+
+  static Consumer<AnimationController> decideRepeat(bool trigger) =>
+      trigger ? consumeRepeat : consumeNothing;
+
+  static Consumer<AnimationController> decideResetForward(bool trigger) =>
+      trigger ? consumeResetForward : consumeNothing;
+
+  static Consumer<AnimationController> decideForwardOrReverse(
+      bool? forward,
+      ) =>
+      switch (forward) {
+        null => consumeNothing,
+        true => consumeForward,
+        false => consumeReverse,
+      };
+
+  static Consumer<AnimationController> decideForwardOrRepeat(
+      bool? forward,
+      ) =>
+      switch (forward) {
+        null => consumeNothing,
+        true => consumeForward,
+        false => consumeRepeat,
+      };
+}
+
+abstract class _AniBase {
+  final DurationFR duration;
+  final Curve? curve;
+  final AnimationControllerInitializer? initializer;
+  final AnimationStatusListener? initialStatusListener;
+  final Consumer<AnimationController>? updateConsumer;
+  final IfAnimating? onAnimating;
+
+  const _AniBase({
+    required this.duration,
+    required this.curve,
+    required this.initializer,
+    required this.initialStatusListener,
+    required this.updateConsumer,
+    required this.onAnimating,
+  });
+
+  AnimationController _initializing(TickerProvider ticker) =>
+      (initializer ?? Ani.initialize)(
+        ticker,
+        duration.forward,
+        duration.reverse,
+      )..addStatusListenerIfNotNull(initialStatusListener);
+
+  WidgetBuilder _building(
+      AnimationController controller,
+      MationBase mation,
+      Widget child,
+      ) {
+    final animations = mation._animationsOf(
+      controller,
+      curve ?? Curves.linear,
+    );
+    Widget build(BuildContext context) => mation._builder(animations, child);
+
+    return switch (mation) {
+      MationTransition() => build,
+      _ => (_) => AnimatedBuilder(
+        animation: controller,
+        builder: (context, __) => build(context),
+      ),
+    };
+  }
+
+  WidgetBuilder _updating({
+    required AnimationController controller,
+    required Mationani oldWidget,
+    required MationBase mation,
+    required Widget child,
+  }) {
+    if (controller.isAnimating) {
+      (onAnimating ?? Ani.animatingBack)(
+        controller,
+        controller.status == AnimationStatus.forward,
+      );
+    } else {
+      if (oldWidget.ani.duration != duration) {
+        controller.duration = duration.forward;
+        controller.reverseDuration = duration.reverse;
+      }
+      (updateConsumer ?? Ani.consumeNothing)(controller);
+    }
+    return _building(controller, mation, child);
+  }
+}
+
+///
+///
+/// in short,
+/// the value of [updateConsumer] comes from the comparison of [delegate] and [current].
+/// it's useful when there are children instances of a widget, and each of child should be triggered by different step
+///
+/// See Also
+///   * [AniProgressBool]
+///   * [AniProgressTernary]
+///
+abstract class AniProgress extends Ani {
+  final int delegate;
+  int current = 0;
+
+  @override
+  Consumer<AnimationController> get updateConsumer =>
+      throw UnimplementedError();
+
+  AniProgress({
+    required super.duration,
+    required this.delegate,
+    super.initializer,
+    super.initialStatusListener,
+    super.updateConsumer,
+    super.onAnimating,
+    super.curve,
+  });
+}
+
+class AniProgressBool extends AniProgress {
+  final AnimationControllerDecider? hear;
+  final Combiner<int, bool>? comparison;
+
+  @override
+  Consumer<AnimationController> get updateConsumer => (hear ??
+      Ani.decideForward)(
+      (comparison ?? FPredicatorCombiner.alwaysTrue<int>)(delegate, current));
+
+  AniProgressBool({
+    required super.duration,
+    required super.delegate,
+    super.initializer,
+    super.initialStatusListener,
+    super.onAnimating,
+    super.curve,
+    this.hear,
+    this.comparison,
+  });
+}
+
+class AniProgressTernary extends AniProgress {
+  final AnimationControllerDeciderTernary? hear;
+  final Combiner<int?, bool?>? comparison;
+
+  // 1. delegate > progress, listen nothing
+  // 2. delegate == progress, listen forward
+  // 3. delegate < progress, listen reverse
+  @override
+  Consumer<AnimationController> get updateConsumer =>
+      (hear ?? Ani.decideForwardOrReverse)((comparison ??
+          FPredicatorTernaryCombiner.alwaysTrue<int>)(delegate, current));
+
+  AniProgressTernary({
+    required super.duration,
+    required super.delegate,
+    super.initializer,
+    super.initialStatusListener,
+    super.onAnimating,
+    this.hear,
+    this.comparison,
+  });
+}
+
 
 ///
 /// See also:
@@ -594,6 +1047,12 @@ class MationClipper extends Mation<SizingPath> {
       throw UnimplementedError();
 }
 
+///
+///
+/// [MationPainter.drawPathWithPaint]
+/// [MationPainter.progressingCircles]
+///
+///
 class MationPainter extends Mation<SizingPath> {
   final bool isComplex;
   final bool willChange;
@@ -602,7 +1061,7 @@ class MationPainter extends Mation<SizingPath> {
   final PaintingPath paintingPath;
   final SizingPaintFromCanvas sizingPaintingFromCanvas;
 
-  MationPainter.drawPathTweenWithPaint(
+  MationPainter.drawPathWithPaint(
     BetweenPath super.between, {
     this.sizingPaintingFromCanvas = FSizingPaintFromCanvas.redFill,
   })  : isComplex = false,
@@ -611,9 +1070,40 @@ class MationPainter extends Mation<SizingPath> {
         foreground = null,
         paintingPath = Painting.draw;
 
+  factory MationPainter.progressingCircles({
+    double initialCircleRadius = 5.0,
+    double circleRadiusFactor = 0.1,
+    required Ani setting,
+    required Paint paint,
+    required Tween<double> radiusOrbit,
+    required int circleCount,
+    required Companion<Vector3D, int> planetGenerator,
+  }) =>
+      MationPainter.drawPathWithPaint(
+        sizingPaintingFromCanvas: (_, __) => paint,
+        BetweenPath(
+          Between<Vector3D>(
+            begin: Vector3D(Coordinate.zero, radiusOrbit.begin!),
+            end: Vector3D(KRadianCoordinate.angleZ_360, radiusOrbit.end!),
+          ),
+          onAnimate: (t, vector) => PathOperation.union._combineAll(
+            Iterable.generate(
+              circleCount,
+                  (i) => (size) => Path()
+                ..addOval(
+                  Rect.fromCircle(
+                    center: planetGenerator(vector, i).toCoordinate,
+                    radius: initialCircleRadius * (i + 1) * circleRadiusFactor,
+                  ),
+                ),
+            ),
+          ),
+        ),
+      );
+
   @override
   AnimationBuilder get __builder => (animation, child) => CustomPaint(
-        painter: Painting.rePaintWhenDiff(
+        painter: Painting.rePaintWhenUpdate(
           sizingPaintFromCanvas: sizingPaintingFromCanvas,
           sizingPath: animation.value,
           paintingPath: paintingPath,
@@ -698,6 +1188,58 @@ class Mations<T, M extends Mation<T>> extends MationBase<T> {
 ///
 ///
 
+class MationTransform extends Mations<Coordinate, _MationTransformBase> {
+  final double? distanceToObserver;
+
+  Matrix4 get host => Matrix4.identity()..setDistance(distanceToObserver);
+
+  MationTransform({
+    Between<Coordinate>? translateBetween,
+    Between<Coordinate>? rotateBetween,
+    Between<Coordinate>? scaleBetween,
+    AlignmentGeometry? translateAlignment,
+    AlignmentGeometry? rotateAlignment,
+    AlignmentGeometry? scaleAlignment,
+    this.distanceToObserver,
+  }) : super([
+    if (translateBetween != null)
+      _MationTransformBase._translate(
+        translateBetween,
+        alignment: translateAlignment,
+      ),
+    if (rotateBetween != null)
+      _MationTransformBase._rotate(
+        rotateBetween,
+        alignment: rotateAlignment,
+      ),
+    if (scaleBetween != null)
+      _MationTransformBase._scale(
+        scaleBetween,
+        alignment: scaleAlignment,
+      ),
+  ]);
+
+  MationTransform.list(
+      List<MationTransformDelegate> delegates, {
+        this.distanceToObserver,
+      }) : super(delegates.foldWithIndex(
+    [],
+        (list, delegate, i) => list
+      ..add(_MationTransformBase(
+        delegate.between,
+        onAnimate: delegate._onAnimate,
+        alignment: delegate.alignment,
+      )),
+  ));
+
+  // TODO: sort in order of translate -> rotate -> scale
+  // MationTransform.listInOrder();
+
+  @override
+  List<_MationTransformBase> get _list =>
+      super._list.map((mation) => mation..link(host)).toList(growable: false);
+}
+
 class MationTransformDelegate {
   final int type;
   Between<Coordinate> between;
@@ -719,9 +1261,9 @@ class MationTransformDelegate {
   );
 
   OnAnimateMatrix4 get _onAnimate => switch (type) {
-        0 => FOnAnimateMatrix4._translating,
-        1 => FOnAnimateMatrix4._rotating,
-        2 => FOnAnimateMatrix4._scaling,
+        0 => _FOnAnimateMatrix4._translating,
+        1 => _FOnAnimateMatrix4._rotating,
+        2 => _FOnAnimateMatrix4._scaling,
         _ => throw UnimplementedError(),
       };
 }
@@ -819,54 +1361,3 @@ class _MationTransformBase extends Mation<Coordinate> {
   void link(Matrix4 host) => this..host = host;
 }
 
-class MationTransform extends Mations<Coordinate, _MationTransformBase> {
-  final double? distanceToObserver;
-
-  Matrix4 get host => Matrix4.identity()..setDistance(distanceToObserver);
-
-  MationTransform({
-    Between<Coordinate>? translateBetween,
-    Between<Coordinate>? rotateBetween,
-    Between<Coordinate>? scaleBetween,
-    AlignmentGeometry? translateAlignment,
-    AlignmentGeometry? rotateAlignment,
-    AlignmentGeometry? scaleAlignment,
-    this.distanceToObserver,
-  }) : super([
-          if (translateBetween != null)
-            _MationTransformBase._translate(
-              translateBetween,
-              alignment: translateAlignment,
-            ),
-          if (rotateBetween != null)
-            _MationTransformBase._rotate(
-              rotateBetween,
-              alignment: rotateAlignment,
-            ),
-          if (scaleBetween != null)
-            _MationTransformBase._scale(
-              scaleBetween,
-              alignment: scaleAlignment,
-            ),
-        ]);
-
-  MationTransform.list(
-    List<MationTransformDelegate> delegates, {
-    this.distanceToObserver,
-  }) : super(delegates.foldWithIndex(
-          [],
-          (list, delegate, i) => list
-            ..add(_MationTransformBase(
-              delegate.between,
-              onAnimate: delegate._onAnimate,
-              alignment: delegate.alignment,
-            )),
-        ));
-
-  // TODO: sort in order of translate -> rotate -> scale
-  // MationTransform.listInOrder();
-
-  @override
-  List<_MationTransformBase> get _list =>
-      super._list.map((mation) => mation..link(host)).toList(growable: false);
-}

@@ -41,13 +41,13 @@ class _MyHomeState extends State<MyHome> {
       backgroundColor: Colors.white38,
       body: Center(
         child: MationaniCutting(
-          aniFadeOut: Ani.updateForwardOrReverseWhen(
-            toggle,
+          aniFadeOut: Ani(
             duration: KDurationFR.second1,
+            updateConsumer: Ani.decideForwardOrReverse(toggle),
           ),
-          ani: Ani.updateForwardOrReverseWhen(
-            toggle,
+          ani: Ani(
             duration: KDurationFR.milli800,
+            updateConsumer: Ani.decideForwardOrReverse(toggle),
           ),
           rotation: KRadian.angle_10,
           distance: 0.2,
