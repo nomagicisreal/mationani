@@ -181,9 +181,8 @@ class Between<T> extends Tween<T> {
 }
 
 ///
-///
-/// see also [MationSequenceInterval]
-///
+/// See Also:
+///   [MationSequenceInterval], which is similar
 ///
 class BetweenInterval {
   final double weight;

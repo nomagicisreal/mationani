@@ -14,11 +14,14 @@ part of '../mationani.dart';
 ///     * [MationSequence]
 ///       * [MationSequenceStyle]
 ///       * [MationSequenceStep], [MationSequenceInterval]
-///     [MationTransition]
+///   --[_MationTransition]
 ///       [MationTransitionDouble]
 ///       [MationTransitionOffset]
 ///       [MationTransitionAlign]
 ///       [MationTransitionDecoration]
+///       [MationTransitionTextStyle]
+///       [MationTransitionPositioned]
+///       [MationTransitionPositionedRelative]
 ///       ...
 ///     [MationClipper]
 ///     [MationPainter]
@@ -60,9 +63,9 @@ class Ani extends _AniBase {
     super.onAnimating,
     super.curve,
   }) : super(
-      initializer: reverseEnable
-          ? Ani.initializeRepeatReverse
-          : Ani.initializeRepeat);
+            initializer: reverseEnable
+                ? Ani.initializeRepeatReverse
+                : Ani.initializeRepeat);
 
   const Ani.initForwardAndUpdateReverse({
     required super.duration,
@@ -70,8 +73,8 @@ class Ani extends _AniBase {
     super.onAnimating,
     super.curve,
   }) : super(
-      initializer: Ani.initializeForward,
-      updateConsumer: Ani.consumeReverse);
+            initializer: Ani.initializeForward,
+            updateConsumer: Ani.consumeReverse);
 
   const Ani.initForwardAndUpdateRepeat({
     bool reverseEnable = false,
@@ -80,9 +83,9 @@ class Ani extends _AniBase {
     super.onAnimating,
     super.curve,
   }) : super(
-      initializer: Ani.initializeForward,
-      updateConsumer:
-      reverseEnable ? Ani.consumeRepeat : Ani.consumeRepeatReverse);
+            initializer: Ani.initializeForward,
+            updateConsumer:
+                reverseEnable ? Ani.consumeRepeat : Ani.consumeRepeatReverse);
 
   const Ani.initForwardAndUpdateResetForward({
     required super.duration,
@@ -90,8 +93,8 @@ class Ani extends _AniBase {
     super.onAnimating,
     super.curve,
   }) : super(
-      initializer: Ani.initializeForward,
-      updateConsumer: Ani.consumeResetForward);
+            initializer: Ani.initializeForward,
+            updateConsumer: Ani.consumeResetForward);
 
   const Ani.initForwardAndUpdateForwardOrReverse({
     required super.duration,
@@ -99,8 +102,8 @@ class Ani extends _AniBase {
     super.onAnimating,
     super.curve,
   }) : super(
-      initializer: Ani.initializeForward,
-      updateConsumer: Ani.consumeForwardOrReverse);
+            initializer: Ani.initializeForward,
+            updateConsumer: Ani.consumeForwardOrReverse);
 
   const Ani.initForwardResetAndUpdateForwardReset({
     required super.duration,
@@ -108,50 +111,50 @@ class Ani extends _AniBase {
     super.onAnimating,
     super.curve,
   }) : super(
-      initializer: Ani.initializeForwardReset,
-      updateConsumer: Ani.consumeForwardReset);
+            initializer: Ani.initializeForwardReset,
+            updateConsumer: Ani.consumeForwardReset);
 
   Ani.initForwardAndUpdateReverseWhen(
-      bool trigger, {
-        required super.duration,
-        super.initialStatusListener,
-        super.onAnimating,
-        super.curve,
-      }) : super(
-      initializer: Ani.initializeForward,
-      updateConsumer: Ani.decideReverse(trigger));
+    bool trigger, {
+    required super.duration,
+    super.initialStatusListener,
+    super.onAnimating,
+    super.curve,
+  }) : super(
+            initializer: Ani.initializeForward,
+            updateConsumer: Ani.decideReverse(trigger));
 
   Ani.initForwardAndUpdateSequencingWhen(
-      bool? trigger, {
-        required Duration duration,
-        super.initialStatusListener,
-        super.onAnimating,
-        super.curve,
-      }) : super(
-    initializer: Ani.initializeForward,
-    duration: duration.toDurationFR,
-    updateConsumer: Ani.decideForwardOrReverse(trigger),
-  );
+    bool? trigger, {
+    required Duration duration,
+    super.initialStatusListener,
+    super.onAnimating,
+    super.curve,
+  }) : super(
+          initializer: Ani.initializeForward,
+          duration: duration.toDurationFR,
+          updateConsumer: Ani.decideForwardOrReverse(trigger),
+        );
 
   Ani.updateForwardWhen(
-      bool trigger, {
-        required super.duration,
-        super.initializer,
-        super.initialStatusListener,
-        super.onAnimating,
-        super.curve,
-      }) : super(updateConsumer: Ani.decideForward(trigger));
+    bool trigger, {
+    required super.duration,
+    super.initializer,
+    super.initialStatusListener,
+    super.onAnimating,
+    super.curve,
+  }) : super(updateConsumer: Ani.decideForward(trigger));
 
   Ani.updateSequencingWhen(
-      bool? trigger, {
-        required Duration duration,
-        super.initializer,
-        super.initialStatusListener,
-        super.onAnimating,
-        super.curve,
-      }) : super(
-      duration: duration.toDurationFR,
-      updateConsumer: Ani.decideForwardOrReverse(trigger));
+    bool? trigger, {
+    required Duration duration,
+    super.initializer,
+    super.initialStatusListener,
+    super.onAnimating,
+    super.curve,
+  }) : super(
+            duration: duration.toDurationFR,
+            updateConsumer: Ani.decideForwardOrReverse(trigger));
 
   ///
   ///
@@ -164,12 +167,11 @@ class Ani extends _AniBase {
   /// [initializeRepeatReverse]
   ///
   ///
-
   static AnimationController initialize(
-      TickerProvider tickerProvider,
-      Duration forward,
-      Duration reverse,
-      ) =>
+    TickerProvider tickerProvider,
+    Duration forward,
+    Duration reverse,
+  ) =>
       AnimationController(
         vsync: tickerProvider,
         duration: forward,
@@ -177,31 +179,31 @@ class Ani extends _AniBase {
       );
 
   static AnimationController initializeForward(
-      TickerProvider tickerProvider,
-      Duration forward,
-      Duration reverse,
-      ) =>
+    TickerProvider tickerProvider,
+    Duration forward,
+    Duration reverse,
+  ) =>
       initialize(tickerProvider, forward, reverse)..forward();
 
   static AnimationController initializeForwardReset(
-      TickerProvider tickerProvider,
-      Duration forward,
-      Duration reverse,
-      ) =>
+    TickerProvider tickerProvider,
+    Duration forward,
+    Duration reverse,
+  ) =>
       initialize(tickerProvider, forward, reverse)..forwardReset();
 
   static AnimationController initializeRepeat(
-      TickerProvider tickerProvider,
-      Duration forward,
-      Duration reverse,
-      ) =>
+    TickerProvider tickerProvider,
+    Duration forward,
+    Duration reverse,
+  ) =>
       initialize(tickerProvider, forward, reverse)..repeat();
 
   static AnimationController initializeRepeatReverse(
-      TickerProvider tickerProvider,
-      Duration forward,
-      Duration reverse,
-      ) =>
+    TickerProvider tickerProvider,
+    Duration forward,
+    Duration reverse,
+  ) =>
       initialize(tickerProvider, forward, reverse)..repeat(reverse: true);
 
   ///
@@ -215,24 +217,23 @@ class Ani extends _AniBase {
   /// [listenCompletedOrDismissed]
   ///
   ///
-
   static AnimationStatusListener listenForward(VoidCallback listener) =>
-          (status) => status == AnimationStatus.forward ? listener() : null;
+      (status) => status == AnimationStatus.forward ? listener() : null;
 
   static AnimationStatusListener listenReverse(VoidCallback listener) =>
-          (status) => status == AnimationStatus.reverse ? listener() : null;
+      (status) => status == AnimationStatus.reverse ? listener() : null;
 
   static AnimationStatusListener listenCompleted(VoidCallback listener) =>
-          (status) => status == AnimationStatus.completed ? listener() : null;
+      (status) => status == AnimationStatus.completed ? listener() : null;
 
   static AnimationStatusListener listenDismissed(VoidCallback listener) =>
-          (status) => status == AnimationStatus.dismissed ? listener() : null;
+      (status) => status == AnimationStatus.dismissed ? listener() : null;
 
   static AnimationStatusListener listenCompletedOrDismissed(
-      VoidCallback listener,
-      ) =>
-          (status) => status == AnimationStatus.completed ||
-          status == AnimationStatus.dismissed
+    VoidCallback listener,
+  ) =>
+      (status) => status == AnimationStatus.completed ||
+              status == AnimationStatus.dismissed
           ? listener()
           : null;
 
@@ -319,8 +320,8 @@ class Ani extends _AniBase {
       trigger ? consumeResetForward : consumeNothing;
 
   static Consumer<AnimationController> decideForwardOrReverse(
-      bool? forward,
-      ) =>
+    bool? forward,
+  ) =>
       switch (forward) {
         null => consumeNothing,
         true => consumeForward,
@@ -328,8 +329,8 @@ class Ani extends _AniBase {
       };
 
   static Consumer<AnimationController> decideForwardOrRepeat(
-      bool? forward,
-      ) =>
+    bool? forward,
+  ) =>
       switch (forward) {
         null => consumeNothing,
         true => consumeForward,
@@ -337,6 +338,17 @@ class Ani extends _AniBase {
       };
 }
 
+///
+///
+/// [_AniBase] is the implementation for [Mationani] to trigger animation by
+/// 1. invoking [_initializing] in [MationaniState.initState]
+/// 2. invoking [_updating] in [MationaniState.didUpdateWidget]
+/// 3. invoking [_building] in both [MationaniState.initState] and [MationaniState.didUpdateWidget]
+///
+/// [_building] returns a [WidgetBuilder] to [MationaniState._builder].
+/// see also [MationBase._animationsOf] to understand how animation works.
+///
+///
 abstract class _AniBase {
   final DurationFR duration;
   final Curve? curve;
@@ -362,10 +374,10 @@ abstract class _AniBase {
       )..addStatusListenerIfNotNull(initialStatusListener);
 
   WidgetBuilder _building(
-      AnimationController controller,
-      MationBase mation,
-      Widget child,
-      ) {
+    AnimationController controller,
+    MationBase mation,
+    Widget child,
+  ) {
     final animations = mation._animationsOf(
       controller,
       curve ?? Curves.linear,
@@ -373,11 +385,11 @@ abstract class _AniBase {
     Widget build(BuildContext context) => mation._builder(animations, child);
 
     return switch (mation) {
-      MationTransition() => build,
+      _MationTransition() => build,
       _ => (_) => AnimatedBuilder(
-        animation: controller,
-        builder: (context, __) => build(context),
-      ),
+            animation: controller,
+            builder: (context, __) => build(context),
+          ),
     };
   }
 
@@ -438,7 +450,7 @@ class AniProgressBool extends AniProgress {
 
   @override
   Consumer<AnimationController> get updateConsumer => (hear ??
-      Ani.decideForward)(
+          Ani.decideForward)(
       (comparison ?? FPredicatorCombiner.alwaysTrue<int>)(delegate, current));
 
   AniProgressBool({
@@ -476,17 +488,20 @@ class AniProgressTernary extends AniProgress {
   });
 }
 
-
+///
+///
 ///
 /// See also:
-///  * [Mation], which triggers 1 tween animation
-///       [_MationTransformBase], which implements [Transform] animation to used in [Mationani]
-///       [MationTransition], which implements animation of [AnimatedWidget] subclasses to used in [Mationani]
+///  * [Mation]
+///       [_MationTransition], which implements animation of [AnimatedWidget] subclasses to used in [Mationani]
 ///       [MationClipper], which implements animation of [ClipPath] to used in [Mationani]
 ///       [MationPainter], which implements animation of [CustomPaint] to used in [Mationani]
+///       [_MationTransformBase], which implements [Transform] animation to used in [Mationani]
 ///       ...
 ///  * [Mations], which trigger multiple tweens animations
 ///       [MationTransform]
+///
+///
 ///
 sealed class MationBase<T> {
   const MationBase();
@@ -498,18 +513,32 @@ sealed class MationBase<T> {
   /// there will be a type cast error when [_AnimationsBuilder] fold different [AnimationBuilder]<[T]>.
   /// therefore, [AnimationBuilder] or [Animation] under [MationBase] should be defined in dynamic type.
   ///
-  /// See Also
-  ///   constant variables of [MationTransition].
-  ///
-
   _AnimationsBuilder get _builder;
 
+  ///
+  /// this method only been invoked in [_AniBase._building]
+  ///
   Iterable<Animation> _animationsOf(AnimationController c, Curve curve);
 }
 
+///
+/// all the subclass of [Mation] only triggers only 1 animation with only 1 [Between],
+/// but the [Between] also has a wide range of instance to create beautiful animation.
+/// for example [Between.sequence] can sequence lots of values into an animation.
+///
+/// in short, it's a cheep way to create [Mation] instead of [Mations]
+///
 class Mation<T> extends MationBase<T> {
+  ///
+  /// in most of the usecase, [__builder] will be assign implicitly.
+  /// When create [Mation] by the default constructor here.
+  /// it's possible to have simple [Between] like [Between]<[Color]> with simple builder,
+  /// for instance, setting [Material.color] inside the builder.
+  ///
   final AnimationBuilder __builder;
   final Between<T> between;
+
+  static Widget _animationBuilder(Animation animation, Widget child) => child;
 
   Mation(
     this.between, {
@@ -519,8 +548,11 @@ class Mation<T> extends MationBase<T> {
   @override
   String toString() => 'Mation: $between';
 
-  static Widget _animationBuilder(Animation animation, Widget child) => child;
-
+  ///
+  /// [Between.animate] already have [Between.curve]
+  /// the [curve] here comes from [Ani.curve]. it's an easy way to control entire [AnimationController] flow.
+  /// see also [_AniBase._building] to understand when this method been invoke.
+  ///
   Animation<T> _animationOf(AnimationController c, Curve curve) =>
       between.animate(c.drive(CurveTween(curve: curve)));
 
@@ -532,6 +564,9 @@ class Mation<T> extends MationBase<T> {
   _AnimationsBuilder get _builder =>
       (animations, child) => __builder(animations.first, child);
 
+  ///
+  /// [map] and [mapBetween] let existing [Mation] be more useful
+  ///
   Mation<T> map(Mapper<Mation<T>> mapper) => mapper(this);
 
   Mation<T> mapBetween(Mapper<Between<T>> mapper) => Mation(
@@ -542,21 +577,17 @@ class Mation<T> extends MationBase<T> {
 
 ///
 ///
+/// See Also:
+///   [MationSequenceStyle], [MationSequenceStep], [MationSequenceInterval]
 ///
+///   [Mationani.sequence],
+///     which takes [MationSequence] as required argument, and use [Ani.updateSequencingWhen].
+///     it is possible to use other ani like [Ani.initForwardAndUpdateSequencingWhen].
 ///
-/// mation sequence
-///
-/// [MationSequence]
-/// [MationSequenceStyle]
-/// [MationSequenceStep]
-/// [MationSequenceInterval]
-///
-///
-///
-///
-
-///
-/// see also [BetweenInterval], [Between.sequenceFromGenerator]
+///   [Between.sequence],
+///     which is similar to [MationSequence].
+///     [MationSequence] is an easy way to enable animations during widget creation
+///     [Between.sequence] is a light way to focus on how [Animation.value] been lerp in the same [MationBase]
 ///
 class MationSequence {
   final List<MationBase<dynamic>> mations;
@@ -590,10 +621,24 @@ class MationSequence {
   }
 }
 
+///
+/// it's possible to have a wide range of [MationSequenceStyle] in the future
+/// 'transform' use [MationTransform]
+/// 'transition' use the subclass(s) of [_MationTransition]
+///
+/// See Also:
+///   [MationSequence], [MationSequenceStep], [MationSequenceInterval]
+///
 enum MationSequenceStyle {
+  // TRS: Translation, Rotation, Scaling
   transformTRS,
+
+  // rotate, slide in bezier cubic
   transitionRotateSlideBezierCubic;
 
+  ///
+  /// [_forwardOrReverse] is the only way to sequence [MationBase] for now
+  ///
   static bool _forwardOrReverse(int i) => i % 2 == 0;
 
   static Translator<int, MationBase> _sequence({
@@ -608,8 +653,6 @@ enum MationSequenceStyle {
           );
 
   MationSequencer get sequencer => switch (this) {
-        // rotation, translation, scaling
-
         transformTRS => (previous, next, interval) {
             final curve = interval.curves[0].toCurveFR;
             return MationSequenceStyle._sequence(
@@ -634,9 +677,6 @@ enum MationSequenceStyle {
               },
             );
           },
-
-        // rotate, slide in bezier cubic
-
         transitionRotateSlideBezierCubic => (previous, next, interval) {
             final curve = interval.curves[0].toCurveFR;
             final controlPoints = interval.offsets;
@@ -666,6 +706,10 @@ enum MationSequenceStyle {
       };
 }
 
+///
+/// See Also:
+///   [MationSequence], [MationSequenceStyle], [MationSequenceInterval]
+///
 class MationSequenceStep {
   final List<double> values;
   final List<Offset> offsets;
@@ -678,6 +722,11 @@ class MationSequenceStep {
   });
 }
 
+///
+/// See Also:
+///   [MationSequence], [MationSequenceStyle], [MationSequenceStep]
+///   [BetweenInterval], which is similar
+///
 class MationSequenceInterval {
   final Duration duration;
   final List<Curve> curves;
@@ -692,64 +741,59 @@ class MationSequenceInterval {
 
 ///
 ///
-/// [MationTransition]
-///
-/// See Also:
-///   * [MationTransitionDouble] ...
-///   * [MationTransitionOffset] ...
-///   * [MationTransitionAlign] ...
-///   * [MationTransitionDecoration] ...
 ///
 ///
-abstract class MationTransition<T> extends Mation<T> {
-  MationTransition(super.between, {required super.builder});
+///
+///
+///
+/// [_MationTransition] a class that implement traditional transition like [SlideTransition], [FadeTransition],
+/// [DecoratedBoxTransition], enable traditional animation for [Mationani]
+///
+///
+///
+///
+///
+///
+abstract class _MationTransition<T> extends Mation<T> {
+  _MationTransition(super.between, {required super.builder});
 
   ///
   /// these constants must be dynamic type, see the comment over [MationBase._builder]
   ///
-
-  static const AnimationBuilder<dynamic> slide = _slide;
-  static const AnimationBuilder<dynamic> decoration = _decoration;
-  static const AnimationBuilder<dynamic> fade = _fade;
-  static const AnimationBuilder<dynamic> silverFade = _silverFade;
-  static const AnimationBuilder<dynamic> align = _align;
-  static const AnimationBuilder<dynamic> defaultTextStyle = _defaultTextStyle;
-  static const AnimationBuilder<dynamic> positioned = _positioned;
-
-  static Widget _slide(Animation animation, Widget child) => SlideTransition(
+  static Widget slide(Animation animation, Widget child) => SlideTransition(
         position: animation as Animation<Offset>,
         child: child,
       );
 
-  static Widget _decoration(Animation animation, Widget child) =>
+  static Widget decoration(Animation animation, Widget child) =>
       DecoratedBoxTransition(
         decoration: animation as Animation<Decoration>,
         child: child,
       );
 
-  static Widget _fade(Animation animation, Widget child) => FadeTransition(
+  static Widget fade(Animation animation, Widget child) => FadeTransition(
         opacity: animation as Animation<double>,
         child: child,
       );
 
-  static Widget _silverFade(Animation animation, Widget child) =>
+  static Widget silverFade(Animation animation, Widget child) =>
       SliverFadeTransition(
         opacity: animation as Animation<double>,
         sliver: child,
       );
 
-  static Widget _align(Animation animation, Widget child) => AlignTransition(
+  static Widget align(Animation animation, Widget child) => AlignTransition(
         alignment: animation as Animation<AlignmentGeometry>,
         child: child,
       );
 
-  static Widget _defaultTextStyle(Animation animation, Widget child) =>
+  static Widget defaultTextStyle(Animation animation, Widget child) =>
       DefaultTextStyleTransition(
         style: animation as Animation<TextStyle>,
         child: child,
       );
 
-  static Widget _positioned(Animation animation, Widget child) =>
+  static Widget positioned(Animation animation, Widget child) =>
       PositionedTransition(
         rect: animation as Animation<RelativeRect>,
         child: child,
@@ -789,19 +833,20 @@ abstract class MationTransition<T> extends Mation<T> {
           );
 }
 
-class MationTransitionDouble extends MationTransition<double> {
+class MationTransitionDouble extends _MationTransition<double> {
   ///
   /// fade
   ///
   MationTransitionDouble.fade(double begin, double end, {CurveFR? curve})
       : super(Between(begin: begin, end: end, curve: curve),
-            builder: MationTransition.fade);
+            builder: _MationTransition.fade);
 
   MationTransitionDouble.fadeIn({CurveFR? curve})
-      : super(BetweenDoubleExtension.zeroTo(1), builder: MationTransition.fade);
+      : super(BetweenDoubleExtension.zeroTo(1),
+            builder: _MationTransition.fade);
 
   MationTransitionDouble.fadeOut({CurveFR? curve})
-      : super(BetweenDoubleExtension.oneTo(0), builder: MationTransition.fade);
+      : super(BetweenDoubleExtension.oneTo(0), builder: _MationTransition.fade);
 
   factory MationTransitionDouble.fadeWithValue(
     double value, {
@@ -812,9 +857,23 @@ class MationTransitionDouble extends MationTransition<double> {
       MationTransitionDouble.fade(begin(value), end(value), curve: curve);
 
   ///
+  /// silver fade
+  ///
+  MationTransitionDouble.silverFade(double begin, double end, {CurveFR? curve})
+      : super(Between(begin: begin, end: end, curve: curve),
+            builder: _MationTransition.silverFade);
+
+  MationTransitionDouble.silverFadeIn({CurveFR? curve})
+      : super(BetweenDoubleExtension.zeroTo(1),
+            builder: _MationTransition.silverFade);
+
+  MationTransitionDouble.silverFadeOut({CurveFR? curve})
+      : super(BetweenDoubleExtension.oneTo(0),
+            builder: _MationTransition.silverFade);
+
+  ///
   /// scale
   ///
-
   MationTransitionDouble.scale(
     double begin,
     double end, {
@@ -822,7 +881,7 @@ class MationTransitionDouble extends MationTransition<double> {
     CurveFR? curve,
   }) : super(
           Between(begin: begin, end: end, curve: curve),
-          builder: MationTransition.scaleOf(alignment),
+          builder: _MationTransition.scaleOf(alignment),
         );
 
   factory MationTransitionDouble.scaleOneTo(
@@ -864,7 +923,6 @@ class MationTransitionDouble extends MationTransition<double> {
   ///
   /// rotate
   ///
-
   MationTransitionDouble.rotated(
     double value, {
     Alignment alignment = Alignment.center,
@@ -875,7 +933,7 @@ class MationTransitionDouble extends MationTransition<double> {
             end: value / KRadian.angle_360,
             curve: curve,
           ),
-          builder: MationTransition.rotationOf(alignment),
+          builder: _MationTransition.rotationOf(alignment),
         );
 
   MationTransitionDouble.rotate(
@@ -889,7 +947,7 @@ class MationTransitionDouble extends MationTransition<double> {
             end: end / KRadian.angle_360,
             curve: curve,
           ),
-          builder: MationTransition.rotationOf(alignment),
+          builder: _MationTransition.rotationOf(alignment),
         );
 
   factory MationTransitionDouble.rotateZeroTo(
@@ -897,12 +955,7 @@ class MationTransitionDouble extends MationTransition<double> {
     Alignment alignment = Alignment.center,
     CurveFR? curve,
   }) =>
-      MationTransitionDouble.rotate(
-        0,
-        end,
-        alignment: alignment,
-        curve: curve,
-      );
+      MationTransitionDouble.rotate(0, end, alignment: alignment, curve: curve);
 
   factory MationTransitionDouble.rotateZeroFrom(
     double begin, {
@@ -928,31 +981,44 @@ class MationTransitionDouble extends MationTransition<double> {
         alignment: alignment,
         curve: curve,
       );
+
+  ///
+  /// size
+  ///
+  MationTransitionDouble.size({
+    required double begin,
+    required double end,
+    Axis? axis,
+    double? axisAlignment,
+  }) : super(
+          Between(begin: begin, end: end),
+          builder: _MationTransition.sizeOf(axis, axisAlignment),
+        );
 }
 
-class MationTransitionOffset extends MationTransition<Offset> {
+class MationTransitionOffset extends _MationTransition<Offset> {
   MationTransitionOffset(Offset begin, Offset end, {CurveFR? curve})
       : super(
           Between(begin: begin, end: end, curve: curve),
-          builder: MationTransition.slide,
+          builder: _MationTransition.slide,
         );
 
   MationTransitionOffset.at(Offset p)
-      : super(Between.constant(p), builder: MationTransition.slide);
+      : super(Between.constant(p), builder: _MationTransition.slide);
 
   MationTransitionOffset.from(super.between)
-      : super(builder: MationTransition.slide);
+      : super(builder: _MationTransition.slide);
 
   MationTransitionOffset.zeroTo(Offset end, {CurveFR? curve})
       : super(
           BetweenOffsetExtension.zeroTo(end, curve: curve),
-          builder: MationTransition.slide,
+          builder: _MationTransition.slide,
         );
 
   MationTransitionOffset.zeroFrom(Offset begin, {CurveFR? curve})
       : super(
           BetweenOffsetExtension.zeroFrom(begin, curve: curve),
-          builder: MationTransition.slide,
+          builder: _MationTransition.slide,
         );
 
   MationTransitionOffset.ofDirection(
@@ -966,7 +1032,7 @@ class MationTransitionOffset extends MationTransition<Offset> {
             end: Offset.fromDirection(direction, end),
             curve: curve,
           ),
-          builder: MationTransition.slide,
+          builder: _MationTransition.slide,
         );
 
   MationTransitionOffset.ofDistance(
@@ -979,23 +1045,21 @@ class MationTransitionOffset extends MationTransition<Offset> {
             onLerp: FOnLerpSpline2D.arcCircle(origin, distance, direction),
             curve: curve,
           ),
-          builder: MationTransition.slide,
+          builder: _MationTransition.slide,
         );
 }
 
-class MationTransitionAlign extends MationTransition<AlignmentGeometry> {
+class MationTransitionAlign extends _MationTransition<AlignmentGeometry> {
   MationTransitionAlign({
     required AlignmentGeometry begin,
     required AlignmentGeometry end,
     CurveFR? curve,
   }) : super(
           Between(begin: begin, end: end, curve: curve),
-          builder: MationTransition.align,
+          builder: _MationTransition.align,
         );
 }
 
-///
-///
 ///
 ///
 /// See Also:
@@ -1004,16 +1068,45 @@ class MationTransitionAlign extends MationTransition<AlignmentGeometry> {
 ///   * [BoxDecoration.lerp], [ShapeDecoration.lerp] to find the right decoration that can be interpolated.
 ///   * [KBoxDecoration]
 ///
-///
-///
-class MationTransitionDecoration extends MationTransition<Decoration> {
+class MationTransitionDecoration extends _MationTransition<Decoration> {
   MationTransitionDecoration({
     required Decoration begin,
     required Decoration end,
     CurveFR? curve,
   }) : super(
           Between(begin: begin, end: end, curve: curve),
-          builder: MationTransition.decoration,
+          builder: _MationTransition.decoration,
+        );
+}
+
+class MationTransitionTextStyle extends _MationTransition<DefaultTextStyle> {
+  MationTransitionTextStyle({
+    required DefaultTextStyle begin,
+    required DefaultTextStyle end,
+  }) : super(
+          Between(begin: begin, end: end),
+          builder: _MationTransition.defaultTextStyle,
+        );
+}
+
+class MationTransitionPositioned extends _MationTransition<Rect> {
+  MationTransitionPositioned({
+    required Size size,
+    required Rect begin,
+    required Rect end,
+  }) : super(
+          Between(begin: begin, end: end),
+          builder: _MationTransition.relativePositionedOf(size),
+        );
+}
+
+class MationTransitionPositionedRelative extends _MationTransition<RelativeRect> {
+  MationTransitionPositionedRelative({
+    required RelativeRect begin,
+    required RelativeRect end,
+  }) : super(
+          Between(begin: begin, end: end),
+          builder: _MationTransition.positioned,
         );
 }
 
@@ -1039,12 +1132,6 @@ class MationClipper extends Mation<SizingPath> {
         clipBehavior: behavior,
         child: child,
       );
-
-  @override
-  Mation<SizingPath> mapBetween(
-    Mapper<Between<SizingPath>> mapper,
-  ) =>
-      throw UnimplementedError();
 }
 
 ///
@@ -1089,7 +1176,7 @@ class MationPainter extends Mation<SizingPath> {
           onAnimate: (t, vector) => PathOperation.union._combineAll(
             Iterable.generate(
               circleCount,
-                  (i) => (size) => Path()
+              (i) => (size) => Path()
                 ..addOval(
                   Rect.fromCircle(
                     center: planetGenerator(vector, i).toCoordinate,
@@ -1202,35 +1289,35 @@ class MationTransform extends Mations<Coordinate, _MationTransformBase> {
     AlignmentGeometry? scaleAlignment,
     this.distanceToObserver,
   }) : super([
-    if (translateBetween != null)
-      _MationTransformBase._translate(
-        translateBetween,
-        alignment: translateAlignment,
-      ),
-    if (rotateBetween != null)
-      _MationTransformBase._rotate(
-        rotateBetween,
-        alignment: rotateAlignment,
-      ),
-    if (scaleBetween != null)
-      _MationTransformBase._scale(
-        scaleBetween,
-        alignment: scaleAlignment,
-      ),
-  ]);
+          if (translateBetween != null)
+            _MationTransformBase._translate(
+              translateBetween,
+              alignment: translateAlignment,
+            ),
+          if (rotateBetween != null)
+            _MationTransformBase._rotate(
+              rotateBetween,
+              alignment: rotateAlignment,
+            ),
+          if (scaleBetween != null)
+            _MationTransformBase._scale(
+              scaleBetween,
+              alignment: scaleAlignment,
+            ),
+        ]);
 
   MationTransform.list(
-      List<MationTransformDelegate> delegates, {
-        this.distanceToObserver,
-      }) : super(delegates.foldWithIndex(
-    [],
-        (list, delegate, i) => list
-      ..add(_MationTransformBase(
-        delegate.between,
-        onAnimate: delegate._onAnimate,
-        alignment: delegate.alignment,
-      )),
-  ));
+    List<MationTransformDelegate> delegates, {
+    this.distanceToObserver,
+  }) : super(delegates.foldWithIndex(
+          [],
+          (list, delegate, i) => list
+            ..add(_MationTransformBase(
+              delegate.between,
+              onAnimate: delegate._onAnimate,
+              alignment: delegate.alignment,
+            )),
+        ));
 
   // TODO: sort in order of translate -> rotate -> scale
   // MationTransform.listInOrder();
@@ -1323,7 +1410,7 @@ class _MationTransformBase extends Mation<Coordinate> {
     required this.onAnimate,
   }) : host = host ?? Matrix4.identity();
 
-  /// instead of using scale, translate, rotate here, using [MationTransition], prevent ambiguous dependency for api
+  /// instead of using scale, translate, rotate here, using [_MationTransition], prevent ambiguous dependency for api
   _MationTransformBase._scale(
     super.between, {
     Matrix4? host,
@@ -1360,4 +1447,3 @@ class _MationTransformBase extends Mation<Coordinate> {
 
   void link(Matrix4 host) => this..host = host;
 }
-
