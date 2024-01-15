@@ -1,8 +1,6 @@
-part of '../mationani.dart';
-
+///
 ///
 /// this file contains:
-///
 /// [Between]
 ///   * [BetweenInterval]
 ///   * [BetweenConcurrent]
@@ -13,8 +11,6 @@ part of '../mationani.dart';
 ///     [BetweenPathPolygon]
 ///   ...
 ///
-/// [BetweenDoubleExtension], [BetweenOffsetExtension]
-/// [BetweenCoordinateExtension], [BetweenCoordinateRadianExtension]
 ///
 ///
 ///
@@ -34,7 +30,13 @@ part of '../mationani.dart';
 ///
 ///
 ///
-
+///
+///
+///
+///
+///
+part of mationani;
+// ignore_for_file: use_string_in_part_of_directives
 
 ///
 /// [Between] is my implementation for [Tween],
@@ -406,119 +408,12 @@ class BetweenPathPolygon extends _BetweenPathConcurrent<double> {
               scale ?? BetweenDoubleExtension.k1,
             ],
             onAnimate: (t, values) => FSizingPath.polygonCubicFromSize(
-              polygon._cubicPointsOf(values[0], values[1]),
+              polygon.cubicPointsOf(values[0], values[1]),
               scale: values[2],
               adjust: polygon.cornerAdjust,
             ),
             curve: curve,
           ),
         );
-}
-
-extension BetweenDoubleExtension on Between<double> {
-  static Between<double> get zero => Between.constant(0);
-
-  static Between<double> get k1 => Between.constant(1);
-
-  static Between<double> zeroFrom(double v) => Between(begin: v, end: 0);
-
-  static Between<double> zeroTo(double v) => Between(begin: 0, end: v);
-
-  static Between<double> oneFrom(double v) => Between(begin: v, end: 1);
-
-  static Between<double> oneTo(double v) => Between(begin: 1, end: v);
-
-  static Between<double> o1From(double v) => Between(begin: v, end: 0.1);
-
-  static Between<double> o1To(double v) => Between(begin: 0.1, end: v);
-}
-
-extension BetweenOffsetExtension on Between<Offset> {
-  double get direction => begin.directionTo(end);
-
-  static Between<Offset> get zero => Between.constant(Offset.zero);
-
-  static Between<Offset> zeroFrom(Offset begin, {CurveFR? curve}) =>
-      Between(begin: begin, end: Offset.zero, curve: curve);
-
-  static Between<Offset> zeroTo(Offset end, {CurveFR? curve}) =>
-      Between(begin: Offset.zero, end: end, curve: curve);
-}
-
-extension BetweenCoordinateExtension on Between<Coordinate> {
-  static Between<Coordinate> get zero => Between.constant(Coordinate.zero);
-
-  static Between<Coordinate> zeroFrom(Coordinate begin, {CurveFR? curve}) =>
-      Between<Coordinate>(begin: begin, end: Coordinate.zero, curve: curve);
-
-  static Between<Coordinate> zeroTo(Coordinate end, {CurveFR? curve}) =>
-      Between<Coordinate>(begin: Coordinate.zero, end: end, curve: curve);
-
-  static Between<Coordinate> zeroBeginOrEnd(
-      Coordinate another, {
-        required bool isEndZero,
-        CurveFR? curve,
-      }) =>
-      Between<Coordinate>(
-        begin: isEndZero ? another : Coordinate.zero,
-        end: isEndZero ? Coordinate.zero : another,
-        curve: curve,
-      );
-}
-
-extension BetweenCoordinateRadianExtension on Between<Coordinate> {
-  static Between<Coordinate> get x_0_360 =>
-      Between(begin: Coordinate.zero, end: KRadianCoordinate.angleX_360);
-
-  static Between<Coordinate> get y_0_360 =>
-      Between(begin: Coordinate.zero, end: KRadianCoordinate.angleY_360);
-
-  static Between<Coordinate> get z_0_360 =>
-      Between(begin: Coordinate.zero, end: KRadianCoordinate.angleZ_360);
-
-  static Between<Coordinate> get x_0_180 =>
-      Between(begin: Coordinate.zero, end: KRadianCoordinate.angleX_180);
-
-  static Between<Coordinate> get y_0_180 =>
-      Between(begin: Coordinate.zero, end: KRadianCoordinate.angleY_180);
-
-  static Between<Coordinate> get z_0_180 =>
-      Between(begin: Coordinate.zero, end: KRadianCoordinate.angleZ_180);
-
-  static Between<Coordinate> get x_0_90 =>
-      Between(begin: Coordinate.zero, end: KRadianCoordinate.angleX_90);
-
-  static Between<Coordinate> get y_0_90 =>
-      Between(begin: Coordinate.zero, end: KRadianCoordinate.angleY_90);
-
-  static Between<Coordinate> get z_0_90 =>
-      Between(begin: Coordinate.zero, end: KRadianCoordinate.angleZ_90);
-
-  static Between<Coordinate> toX360From(Coordinate from) =>
-      Between<Coordinate>(begin: from, end: KRadianCoordinate.angleX_360);
-
-  static Between<Coordinate> toY360From(Coordinate from) =>
-      Between<Coordinate>(begin: from, end: KRadianCoordinate.angleY_360);
-
-  static Between<Coordinate> toZ360From(Coordinate from) =>
-      Between<Coordinate>(begin: from, end: KRadianCoordinate.angleZ_360);
-
-  static Between<Coordinate> toX180From(Coordinate from) =>
-      Between<Coordinate>(begin: from, end: KRadianCoordinate.angleX_180);
-
-  static Between<Coordinate> toY180From(Coordinate from) =>
-      Between<Coordinate>(begin: from, end: KRadianCoordinate.angleY_180);
-
-  static Between<Coordinate> toZ180From(Coordinate from) =>
-      Between<Coordinate>(begin: from, end: KRadianCoordinate.angleZ_180);
-
-  static Between<Coordinate> toX90From(Coordinate from) =>
-      Between<Coordinate>(begin: from, end: KRadianCoordinate.angleX_90);
-
-  static Between<Coordinate> toY90From(Coordinate from) =>
-      Between<Coordinate>(begin: from, end: KRadianCoordinate.angleY_90);
-
-  static Between<Coordinate> toZ90From(Coordinate from) =>
-      Between<Coordinate>(begin: from, end: KRadianCoordinate.angleZ_90);
 }
 

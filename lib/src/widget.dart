@@ -1,17 +1,17 @@
-part of 'mationani.dart';
-
+///
 ///
 /// this file contains:
 ///
 /// [Mationani]
 ///   [MationaniSin]
 ///   [MationaniPenetration]
+///   [MationaniArrow]
 ///   ...
 ///
+/// [OverlayFadingStream]
 /// * [OverlayMixin]
 /// * [OverlayInsertion]
 ///   * [OverlayInsertionFading]
-/// [OverlayFadingStream]
 ///   [Leader]
 ///
 /// [FabExpandable]
@@ -35,6 +35,8 @@ part of 'mationani.dart';
 ///
 ///
 ///
+part of mationani;
+// ignore_for_file: use_string_in_part_of_directives
 
 ///
 ///
@@ -434,9 +436,53 @@ class MationaniCutting extends StatelessWidget {
   }
 }
 
+class MationaniArrow extends StatelessWidget {
+  const MationaniArrow({
+    super.key,
+    this.dimension = 40,
+    required this.onTap,
+    required this.direction,
+    this.child = const FlutterLogo(size: 40),
+  });
+
+  final double dimension;
+  final VoidCallback onTap;
+  final Direction2DIn4 direction;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox.square(
+      dimension: dimension,
+      child: RotatedBox(
+        quarterTurns: direction.index,
+        child: InkWell(
+          onTap: onTap,
+          child: Mationani(
+            mation: MationTransitionOffset.zeroTo(
+              KOffset.square_1 / 2,
+              curve: CurveFR.symmetry(Curving.sinPeriodOf(2)),
+            ),
+            ani: Ani(
+              duration: KDurationFR.second1,
+              initializer: Ani.initializeRepeat,
+            ),
+            child: child,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+///
+///
+///
 ///
 ///
 /// overlay
+///
+///
 ///
 ///
 
@@ -470,7 +516,7 @@ class _OverlayFadingStreamState extends State<OverlayFadingStream>
   @override
   void initState() {
     subscription = widget.insert.listen(
-          (builder) {
+      (builder) {
         final key = this.key;
         keys.add(key);
 
@@ -520,6 +566,7 @@ class _OverlayFadingStreamState extends State<OverlayFadingStream>
 /// [overlayUpdate]
 /// [overlayRemove]
 /// [overlayInsertFading]
+///
 ///
 ///
 mixin OverlayMixin {
@@ -836,7 +883,7 @@ class _FabExpandableElements extends StatelessWidget {
             (index) {
               final element = icons[index];
               return Mationani(
-                ani: setup.aniOf(isOpen),
+                ani: setup.aniDecider(isOpen),
                 mation: setup.mationsGenerator(index),
                 child: MaterialIconButton(
                   onPressed: element.action,
@@ -851,46 +898,52 @@ class _FabExpandableElements extends StatelessWidget {
   }
 }
 
+///
+///
+/// [positioned]
+/// [alignment]
+/// [duration]
+/// [updateHear]
+/// [mationsGenerator]
+/// [icons]
+/// [aniOf]
+///
+/// [_maxIconRadiusOf]
+///
+///
+///
 class FabExpandableSetup {
   final Rect positioned;
   final Alignment alignment;
-  final DurationFR duration;
-  final Decider<AnimationController, bool> updateHear;
+  final AniDecider<bool> aniDecider;
   final Generator<MationBase> mationsGenerator;
   final List<IconAction> icons;
-
-  Ani aniOf(bool open) => Ani(
-        duration: duration,
-        initializer: Ani.initializeForward,
-        updateConsumer: updateHear(open),
-        onAnimating: Ani.animatingBack,
-      );
 
   FabExpandableSetup._({
     required this.positioned,
     required this.alignment,
-    required this.duration,
-    required this.updateHear,
+    required this.aniDecider,
     required this.mationsGenerator,
     required this.icons,
   });
 
-  static Generator<Mations<dynamic, Mation>> _orbitOnOpenIcon(
-    Generator<double> direction,
-    double distance,
-    CurveFR curve,
-  ) =>
-      (index) => Mations<dynamic, Mation>([
-            MationTransitionDouble.fade(0, 1, curve: curve),
-            MationTransitionOffset.ofDirection(
-              direction(index),
-              0,
-              distance,
-              curve: CurveFR.intervalFlip(0.2 * index, 1.0, curve),
-            ),
-          ]);
+  static double _maxIconRadiusOf(BuildContext context, List<IconAction> icons) {
+    final size = context.themeIcon.size ?? 24.0;
+    return icons.reduceToNum((i) => i.icon.size ?? size);
+  }
 
-  factory FabExpandableSetup.orbitOnOpenIcon({
+  static AniDecider<bool> _decider(
+    DurationFR duration,
+    AnimationControllerDecider updateHear,
+  ) =>
+      (open) => Ani(
+            duration: duration,
+            initializer: Ani.initializeForward,
+            updateConsumer: updateHear(open),
+            onAnimating: Ani.animatingBack,
+          );
+
+  factory FabExpandableSetup.radiationOnOpenIcon({
     required DurationFR duration,
     required BuildContext context,
     required Rect openIconRect,
@@ -899,39 +952,24 @@ class FabExpandableSetup {
     double distance = 2,
     double maxElementsIconSize = 24,
     CurveFR curve = KCurveFR.fastOutSlowIn,
-    Decider<AnimationController, bool> updateHear = Ani.decideForwardOrReverse,
-    Generator<Mations<dynamic, Mation>>? mations,
-  }) {
-    final maxElementsIconSize = icons.maxSizeOf(context);
-    return FabExpandableSetup._(
-      positioned: RectExtension.fromCircle(
-        openIconRect.center,
-        maxElementsIconSize * (1 + 2 * distance),
-      ),
-      alignment: Alignment.center,
-      duration: duration,
-      updateHear: updateHear,
-      mationsGenerator: mations ?? _orbitOnOpenIcon(direction, distance, curve),
-      icons: icons,
-    );
-  }
-
-  static Generator<Mations<dynamic, Mation>> _line(
-    Direction2DIn8 direction,
-    double distance,
-    CurveFR curve,
-  ) =>
-      (index) => Mations<dynamic, Mation>([
-            MationTransitionOffset.zeroTo(
-              direction.toOffset * distance * (index + 1).toDouble(),
-              curve: curve,
+    AnimationControllerDecider updateHear = Ani.decideForwardOrReverse,
+    MationsGenerator? mations,
+  }) =>
+      FabExpandableSetup._(
+        positioned: RectExtension.fromCircle(
+          openIconRect.center,
+          _maxIconRadiusOf(context, icons) * (1 + 2 * distance),
+        ),
+        alignment: Alignment.center,
+        aniDecider: _decider(duration, updateHear),
+        mationsGenerator: mations ??
+            FMationsGenerator.fadeInRadiationStyle1(
+              direction,
+              distance,
+              curve,
             ),
-            MationTransitionDouble.scale(
-              0.0,
-              1.0,
-              curve: CurveFR.intervalFlip(0.2 * index, 1.0, curve),
-            ),
-          ]);
+        icons: icons,
+      );
 
   factory FabExpandableSetup.line({
     required DurationFR duration,
@@ -942,19 +980,27 @@ class FabExpandableSetup {
     double distance = 1.2,
     CurveFR curve = KCurveFR.ease,
     AnimationControllerDecider updateHear = Ani.decideForwardOrReverse,
-    Generator<Mations<dynamic, Mation>>? mations,
+    MationsGenerator? mations,
   }) {
-    final maxElementsIconSize = icons.maxSizeOf(context);
+    final maxIconRadius = _maxIconRadiusOf(context, icons);
     return FabExpandableSetup._(
-      positioned: openIconRect.expandToIncludeDirection(
-        direction: direction,
-        width: maxElementsIconSize * 2,
-        length: maxElementsIconSize * 2 * distance * icons.length,
+      // positioned: openIconRect.expandToIncludeDirection(
+      //   direction: direction,
+      //   width: maxIconRadius * 2,
+      //   length: maxIconRadius * 2 * distance * icons.length,
+      // ),
+      positioned: openIconRect.expandToInclude(
+        direction.sizingExtrudingOfDimension(maxIconRadius * 2)(
+          distance * icons.length,
+          ),
       ),
       alignment: direction.flipped.toAlignment,
-      duration: duration,
-      updateHear: updateHear,
-      mationsGenerator: mations ?? _line(direction, distance, curve),
+      aniDecider: _decider(duration, updateHear),
+      mationsGenerator: mations ??
+          FMationsGenerator.lineAndScale(
+            direction.toOffset * distance,
+            curve,
+          ),
       icons: icons,
     );
   }
@@ -971,7 +1017,7 @@ extension FFabExpandableSetupOrbit on FabExpandableSetupInitializer {
     required Alignment openIconAlignment,
     required List<IconAction> icons,
   }) =>
-      FabExpandableSetup.orbitOnOpenIcon(
+      FabExpandableSetup.radiationOnOpenIcon(
         duration: duration,
         context: context,
         openIconRect: openIconRect,
@@ -989,7 +1035,7 @@ extension FFabExpandableSetupOrbit on FabExpandableSetupInitializer {
     required Alignment openIconAlignment,
     required List<IconAction> icons,
   }) =>
-      FabExpandableSetup.orbitOnOpenIcon(
+      FabExpandableSetup.radiationOnOpenIcon(
         duration: duration,
         context: context,
         openIconRect: openIconRect,

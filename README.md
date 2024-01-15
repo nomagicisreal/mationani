@@ -1,19 +1,20 @@
-this is a repository for dart pub.dev library see [Mationani](https://pub.dev/packages/mationani)
+[Mationani - (Pub.dev library)](https://pub.dev/packages/mationani)
+[Mationani - (Github repository)](https://github.com/nomagicisreal/mationani)
 
 To prevent scattered instances of `AnimationController`, `Animation`, `Tween` in multiple widgets;
-there is a stateful widget called `Mationani` takes an easy way to enable beautiful flutter animation (in my acquisition).
-With `Matoinani`, we can only create widgets inside a builder.
+there is a stateful widget called `Mationani` takes an easy way to enable beautiful animation (in my acquisition).
+With `Matoinani`, we can only create widgets in a build.
 
 before,
 ```dart
-class SampleApp extends StatefulWidget {
-  const SampleApp({super.key});
+class SampleSlide extends StatefulWidget {
+  const SampleSlide({super.key});
 
   @override
-  State<SampleApp> createState() => _SampleAppState();
+  State<SampleSlide> createState() => _SampleSlideState();
 }
 
-class _SampleAppState extends State<SampleApp> with SingleTickerProviderStateMixin {
+class _SampleSlideState extends State<SampleSlide> with SingleTickerProviderStateMixin {
   late final AnimationController controller;
   late final Animation<Offset> animation;
 
@@ -42,8 +43,8 @@ class _SampleAppState extends State<SampleApp> with SingleTickerProviderStateMix
 
 after,
 ```dart
-class SampleApp extends StatelessWidget {
-  const SampleApp({super.key});
+class SampleSlide extends StatelessWidget {
+  const SampleSlide({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -65,6 +66,9 @@ class SampleApp extends StatelessWidget {
 
 ```
 
-In tradition, we need create a stateful widget with ticker mixin to enable animation,
-but now, we can use stateless widget with `Mation` and `Ani` as argument inside a build to enable animation, too.
+In tradition, an animation needs a stateful widget with ticker mixin,
+but now, an animation just needs a stateless widget with `Mation` and `Ani` as argument.
 
+`Mationani` is different to `ImplicitlyAnimatedWidget`.
+`ImplicitlyAnimatedWidget` provides implicitly animation by inheritance through many classes,
+`Mationani` gives developer more ability to control over `Mation`, `Between`, `Ani` arguments,
