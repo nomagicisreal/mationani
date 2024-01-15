@@ -1,5 +1,4 @@
-[Mationani - (Pub.dev library)](https://pub.dev/packages/mationani)
-[Mationani - (Github repository)](https://github.com/nomagicisreal/mationani)
+see mationani in [Pub.dev](https://pub.dev/packages/mationani) and [Github](https://github.com/nomagicisreal/mationani)
 
 To prevent scattered instances of `AnimationController`, `Animation`, `Tween` in multiple widgets;
 there is a stateful widget called `Mationani` takes an easy way to enable beautiful animation (in my acquisition).
@@ -71,4 +70,4 @@ but now, an animation just needs a stateless widget with `Mation` and `Ani` as a
 
 `Mationani` is different to `ImplicitlyAnimatedWidget`.
 `ImplicitlyAnimatedWidget` provides implicitly animation by inheritance through many classes,
-`Mationani` gives developer more ability to control over `Mation`, `Between`, `Ani` arguments,
+while `Mationani` requires only `Mation`, `Between`, `Ani` as arguments in widget build,

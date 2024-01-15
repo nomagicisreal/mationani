@@ -50,8 +50,6 @@ part of mationani;
 ///  * [Mations], which trigger multiple tweens animations
 ///       [MationTransform]
 ///
-///
-///
 sealed class MationBase<T> {
   const MationBase();
 
@@ -212,10 +210,10 @@ enum MationSequenceStyle {
                 final b = end.coordinates;
                 return MationTransform.list(
                   [
-                    MationTransformDelegate.translate
+                    MationTransformDelegate.translation
                       ..between = Between(begin: a[0], end: b[0], curve: curve)
                       ..alignment = Alignment.topLeft,
-                    MationTransformDelegate.rotate
+                    MationTransformDelegate.rotation
                       ..between = Between(begin: a[1], end: b[1], curve: curve)
                       ..alignment = Alignment.topLeft,
                     MationTransformDelegate.scale
@@ -784,7 +782,7 @@ class MationPainter extends Mation<SizingPath> {
 ///
 
 class Mations<T, M extends Mation<T>> extends MationBase<T> {
-  final List<M> _list;
+  final Iterable<M> _list;
 
   Mations(this._list);
 
@@ -805,15 +803,6 @@ class Mations<T, M extends Mation<T>> extends MationBase<T> {
   }
 
   int get length => _list.length;
-
-  void add(M element) => _list.add(element);
-
-  void addAll(Iterable<M> elements) => _list.addAll(elements);
-
-  void insert(int index, M element) => _list.insert(index, element);
-
-  void insertAll(int index, Iterable<M> elements) =>
-      _list.insertAll(index, elements);
 }
 
 ///
@@ -823,22 +812,27 @@ class Mations<T, M extends Mation<T>> extends MationBase<T> {
 ///
 ///
 ///
+/// [MationTransform.distanced]
+/// [MationTransform.list]
 ///
-
+///
 class MationTransform extends Mations<Coordinate, _MationTransformBase> {
-  final double? distanceToObserver;
+  Matrix4 host;
 
-  Matrix4 get host => Matrix4.identity()..setDistance(distanceToObserver);
+  @override
+  Iterable<_MationTransformBase> get _list =>
+      super._list.map((mation) => mation..link(host));
 
   MationTransform({
+    Matrix4? host,
     Between<Coordinate>? translateBetween,
     Between<Coordinate>? rotateBetween,
     Between<Coordinate>? scaleBetween,
     AlignmentGeometry? translateAlignment,
     AlignmentGeometry? rotateAlignment,
     AlignmentGeometry? scaleAlignment,
-    this.distanceToObserver,
-  }) : super([
+  })  : host = host ?? Matrix4.identity(),
+        super([
           if (translateBetween != null)
             _MationTransformBase._translate(
               translateBetween,
@@ -856,53 +850,121 @@ class MationTransform extends Mations<Coordinate, _MationTransformBase> {
             ),
         ]);
 
+  MationTransform.distanced({
+    required double distanceToObserver,
+    Between<Coordinate>? translateBetween,
+    Between<Coordinate>? rotateBetween,
+    Between<Coordinate>? scaleBetween,
+    AlignmentGeometry? translateAlignment,
+    AlignmentGeometry? rotateAlignment,
+    AlignmentGeometry? scaleAlignment,
+  }) : this(
+          host: Matrix4.identity()..setDistance(distanceToObserver),
+          translateBetween: translateBetween,
+          rotateBetween: rotateBetween,
+          scaleBetween: scaleBetween,
+          translateAlignment: translateAlignment,
+          rotateAlignment: rotateAlignment,
+          scaleAlignment: scaleAlignment,
+        );
+
   MationTransform.list(
-    List<MationTransformDelegate> delegates, {
-    this.distanceToObserver,
-  }) : super(delegates.foldWithIndex(
+    Iterable<MationTransformDelegate> delegates, {
+    Matrix4? host,
+  })  : host = host ?? Matrix4.identity(),
+        super(delegates.fold<List<_MationTransformBase>>(
           [],
-          (list, delegate, i) => list
+          (list, delegate) => list
             ..add(_MationTransformBase(
               delegate.between,
-              onAnimate: delegate._onAnimate,
+              delegate: delegate,
               alignment: delegate.alignment,
             )),
         ));
 
-  // TODO: sort in order of translate -> rotate -> scale
-  // MationTransform.listInOrder();
+  MationTransform.listInOrder(
+    Iterable<MationTransformDelegate> delegates, {
+    Matrix4? host,
+    List<OnAnimateMatrix4> order = MationTransformDelegate.orderTRS,
+  }) : this.list(delegates.sort(order), host: host);
 
-  @override
-  List<_MationTransformBase> get _list =>
-      super._list.map((mation) => mation..link(host)).toList(growable: false);
+  MationTransform alignAll({
+    AlignmentGeometry? translation,
+    AlignmentGeometry? rotation,
+    AlignmentGeometry? scaling,
+  }) =>
+      MationTransform.list(_list.map((base) {
+        final delegate = base.delegate;
+        final onAnimate = delegate._onAnimate;
+        return delegate
+          ..alignment = switch (onAnimate) {
+            _FOnAnimateMatrix4.translating => translation,
+            _FOnAnimateMatrix4.rotating => rotation,
+            _FOnAnimateMatrix4.scaling => scaling,
+            _ => throw UnimplementedError(),
+          };
+      }));
 }
 
+///
+/// [_onAnimate], [between], [alignment]
+/// [translation], [rotation], [scale]
+/// [orderTRS], [orderTSR], [orderSTR], [orderSRT], [orderRTS], [orderRST]
+///
 class MationTransformDelegate {
-  final int type;
+  final OnAnimateMatrix4 _onAnimate;
   Between<Coordinate> between;
   AlignmentGeometry? alignment;
 
-  MationTransformDelegate._(this.type, this.between);
+  MationTransformDelegate._(this._onAnimate, this.between);
 
-  static final MationTransformDelegate translate = MationTransformDelegate._(
-    0,
-    Between(begin: Coordinate.zero, end: Coordinate.zero),
-  );
-  static final MationTransformDelegate rotate = MationTransformDelegate._(
-    1,
-    Between(begin: Coordinate.zero, end: Coordinate.zero),
-  );
-  static final MationTransformDelegate scale = MationTransformDelegate._(
-    2,
-    Between(begin: KCoordinate.cube_1, end: KCoordinate.cube_1),
-  );
+  static MationTransformDelegate get translation => MationTransformDelegate._(
+      _FOnAnimateMatrix4.translating,
+      Between(begin: Coordinate.zero, end: Coordinate.zero));
 
-  OnAnimateMatrix4 get _onAnimate => switch (type) {
-        0 => _FOnAnimateMatrix4._translating,
-        1 => _FOnAnimateMatrix4._rotating,
-        2 => _FOnAnimateMatrix4._scaling,
-        _ => throw UnimplementedError(),
-      };
+  static MationTransformDelegate get rotation => MationTransformDelegate._(
+      _FOnAnimateMatrix4.rotating,
+      Between(begin: Coordinate.zero, end: Coordinate.zero));
+
+  static MationTransformDelegate get scale => MationTransformDelegate._(
+      _FOnAnimateMatrix4.scaling,
+      Between(begin: KCoordinate.cube_1, end: KCoordinate.cube_1));
+
+  static const List<OnAnimateMatrix4> orderTRS = [
+    _FOnAnimateMatrix4.translating,
+    _FOnAnimateMatrix4.rotating,
+    _FOnAnimateMatrix4.scaling,
+  ];
+
+  static const List<OnAnimateMatrix4> orderTSR = [
+    _FOnAnimateMatrix4.translating,
+    _FOnAnimateMatrix4.scaling,
+    _FOnAnimateMatrix4.rotating,
+  ];
+
+  static const List<OnAnimateMatrix4> orderSTR = [
+    _FOnAnimateMatrix4.scaling,
+    _FOnAnimateMatrix4.translating,
+    _FOnAnimateMatrix4.rotating,
+  ];
+
+  static const List<OnAnimateMatrix4> orderSRT = [
+    _FOnAnimateMatrix4.scaling,
+    _FOnAnimateMatrix4.rotating,
+    _FOnAnimateMatrix4.translating,
+  ];
+
+  static const List<OnAnimateMatrix4> orderRTS = [
+    _FOnAnimateMatrix4.rotating,
+    _FOnAnimateMatrix4.translating,
+    _FOnAnimateMatrix4.scaling,
+  ];
+
+  static const List<OnAnimateMatrix4> orderRST = [
+    _FOnAnimateMatrix4.rotating,
+    _FOnAnimateMatrix4.scaling,
+    _FOnAnimateMatrix4.translating,
+  ];
 }
 
 ///
@@ -939,25 +1001,28 @@ class MationTransformDelegate {
 ///
 ///
 class _MationTransformBase extends Mation<Coordinate> {
-  final OnAnimateMatrix4 onAnimate;
+  final MationTransformDelegate delegate;
   final AlignmentGeometry? alignment;
   Matrix4 host;
 
-  AnimationBuilder _transform(OnAnimateMatrix4 animate) =>
-      ((animation, child) => Transform(
-            transform: animate(host, animation.value),
-            alignment: alignment,
-            child: child,
-          ));
-
   @override
-  AnimationBuilder get __builder => _transform(onAnimate);
+  AnimationBuilder get __builder {
+    final onAnimate = delegate._onAnimate;
+    final host = this.host;
+    final alignment = this.alignment;
+
+    return (animation, child) => Transform(
+          transform: onAnimate(host, animation.value),
+          alignment: alignment,
+          child: child,
+        );
+  }
 
   _MationTransformBase(
     super.between, {
     Matrix4? host,
     this.alignment,
-    required this.onAnimate,
+    required this.delegate,
   }) : host = host ?? Matrix4.identity();
 
   /// instead of using scale, translate, rotate here, using [_MationTransition], prevent ambiguous dependency for api
@@ -966,21 +1031,21 @@ class _MationTransformBase extends Mation<Coordinate> {
     Matrix4? host,
     this.alignment,
   })  : host = host ?? Matrix4.identity(),
-        onAnimate = MationTransformDelegate.scale._onAnimate;
+        delegate = MationTransformDelegate.scale;
 
   _MationTransformBase._translate(
     super.between, {
     Matrix4? host,
     this.alignment,
   })  : host = host ?? Matrix4.identity(),
-        onAnimate = MationTransformDelegate.translate._onAnimate;
+        delegate = MationTransformDelegate.translation;
 
   _MationTransformBase._rotate(
     super.between, {
     Matrix4? host,
     this.alignment,
   })  : host = host ?? Matrix4.identity(),
-        onAnimate = MationTransformDelegate.rotate._onAnimate;
+        delegate = MationTransformDelegate.rotation;
 
   @override
   _MationTransformBase mapBetween(Mapper<Between<Coordinate>> mapper) =>
@@ -988,12 +1053,12 @@ class _MationTransformBase extends Mation<Coordinate> {
         mapper(between),
         host: host,
         alignment: alignment,
-        onAnimate: onAnimate,
+        delegate: delegate,
       );
 
   @override
   _MationTransformBase map(Mapper<Mation<Coordinate>> mapper) =>
       super.map(mapper) as _MationTransformBase;
 
-  void link(Matrix4 host) => this..host = host;
+  void link(Matrix4 host) => this.host = host;
 }

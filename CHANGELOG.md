@@ -9,4 +9,5 @@
   - `mation.dart`
   - `widget.dart`
 
-
+## 0.0.12
+- update `MationTransform` constructor, and ...

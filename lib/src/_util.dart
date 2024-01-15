@@ -38,7 +38,6 @@
 part of mationani;
 // ignore_for_file: use_string_in_part_of_directives
 
-
 typedef IfAnimating = void Function(
   AnimationController controller,
   bool isForward,
@@ -83,7 +82,6 @@ typedef MationSequencer<T> = Translator<int, MationBase<T>> Function(
 ///
 typedef AniDecider<T> = Ani Function(T toggle);
 
-
 ///
 /// on (the type that may process in every tick)
 ///
@@ -110,7 +108,6 @@ typedef FabExpandableSetupInitializer = FabExpandableSetup Function({
   required Alignment openIconAlignment,
   required List<IconAction> icons,
 });
-
 
 extension BetweenDoubleExtension on Between<double> {
   static Between<double> get zero => Between.constant(0);
@@ -152,10 +149,10 @@ extension BetweenCoordinateExtension on Between<Coordinate> {
       Between<Coordinate>(begin: Coordinate.zero, end: end, curve: curve);
 
   static Between<Coordinate> zeroBeginOrEnd(
-      Coordinate another, {
-        required bool isEndZero,
-        CurveFR? curve,
-      }) =>
+    Coordinate another, {
+    required bool isEndZero,
+    CurveFR? curve,
+  }) =>
       Between<Coordinate>(
         begin: isEndZero ? another : Coordinate.zero,
         end: isEndZero ? Coordinate.zero : another,
@@ -219,11 +216,11 @@ extension BetweenCoordinateRadianExtension on Between<Coordinate> {
       Between<Coordinate>(begin: from, end: KRadianCoordinate.angleZ_90);
 
   Between<Coordinate> get transferToTransform => Between(
-    begin: Coordinate.transferToTransformOf(begin),
-    end: Coordinate.transferToTransformOf(end),
-    curve: curve,
-    onLerp: _onLerp,
-  );
+        begin: Coordinate.transferToTransformOf(begin),
+        end: Coordinate.transferToTransformOf(end),
+        curve: curve,
+        onLerp: _onLerp,
+      );
 }
 
 ///
@@ -242,10 +239,10 @@ extension BetweenCoordinateRadianExtension on Between<Coordinate> {
 ///
 extension FOnLerpSpline2D on OnLerp<Offset> {
   static OnLerp<Offset> arcOval(
-      Offset origin,
-      Between<double> direction,
-      Between<double> radius,
-      ) {
+    Offset origin,
+    Between<double> direction,
+    Between<double> radius,
+  ) {
     final dOf = direction._onLerp;
     final rOf = radius._onLerp;
     Offset onLerp(double t) => Offset.fromDirection(dOf(t), rOf(t));
@@ -253,10 +250,10 @@ extension FOnLerpSpline2D on OnLerp<Offset> {
   }
 
   static OnLerp<Offset> arcCircle(
-      Offset origin,
-      double radius,
-      Between<double> direction,
-      ) =>
+    Offset origin,
+    double radius,
+    Between<double> direction,
+  ) =>
       FOnLerpSpline2D.arcOval(origin, direction, Between.constant(radius));
 
   static OnLerp<Offset> arcCircleSemi(Offset a, Offset b, bool clockwise) {
@@ -276,24 +273,24 @@ extension FOnLerpSpline2D on OnLerp<Offset> {
   /// bezier quadratic
   ///
   static OnLerp<Offset> bezierQuadratic(
-      Offset begin,
-      Offset end,
-      Offset controlPoint,
-      ) {
+    Offset begin,
+    Offset end,
+    Offset controlPoint,
+  ) {
     final vector1 = controlPoint - begin;
     final vector2 = end - controlPoint;
     return (t) => OffsetExtension.parallelOffsetOf(
-      begin + vector1 * t,
-      controlPoint + vector2 * t,
-      t,
-    );
+          begin + vector1 * t,
+          controlPoint + vector2 * t,
+          t,
+        );
   }
 
   static OnLerp<Offset> bezierQuadraticSymmetry(
-      Offset begin,
-      Offset end, {
-        double dPerpendicular = 5, // distance perpendicular
-      }) =>
+    Offset begin,
+    Offset end, {
+    double dPerpendicular = 5, // distance perpendicular
+  }) =>
       bezierQuadratic(
         begin,
         end,
@@ -306,11 +303,11 @@ extension FOnLerpSpline2D on OnLerp<Offset> {
 
   /// bezier cubic
   static OnLerp<Offset> bezierCubic(
-      Offset begin,
-      Offset end, {
-        required Offset c1,
-        required Offset c2,
-      }) {
+    Offset begin,
+    Offset end, {
+    required Offset c1,
+    required Offset c2,
+  }) {
     final vector1 = c1 - begin;
     final vector2 = c2 - c1;
     final vector3 = end - c2;
@@ -325,11 +322,11 @@ extension FOnLerpSpline2D on OnLerp<Offset> {
   }
 
   static OnLerp<Offset> bezierCubicSymmetry(
-      Offset begin,
-      Offset end, {
-        double dPerpendicular = 10,
-        double dParallel = 1,
-      }) {
+    Offset begin,
+    Offset end, {
+    double dPerpendicular = 10,
+    double dParallel = 1,
+  }) {
     final list = [begin, end].symmetryInsert(dPerpendicular, dParallel);
     return bezierCubic(begin, end, c1: list[1], c2: list[2]);
   }
@@ -338,11 +335,11 @@ extension FOnLerpSpline2D on OnLerp<Offset> {
   /// catmullRom
   ///
   static OnLerp<Offset> catmullRom(
-      List<Offset> controlPoints, {
-        double tension = 0.0,
-        Offset? startHandle,
-        Offset? endHandle,
-      }) =>
+    List<Offset> controlPoints, {
+    double tension = 0.0,
+    Offset? startHandle,
+    Offset? endHandle,
+  }) =>
       CatmullRomSpline.precompute(
         controlPoints,
         tension: tension,
@@ -351,14 +348,14 @@ extension FOnLerpSpline2D on OnLerp<Offset> {
       ).transform;
 
   static OnLerp<Offset> catmullRomSymmetry(
-      Offset begin,
-      Offset end, {
-        double dPerpendicular = 5,
-        double dParallel = 2,
-        double tension = 0.0,
-        Offset? startHandle,
-        Offset? endHandle,
-      }) =>
+    Offset begin,
+    Offset end, {
+    double dPerpendicular = 5,
+    double dParallel = 2,
+    double tension = 0.0,
+    Offset? startHandle,
+    Offset? endHandle,
+  }) =>
       catmullRom(
         [begin, end].symmetryInsert(dPerpendicular, dParallel),
         tension: tension,
@@ -386,10 +383,10 @@ extension FOnAnimatePath on OnAnimatePath {
       stadium(between.begin, between.direction, w);
 
   static OnLerp<SizingPath> of<T>(
-      OnAnimatePath<T> onAnimate,
-      OnLerp<T> onLerp,
-      ) =>
-          (t) => onAnimate(t, onLerp(t));
+    OnAnimatePath<T> onAnimate,
+    OnLerp<T> onLerp,
+  ) =>
+      (t) => onAnimate(t, onLerp(t));
 
   static OnAnimatePath<ShapeBorder> shapeBorder({
     bool outerPath = true,
@@ -414,55 +411,54 @@ extension FOnAnimatePath on OnAnimatePath {
 
 extension FMationsGenerator on MationsGenerator {
   static MationsGenerator fadeInRadiationStyle1(
-      Generator<double> direction,
-      double distance,
-      CurveFR curve,
-      ) =>
-          (index) => Mations<dynamic, Mation>([
-        MationTransitionDouble.fadeIn(curve: curve),
-        MationTransitionOffset.ofDirection(
-          direction(index),
-          0,
-          distance,
-          curve: CurveFR.intervalFlip(0.2 * index, 1.0, curve),
-        ),
-      ]);
+    Generator<double> direction,
+    double distance,
+    CurveFR curve,
+  ) =>
+      (index) => Mations<dynamic, Mation>([
+            MationTransitionDouble.fadeIn(curve: curve),
+            MationTransitionOffset.ofDirection(
+              direction(index),
+              0,
+              distance,
+              curve: CurveFR.intervalFlip(0.2 * index, 1.0, curve),
+            ),
+          ]);
 
   static MationsGenerator lineAndScale(Offset delta, CurveFR curve) =>
-          (index) => Mations<dynamic, Mation>([
-        MationTransitionOffset.zeroTo(
-          delta * (index + 1).toDouble(),
-          curve: curve,
-        ),
-        MationTransitionDouble.scaleOneFrom(
-          0.0,
-          curve: CurveFR.intervalFlip(0.2 * index, 1.0, curve),
-        ),
-      ]);
+      (index) => Mations<dynamic, Mation>([
+            MationTransitionOffset.zeroTo(
+              delta * (index + 1).toDouble(),
+              curve: curve,
+            ),
+            MationTransitionDouble.scaleOneFrom(
+              0.0,
+              curve: CurveFR.intervalFlip(0.2 * index, 1.0, curve),
+            ),
+          ]);
 }
 
-
 ///
 ///
 ///
-/// 
-/// 
-/// 
-/// 
-/// 
+///
+///
+///
+///
+///
 /// private typedef, extensions
-/// 
-/// 
-/// 
-/// 
-/// 
+///
+///
+///
+///
+///
 ///
 ///
 ///
 typedef _AnimationsBuilder<T> = Widget Function(
-    Iterable<Animation<T>> animations,
-    Widget child,
-    );
+  Iterable<Animation<T>> animations,
+  Widget child,
+);
 
 extension _AnimationControllerExtension on AnimationController {
   void forwardReset({double? from}) => forward(from: from).then((_) => reset());
@@ -482,20 +478,20 @@ extension _FOnLerp on OnLerp {
   static OnLerp<T> constant<T>(T value) => (_) => value;
 
   static OnLerp<T> of<T>(T a, T b) => switch (a) {
-    Size _ => _size(a, b as Size),
-    Rect _ => _rect(a, b as Rect),
-    Color _ => _color(a, b as Color),
-    Vector3D _ => _vector(a, b as Vector3D),
-    EdgeInsets _ => _edgeInsets(a, b as EdgeInsets),
-    Decoration _ => _decoration(a, b as Decoration),
-    ShapeBorder _ => _shapeBorder(a, b as ShapeBorder),
-    RelativeRect _ => _relativeRect(a, b as RelativeRect),
-    AlignmentGeometry _ => _alignmentGeometry(a, b as AlignmentGeometry),
-    SizingPath _ => throw ArgumentError(
-      'using BetweenPath constructor instead of Between<SizingPath>',
-    ),
-    _ => Tween<T>(begin: a, end: b).transform,
-  } as OnLerp<T>;
+        Size _ => _size(a, b as Size),
+        Rect _ => _rect(a, b as Rect),
+        Color _ => _color(a, b as Color),
+        Vector3D _ => _vector(a, b as Vector3D),
+        EdgeInsets _ => _edgeInsets(a, b as EdgeInsets),
+        Decoration _ => _decoration(a, b as Decoration),
+        ShapeBorder _ => _shapeBorder(a, b as ShapeBorder),
+        RelativeRect _ => _relativeRect(a, b as RelativeRect),
+        AlignmentGeometry _ => _alignmentGeometry(a, b as AlignmentGeometry),
+        SizingPath _ => throw ArgumentError(
+            'using BetweenPath constructor instead of Between<SizingPath>',
+          ),
+        _ => Tween<T>(begin: a, end: b).transform,
+      } as OnLerp<T>;
 
   static OnLerp<Size> _size(Size a, Size b) => (t) => Size.lerp(a, b, t)!;
 
@@ -504,19 +500,19 @@ extension _FOnLerp on OnLerp {
   static OnLerp<Color> _color(Color a, Color b) => (t) => Color.lerp(a, b, t)!;
 
   static OnLerp<Vector3D> _vector(Vector3D a, Vector3D b) =>
-          (t) => Vector3D.lerp(a, b, t);
+      (t) => Vector3D.lerp(a, b, t);
 
   static OnLerp<EdgeInsets> _edgeInsets(EdgeInsets a, EdgeInsets b) =>
-          (t) => EdgeInsets.lerp(a, b, t)!;
+      (t) => EdgeInsets.lerp(a, b, t)!;
 
   static OnLerp<RelativeRect> _relativeRect(RelativeRect a, RelativeRect b) =>
-          (t) => RelativeRect.lerp(a, b, t)!;
+      (t) => RelativeRect.lerp(a, b, t)!;
 
   static OnLerp<AlignmentGeometry> _alignmentGeometry(
-      AlignmentGeometry a,
-      AlignmentGeometry b,
-      ) =>
-          (t) => AlignmentGeometry.lerp(a, b, t)!;
+    AlignmentGeometry a,
+    AlignmentGeometry b,
+  ) =>
+      (t) => AlignmentGeometry.lerp(a, b, t)!;
 
   ///
   ///
@@ -527,17 +523,17 @@ extension _FOnLerp on OnLerp {
   static OnLerp<ShapeBorder> _shapeBorder(ShapeBorder a, ShapeBorder b) =>
       switch (a) {
         BoxBorder _ => switch (b) {
-          BoxBorder _ => (t) => BoxBorder.lerp(a, b, t)!,
-          _ => throw UnimplementedError(),
-        },
+            BoxBorder _ => (t) => BoxBorder.lerp(a, b, t)!,
+            _ => throw UnimplementedError(),
+          },
         InputBorder _ => switch (b) {
-          InputBorder _ => (t) => ShapeBorder.lerp(a, b, t)!,
-          _ => throw UnimplementedError(),
-        },
+            InputBorder _ => (t) => ShapeBorder.lerp(a, b, t)!,
+            _ => throw UnimplementedError(),
+          },
         OutlinedBorder _ => switch (b) {
-          OutlinedBorder _ => (t) => OutlinedBorder.lerp(a, b, t)!,
-          _ => throw UnimplementedError(),
-        },
+            OutlinedBorder _ => (t) => OutlinedBorder.lerp(a, b, t)!,
+            _ => throw UnimplementedError(),
+          },
         _ => throw UnimplementedError(),
       };
 
@@ -547,28 +543,32 @@ extension _FOnLerp on OnLerp {
             ? (t) => BoxDecoration.lerp(a, b, t)!
             : throw UnimplementedError('BoxShape should not be interpolated'),
         ShapeDecoration _ => switch (b) {
-          ShapeDecoration _ => a.shape == b.shape
-              ? (t) => ShapeDecoration.lerp(a, b, t)!
-              : switch (a.shape) {
-            CircleBorder _ || RoundedRectangleBorder _ => switch (
-            b.shape) {
-              CircleBorder _ || RoundedRectangleBorder _ => (t) =>
-              Decoration.lerp(a, b, t)!,
-              _ => throw UnimplementedError(
-                "'$a shouldn't be interpolated to $b'",
-              ),
-            },
-            _ => throw UnimplementedError(
-              "'$a shouldn't be interpolated to $b'",
-            ),
+            ShapeDecoration _ => a.shape == b.shape
+                ? (t) => ShapeDecoration.lerp(a, b, t)!
+                : switch (a.shape) {
+                    CircleBorder _ || RoundedRectangleBorder _ => switch (
+                          b.shape) {
+                        CircleBorder _ || RoundedRectangleBorder _ => (t) =>
+                            Decoration.lerp(a, b, t)!,
+                        _ => throw UnimplementedError(
+                            "'$a shouldn't be interpolated to $b'",
+                          ),
+                      },
+                    _ => throw UnimplementedError(
+                        "'$a shouldn't be interpolated to $b'",
+                      ),
+                  },
+            _ => throw UnimplementedError(),
           },
-          _ => throw UnimplementedError(),
-        },
         _ => throw UnimplementedError(),
       };
 }
 
 extension _FOnAnimateMatrix4 on OnAnimateMatrix4 {
+  static const OnAnimateMatrix4 translating = _translating;
+  static const OnAnimateMatrix4 rotating = _rotating;
+  static const OnAnimateMatrix4 scaling = _scaling;
+
   static Matrix4 _scaling(Matrix4 matrix4, Coordinate value) =>
       matrix4.scaledCoordinate(value);
 
@@ -611,13 +611,12 @@ extension _FOnAnimateMatrix4 on OnAnimateMatrix4 {
 //           .getRotation());
 }
 
-
 extension _Matrix4Extension on Matrix4 {
   Matrix4 scaledCoordinate(Coordinate coordinate) => scaled(
-    coordinate.dx,
-    coordinate.dy,
-    coordinate.dz,
-  );
+        coordinate.dx,
+        coordinate.dy,
+        coordinate.dz,
+      );
 
   void rotateCoordinate(Coordinate coordinate) => this
     ..rotateX(coordinate.dx)
@@ -639,4 +638,16 @@ extension _Matrix4Extension on Matrix4 {
 
   Matrix4 get identityPerspective =>
       Matrix4.identity()..copyPerspectiveFrom(this);
+}
+
+extension _IterableMationTransformDelegate
+    on Iterable<MationTransformDelegate> {
+  Iterable<MationTransformDelegate> sort(List<OnAnimateMatrix4> order) {
+    final map =
+        Map.fromIterable(order, value: (_) => <MationTransformDelegate>[]);
+    for (var delegate in this) {
+      map[delegate._onAnimate]!.add(delegate);
+    }
+    return order.expand((onAnimate) => map[onAnimate]!);
+  }
 }
