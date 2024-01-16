@@ -20,6 +20,7 @@
 /// [BetweenCoordinateExtension], [BetweenCoordinateRadianExtension]
 ///
 /// [FOnLerpSpline2D], [FOnAnimatePath]
+/// [FOnAnimateMatrix4]
 ///
 /// [FMationsGenerator]
 ///
@@ -27,8 +28,9 @@
 /// private typedef, extensions:
 /// [_AnimationsBuilder]
 /// [_AnimationControllerExtension]
-/// [_FOnLerp], [_FOnAnimateMatrix4]
+/// [_FOnLerp],
 /// [_Matrix4Extension]
+/// [_IterableMationTransformBase]
 ///
 ///
 ///
@@ -141,6 +143,8 @@ extension BetweenOffsetExtension on Between<Offset> {
 
 extension BetweenCoordinateExtension on Between<Coordinate> {
   static Between<Coordinate> get zero => Between.constant(Coordinate.zero);
+
+  static Between<Coordinate> get one => Between.constant(KCoordinate.cube_1);
 
   static Between<Coordinate> zeroFrom(Coordinate begin, {CurveFR? curve}) =>
       Between<Coordinate>(begin: begin, end: Coordinate.zero, curve: curve);
@@ -400,6 +404,53 @@ extension FOnAnimatePath on OnAnimatePath {
   }
 }
 
+extension FOnAnimateMatrix4 on OnAnimateMatrix4 {
+  static const OnAnimateMatrix4 translating = _translating;
+  static const OnAnimateMatrix4 rotating = _rotating;
+  static const OnAnimateMatrix4 scaling = _scaling;
+
+  static Matrix4 _scaling(Matrix4 matrix4, Coordinate value) =>
+      matrix4.scaledCoordinate(value);
+
+  static Matrix4 _translating(Matrix4 matrix4, Coordinate value) =>
+      matrix4.identityPerspective..translateCoordinate(value);
+
+  static Matrix4 _rotating(Matrix4 matrix4, Coordinate value) => matrix4
+    ..setRotation((Matrix4.identity()..rotateCoordinate(value)).getRotation());
+
+// ///
+// /// with mapper
+// ///
+// static OnAnimateMatrix4 scaleMapping(Mapper<Coordinate> mapper) =>
+//     (matrix4, value) => matrix4.scaledCoordinate(mapper(value));
+//
+// static OnAnimateMatrix4 translateMapping(Mapper<Coordinate> mapper) =>
+//     (matrix4, value) => matrix4
+//       ..identityPerspective
+//       ..translateCoordinate(mapper(value));
+//
+// static OnAnimateMatrix4 rotateMapping(Mapper<Coordinate> mapper) =>
+//     (matrix4, value) => matrix4
+//       ..setRotation((Matrix4.identity()..rotateCoordinate(mapper(value)))
+//           .getRotation());
+//
+// ///
+// /// with fixed value
+// ///
+// static OnAnimateMatrix4 fixedScaling(Coordinate fixed) =>
+//     (matrix4, value) => matrix4.scaledCoordinate(value + fixed);
+//
+// static OnAnimateMatrix4 fixedTranslating(Coordinate fixed) =>
+//     (matrix4, value) => matrix4
+//       ..identityPerspective
+//       ..translateCoordinate(value + fixed);
+//
+// static OnAnimateMatrix4 fixedRotating(Coordinate fixed) =>
+//     (matrix4, value) => matrix4
+//       ..setRotation((Matrix4.identity()..rotateCoordinate(fixed + value))
+//           .getRotation());
+}
+
 ///
 ///
 ///
@@ -564,53 +615,6 @@ extension _FOnLerp on OnLerp {
       };
 }
 
-extension _FOnAnimateMatrix4 on OnAnimateMatrix4 {
-  static const OnAnimateMatrix4 translating = _translating;
-  static const OnAnimateMatrix4 rotating = _rotating;
-  static const OnAnimateMatrix4 scaling = _scaling;
-
-  static Matrix4 _scaling(Matrix4 matrix4, Coordinate value) =>
-      matrix4.scaledCoordinate(value);
-
-  static Matrix4 _translating(Matrix4 matrix4, Coordinate value) =>
-      matrix4.identityPerspective..translateCoordinate(value);
-
-  static Matrix4 _rotating(Matrix4 matrix4, Coordinate value) => matrix4
-    ..setRotation((Matrix4.identity()..rotateCoordinate(value)).getRotation());
-
-// ///
-// /// with mapper
-// ///
-// static OnAnimateMatrix4 scaleMapping(Mapper<Coordinate> mapper) =>
-//     (matrix4, value) => matrix4.scaledCoordinate(mapper(value));
-//
-// static OnAnimateMatrix4 translateMapping(Mapper<Coordinate> mapper) =>
-//     (matrix4, value) => matrix4
-//       ..identityPerspective
-//       ..translateCoordinate(mapper(value));
-//
-// static OnAnimateMatrix4 rotateMapping(Mapper<Coordinate> mapper) =>
-//     (matrix4, value) => matrix4
-//       ..setRotation((Matrix4.identity()..rotateCoordinate(mapper(value)))
-//           .getRotation());
-//
-// ///
-// /// with fixed value
-// ///
-// static OnAnimateMatrix4 fixedScaling(Coordinate fixed) =>
-//     (matrix4, value) => matrix4.scaledCoordinate(value + fixed);
-//
-// static OnAnimateMatrix4 fixedTranslating(Coordinate fixed) =>
-//     (matrix4, value) => matrix4
-//       ..identityPerspective
-//       ..translateCoordinate(value + fixed);
-//
-// static OnAnimateMatrix4 fixedRotating(Coordinate fixed) =>
-//     (matrix4, value) => matrix4
-//       ..setRotation((Matrix4.identity()..rotateCoordinate(fixed + value))
-//           .getRotation());
-}
-
 extension _Matrix4Extension on Matrix4 {
   Matrix4 scaledCoordinate(Coordinate coordinate) => scaled(
         coordinate.dx,
@@ -640,13 +644,11 @@ extension _Matrix4Extension on Matrix4 {
       Matrix4.identity()..copyPerspectiveFrom(this);
 }
 
-extension _IterableMationTransformDelegate
-    on Iterable<MationTransformDelegate> {
-  Iterable<MationTransformDelegate> sort(List<OnAnimateMatrix4> order) {
-    final map =
-        Map.fromIterable(order, value: (_) => <MationTransformDelegate>[]);
+extension _IterableMationTransformBase on Iterable<MationTransformBase> {
+  Iterable<MationTransformBase> sort(List<OnAnimateMatrix4> order) {
+    final map = Map.fromIterable(order, value: (_) => <MationTransformBase>[]);
     for (var delegate in this) {
-      map[delegate._onAnimate]!.add(delegate);
+      map[delegate.onAnimate]!.add(delegate);
     }
     return order.expand((onAnimate) => map[onAnimate]!);
   }

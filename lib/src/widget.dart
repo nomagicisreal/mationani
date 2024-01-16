@@ -110,7 +110,7 @@ class Mationani extends StatefulWidget {
   }) =>
       Mationani(
         ani: ani,
-        mation: _MationTransformBase._rotate(alignment: alignment, tween),
+        mation: MationTransformBase.rotation(alignment: alignment, tween),
         child: ClipPath(
           clipper: Clipping.reclipNever(sizeToPath),
           clipBehavior: clipBehavior,
@@ -136,7 +136,7 @@ class Mationani extends StatefulWidget {
           initialStatusListener: statusListenerRotate,
           updateConsumer: Ani.decideResetForward(isFlipped),
         ),
-        mation: _MationTransformBase._rotate(
+        mation: MationTransformBase.rotation(
           alignment: Alignment.center,
           tweenRotate,
         ),

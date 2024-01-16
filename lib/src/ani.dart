@@ -38,7 +38,6 @@
 part of mationani;
 // ignore_for_file: use_string_in_part_of_directives
 
-
 ///
 /// [initializer] see [Ani.initialize], ...
 /// [initialStatusListener] see [Ani.listenForward]

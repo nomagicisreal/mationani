@@ -1,6 +1,6 @@
 name: mationani
 description: create animation with stateless widget
-version: 0.0.12
+version: 0.0.13
 repository: https://github.com/nomagicisreal/mationani
 
 environment:
