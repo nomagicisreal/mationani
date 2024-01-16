@@ -9,7 +9,7 @@
   - `mation.dart`
   - `widget.dart`
 
-## 0.0.12 ~ 0.0.13
+## 0.0.12 ~ 0.0.14
 - update `MationTransform` constructor
-- update `MationTransformBase`, delete `MationTransformDelegate`
+- update constants and methods in `MationTransformBase`, delete `MationTransformDelegate`
 - and ...

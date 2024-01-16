@@ -834,6 +834,10 @@ class MationTransformBase extends Mation<Coordinate> {
         );
   }
 
+  static const OnAnimateMatrix4 translating = _FOnAnimateMatrix4.translating;
+  static const OnAnimateMatrix4 rotating = _FOnAnimateMatrix4.rotating;
+  static const OnAnimateMatrix4 scaling = _FOnAnimateMatrix4.scaling;
+
   @override
   MationTransformBase mapBetween(Mapper<Between<Coordinate>> mapper) =>
       MationTransformBase(
@@ -855,7 +859,7 @@ class MationTransformBase extends Mation<Coordinate> {
     this.alignment,
     Matrix4? host,
   })  : host = host ?? Matrix4.identity(),
-        onAnimate = FOnAnimateMatrix4.translating,
+        onAnimate = _FOnAnimateMatrix4.translating,
         super(between ?? BetweenCoordinateExtension.zero);
 
   MationTransformBase.rotation(
@@ -863,7 +867,7 @@ class MationTransformBase extends Mation<Coordinate> {
     this.alignment,
     Matrix4? host,
   })  : host = host ?? Matrix4.identity(),
-        onAnimate = FOnAnimateMatrix4.rotating,
+        onAnimate = _FOnAnimateMatrix4.rotating,
         super(
           between ?? BetweenCoordinateExtension.zero,
         );
@@ -873,7 +877,7 @@ class MationTransformBase extends Mation<Coordinate> {
     this.alignment,
     Matrix4? host,
   })  : host = host ?? Matrix4.identity(),
-        onAnimate = FOnAnimateMatrix4.scaling,
+        onAnimate = _FOnAnimateMatrix4.scaling,
         super(between ?? BetweenCoordinateExtension.one);
 
   void link(Matrix4 host) => this.host = host;
@@ -1011,46 +1015,46 @@ class MationTransform extends Mations<Coordinate, MationTransformBase> {
         final before = base.alignment;
         final onAnimate = base.onAnimate;
         return base.align(switch (onAnimate) {
-          FOnAnimateMatrix4.translating => translation ?? before,
-          FOnAnimateMatrix4.rotating => rotation ?? before,
-          FOnAnimateMatrix4.scaling => scaling ?? before,
+          _FOnAnimateMatrix4.translating => translation ?? before,
+          _FOnAnimateMatrix4.rotating => rotation ?? before,
+          _FOnAnimateMatrix4.scaling => scaling ?? before,
           _ => throw UnimplementedError(),
         });
       }));
 
   static const List<OnAnimateMatrix4> orderTRS = [
-    FOnAnimateMatrix4.translating,
-    FOnAnimateMatrix4.rotating,
-    FOnAnimateMatrix4.scaling,
+    _FOnAnimateMatrix4.translating,
+    _FOnAnimateMatrix4.rotating,
+    _FOnAnimateMatrix4.scaling,
   ];
 
   static const List<OnAnimateMatrix4> orderTSR = [
-    FOnAnimateMatrix4.translating,
-    FOnAnimateMatrix4.scaling,
-    FOnAnimateMatrix4.rotating,
+    _FOnAnimateMatrix4.translating,
+    _FOnAnimateMatrix4.scaling,
+    _FOnAnimateMatrix4.rotating,
   ];
 
   static const List<OnAnimateMatrix4> orderSTR = [
-    FOnAnimateMatrix4.scaling,
-    FOnAnimateMatrix4.translating,
-    FOnAnimateMatrix4.rotating,
+    _FOnAnimateMatrix4.scaling,
+    _FOnAnimateMatrix4.translating,
+    _FOnAnimateMatrix4.rotating,
   ];
 
   static const List<OnAnimateMatrix4> orderSRT = [
-    FOnAnimateMatrix4.scaling,
-    FOnAnimateMatrix4.rotating,
-    FOnAnimateMatrix4.translating,
+    _FOnAnimateMatrix4.scaling,
+    _FOnAnimateMatrix4.rotating,
+    _FOnAnimateMatrix4.translating,
   ];
 
   static const List<OnAnimateMatrix4> orderRTS = [
-    FOnAnimateMatrix4.rotating,
-    FOnAnimateMatrix4.translating,
-    FOnAnimateMatrix4.scaling,
+    _FOnAnimateMatrix4.rotating,
+    _FOnAnimateMatrix4.translating,
+    _FOnAnimateMatrix4.scaling,
   ];
 
   static const List<OnAnimateMatrix4> orderRST = [
-    FOnAnimateMatrix4.rotating,
-    FOnAnimateMatrix4.scaling,
-    FOnAnimateMatrix4.translating,
+    _FOnAnimateMatrix4.rotating,
+    _FOnAnimateMatrix4.scaling,
+    _FOnAnimateMatrix4.translating,
   ];
 }

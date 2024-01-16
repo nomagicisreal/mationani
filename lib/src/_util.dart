@@ -20,7 +20,6 @@
 /// [BetweenCoordinateExtension], [BetweenCoordinateRadianExtension]
 ///
 /// [FOnLerpSpline2D], [FOnAnimatePath]
-/// [FOnAnimateMatrix4]
 ///
 /// [FMationsGenerator]
 ///
@@ -28,8 +27,7 @@
 /// private typedef, extensions:
 /// [_AnimationsBuilder]
 /// [_AnimationControllerExtension]
-/// [_FOnLerp],
-/// [_Matrix4Extension]
+/// [_FOnLerp], [_FOnAnimateMatrix4], [_Matrix4Extension]
 /// [_IterableMationTransformBase]
 ///
 ///
@@ -404,52 +402,6 @@ extension FOnAnimatePath on OnAnimatePath {
   }
 }
 
-extension FOnAnimateMatrix4 on OnAnimateMatrix4 {
-  static const OnAnimateMatrix4 translating = _translating;
-  static const OnAnimateMatrix4 rotating = _rotating;
-  static const OnAnimateMatrix4 scaling = _scaling;
-
-  static Matrix4 _scaling(Matrix4 matrix4, Coordinate value) =>
-      matrix4.scaledCoordinate(value);
-
-  static Matrix4 _translating(Matrix4 matrix4, Coordinate value) =>
-      matrix4.identityPerspective..translateCoordinate(value);
-
-  static Matrix4 _rotating(Matrix4 matrix4, Coordinate value) => matrix4
-    ..setRotation((Matrix4.identity()..rotateCoordinate(value)).getRotation());
-
-// ///
-// /// with mapper
-// ///
-// static OnAnimateMatrix4 scaleMapping(Mapper<Coordinate> mapper) =>
-//     (matrix4, value) => matrix4.scaledCoordinate(mapper(value));
-//
-// static OnAnimateMatrix4 translateMapping(Mapper<Coordinate> mapper) =>
-//     (matrix4, value) => matrix4
-//       ..identityPerspective
-//       ..translateCoordinate(mapper(value));
-//
-// static OnAnimateMatrix4 rotateMapping(Mapper<Coordinate> mapper) =>
-//     (matrix4, value) => matrix4
-//       ..setRotation((Matrix4.identity()..rotateCoordinate(mapper(value)))
-//           .getRotation());
-//
-// ///
-// /// with fixed value
-// ///
-// static OnAnimateMatrix4 fixedScaling(Coordinate fixed) =>
-//     (matrix4, value) => matrix4.scaledCoordinate(value + fixed);
-//
-// static OnAnimateMatrix4 fixedTranslating(Coordinate fixed) =>
-//     (matrix4, value) => matrix4
-//       ..identityPerspective
-//       ..translateCoordinate(value + fixed);
-//
-// static OnAnimateMatrix4 fixedRotating(Coordinate fixed) =>
-//     (matrix4, value) => matrix4
-//       ..setRotation((Matrix4.identity()..rotateCoordinate(fixed + value))
-//           .getRotation());
-}
 
 ///
 ///
@@ -614,6 +566,50 @@ extension _FOnLerp on OnLerp {
         _ => throw UnimplementedError(),
       };
 }
+
+extension _FOnAnimateMatrix4 on OnAnimateMatrix4 {
+  static Matrix4 scaling(Matrix4 matrix4, Coordinate value) =>
+      matrix4.scaledCoordinate(value);
+
+  static Matrix4 translating(Matrix4 matrix4, Coordinate value) =>
+      matrix4.identityPerspective..translateCoordinate(value);
+
+  static Matrix4 rotating(Matrix4 matrix4, Coordinate value) => matrix4
+    ..setRotation((Matrix4.identity()..rotateCoordinate(value)).getRotation());
+
+// ///
+// /// with mapper
+// ///
+// static OnAnimateMatrix4 scaleMapping(Mapper<Coordinate> mapper) =>
+//     (matrix4, value) => matrix4.scaledCoordinate(mapper(value));
+//
+// static OnAnimateMatrix4 translateMapping(Mapper<Coordinate> mapper) =>
+//     (matrix4, value) => matrix4
+//       ..identityPerspective
+//       ..translateCoordinate(mapper(value));
+//
+// static OnAnimateMatrix4 rotateMapping(Mapper<Coordinate> mapper) =>
+//     (matrix4, value) => matrix4
+//       ..setRotation((Matrix4.identity()..rotateCoordinate(mapper(value)))
+//           .getRotation());
+//
+// ///
+// /// with fixed value
+// ///
+// static OnAnimateMatrix4 fixedScaling(Coordinate fixed) =>
+//     (matrix4, value) => matrix4.scaledCoordinate(value + fixed);
+//
+// static OnAnimateMatrix4 fixedTranslating(Coordinate fixed) =>
+//     (matrix4, value) => matrix4
+//       ..identityPerspective
+//       ..translateCoordinate(value + fixed);
+//
+// static OnAnimateMatrix4 fixedRotating(Coordinate fixed) =>
+//     (matrix4, value) => matrix4
+//       ..setRotation((Matrix4.identity()..rotateCoordinate(fixed + value))
+//           .getRotation());
+}
+
 
 extension _Matrix4Extension on Matrix4 {
   Matrix4 scaledCoordinate(Coordinate coordinate) => scaled(
