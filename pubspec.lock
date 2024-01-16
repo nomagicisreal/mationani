@@ -93,10 +93,10 @@ packages:
     dependency: "direct main"
     description:
       name: dastore
-      sha256: "1dd2c055c1e29776818152ea532c2522faa2120bb0c49a0eae88ca6ce712c4af"
+      sha256: ffd3fbbee3d22b79f08c8ff2996c3d6e1d176ae71b4cb364f80ca132e889b4c3
       url: "https://pub.dev"
     source: hosted
-    version: "0.0.4"
+    version: "0.0.6"
   fake_async:
     dependency: transitive
     description:

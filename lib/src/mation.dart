@@ -685,27 +685,66 @@ class MationClipper extends Mation<SizingPath> {
 }
 
 ///
+/// [isComplex], [willChange], [foreground], [size], [painter]
 ///
-/// [MationPainter.drawPathWithPaint]
+/// [MationPainter.paintFrom]
 /// [MationPainter.progressingCircles]
 ///
 ///
 class MationPainter extends Mation<SizingPath> {
   final bool isComplex;
-  final bool willChange;
   final CustomPainter? foreground;
   final Size size;
-  final PaintingPath paintingPath;
-  final SizingPaintFromCanvas sizingPaintingFromCanvas;
+  final Painter painter;
 
-  MationPainter.drawPathWithPaint(
+  MationPainter._(
+    super.between, {
+    required this.isComplex,
+    required this.foreground,
+    required this.size,
+    required this.painter,
+  });
+
+  @override
+  AnimationBuilder get __builder => (animation, child) => CustomPaint(
+        willChange: true,
+        painter: painter(animation.value),
+        foregroundPainter: foreground,
+        size: size,
+        isComplex: isComplex,
+        child: child,
+      );
+
+  @override
+  MationPainter mapBetween(Mapper<Between<SizingPath>> mapper) =>
+      MationPainter._(
+        between,
+        isComplex: isComplex,
+        foreground: foreground,
+        size: size,
+        painter: painter,
+      );
+
+  MationPainter(
+    super.between, {
+    this.isComplex = false,
+    this.size = Size.zero,
+    required this.foreground,
+    required this.painter,
+  });
+
+  ///
+  ///
+  /// constructors, factories
+  ///
+  ///
+  MationPainter.paintFrom(
     BetweenPath super.between, {
-    this.sizingPaintingFromCanvas = FSizingPaintFromCanvas.redFill,
+    PaintFrom paintFrom = FPaintFrom.redFill,
   })  : isComplex = false,
-        willChange = true,
         size = Size.zero,
         foreground = null,
-        paintingPath = Painting.draw;
+        painter = FPainter.of(paintFrom);
 
   factory MationPainter.progressingCircles({
     double initialCircleRadius = 5.0,
@@ -716,14 +755,14 @@ class MationPainter extends Mation<SizingPath> {
     required int circleCount,
     required Companion<Vector3D, int> planetGenerator,
   }) =>
-      MationPainter.drawPathWithPaint(
-        sizingPaintingFromCanvas: (_, __) => paint,
+      MationPainter.paintFrom(
+        paintFrom: (_, __) => paint,
         BetweenPath(
           Between<Vector3D>(
             begin: Vector3D(Coordinate.zero, radiusOrbit.begin!),
             end: Vector3D(KRadianCoordinate.angleZ_360, radiusOrbit.end!),
           ),
-          onAnimate: (t, vector) => PathOperation.union.combineAll(
+          onAnimate: (t, vector) => FSizingPath.combineAll(
             Iterable.generate(
               circleCount,
               (i) => (size) => Path()
@@ -736,42 +775,6 @@ class MationPainter extends Mation<SizingPath> {
             ),
           ),
         ),
-      );
-
-  @override
-  AnimationBuilder get __builder => (animation, child) => CustomPaint(
-        painter: Painting.rePaintWhenUpdate(
-          sizingPaintFromCanvas: sizingPaintingFromCanvas,
-          sizingPath: animation.value,
-          paintingPath: paintingPath,
-        ),
-        foregroundPainter: foreground,
-        size: size,
-        isComplex: isComplex,
-        willChange: willChange,
-        child: child,
-      );
-
-  MationPainter._(
-    super.between, {
-    required this.isComplex,
-    required this.willChange,
-    required this.foreground,
-    required this.size,
-    required this.paintingPath,
-    required this.sizingPaintingFromCanvas,
-  });
-
-  @override
-  MationPainter mapBetween(Mapper<Between<SizingPath>> mapper) =>
-      MationPainter._(
-        between,
-        isComplex: isComplex,
-        willChange: willChange,
-        foreground: foreground,
-        size: size,
-        paintingPath: paintingPath,
-        sizingPaintingFromCanvas: sizingPaintingFromCanvas,
       );
 }
 
@@ -834,9 +837,9 @@ class MationTransformBase extends Mation<Coordinate> {
         );
   }
 
-  static const OnAnimateMatrix4 translating = _FOnAnimateMatrix4.translating;
-  static const OnAnimateMatrix4 rotating = _FOnAnimateMatrix4.rotating;
-  static const OnAnimateMatrix4 scaling = _FOnAnimateMatrix4.scaling;
+  static const OnAnimateMatrix4 translating = FOnAnimateMatrix4.translating;
+  static const OnAnimateMatrix4 rotating = FOnAnimateMatrix4.rotating;
+  static const OnAnimateMatrix4 scaling = FOnAnimateMatrix4.scaling;
 
   @override
   MationTransformBase mapBetween(Mapper<Between<Coordinate>> mapper) =>
@@ -859,7 +862,7 @@ class MationTransformBase extends Mation<Coordinate> {
     this.alignment,
     Matrix4? host,
   })  : host = host ?? Matrix4.identity(),
-        onAnimate = _FOnAnimateMatrix4.translating,
+        onAnimate = FOnAnimateMatrix4.translating,
         super(between ?? BetweenCoordinateExtension.zero);
 
   MationTransformBase.rotation(
@@ -867,7 +870,7 @@ class MationTransformBase extends Mation<Coordinate> {
     this.alignment,
     Matrix4? host,
   })  : host = host ?? Matrix4.identity(),
-        onAnimate = _FOnAnimateMatrix4.rotating,
+        onAnimate = FOnAnimateMatrix4.rotating,
         super(
           between ?? BetweenCoordinateExtension.zero,
         );
@@ -877,7 +880,7 @@ class MationTransformBase extends Mation<Coordinate> {
     this.alignment,
     Matrix4? host,
   })  : host = host ?? Matrix4.identity(),
-        onAnimate = _FOnAnimateMatrix4.scaling,
+        onAnimate = FOnAnimateMatrix4.scaling,
         super(between ?? BetweenCoordinateExtension.one);
 
   void link(Matrix4 host) => this.host = host;
@@ -1015,46 +1018,46 @@ class MationTransform extends Mations<Coordinate, MationTransformBase> {
         final before = base.alignment;
         final onAnimate = base.onAnimate;
         return base.align(switch (onAnimate) {
-          _FOnAnimateMatrix4.translating => translation ?? before,
-          _FOnAnimateMatrix4.rotating => rotation ?? before,
-          _FOnAnimateMatrix4.scaling => scaling ?? before,
+          FOnAnimateMatrix4.translating => translation ?? before,
+          FOnAnimateMatrix4.rotating => rotation ?? before,
+          FOnAnimateMatrix4.scaling => scaling ?? before,
           _ => throw UnimplementedError(),
         });
       }));
 
   static const List<OnAnimateMatrix4> orderTRS = [
-    _FOnAnimateMatrix4.translating,
-    _FOnAnimateMatrix4.rotating,
-    _FOnAnimateMatrix4.scaling,
+    FOnAnimateMatrix4.translating,
+    FOnAnimateMatrix4.rotating,
+    FOnAnimateMatrix4.scaling,
   ];
 
   static const List<OnAnimateMatrix4> orderTSR = [
-    _FOnAnimateMatrix4.translating,
-    _FOnAnimateMatrix4.scaling,
-    _FOnAnimateMatrix4.rotating,
+    FOnAnimateMatrix4.translating,
+    FOnAnimateMatrix4.scaling,
+    FOnAnimateMatrix4.rotating,
   ];
 
   static const List<OnAnimateMatrix4> orderSTR = [
-    _FOnAnimateMatrix4.scaling,
-    _FOnAnimateMatrix4.translating,
-    _FOnAnimateMatrix4.rotating,
+    FOnAnimateMatrix4.scaling,
+    FOnAnimateMatrix4.translating,
+    FOnAnimateMatrix4.rotating,
   ];
 
   static const List<OnAnimateMatrix4> orderSRT = [
-    _FOnAnimateMatrix4.scaling,
-    _FOnAnimateMatrix4.rotating,
-    _FOnAnimateMatrix4.translating,
+    FOnAnimateMatrix4.scaling,
+    FOnAnimateMatrix4.rotating,
+    FOnAnimateMatrix4.translating,
   ];
 
   static const List<OnAnimateMatrix4> orderRTS = [
-    _FOnAnimateMatrix4.rotating,
-    _FOnAnimateMatrix4.translating,
-    _FOnAnimateMatrix4.scaling,
+    FOnAnimateMatrix4.rotating,
+    FOnAnimateMatrix4.translating,
+    FOnAnimateMatrix4.scaling,
   ];
 
   static const List<OnAnimateMatrix4> orderRST = [
-    _FOnAnimateMatrix4.rotating,
-    _FOnAnimateMatrix4.scaling,
-    _FOnAnimateMatrix4.translating,
+    FOnAnimateMatrix4.rotating,
+    FOnAnimateMatrix4.scaling,
+    FOnAnimateMatrix4.translating,
   ];
 }

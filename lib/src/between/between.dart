@@ -79,11 +79,11 @@ class Between<T> extends Tween<T> {
     required T super.end,
     OnLerp<T>? onLerp,
     this.curve,
-  }) : _onLerp = onLerp ?? _FOnLerp.of(begin, end);
+  }) : _onLerp = onLerp ?? _FOnLerp._of(begin, end);
 
   Between.constant(T value)
       : curve = null,
-        _onLerp = _FOnLerp.constant(value),
+        _onLerp = _FOnLerp._constant(value),
         super(begin: value, end: value);
 
   Between.sequence({
@@ -194,7 +194,7 @@ class BetweenInterval {
 
   OnLerp<T> lerp<T>(T a, T b) {
     final curving = curve.transform;
-    final onLerp = _FOnLerp.of<T>(a, b);
+    final onLerp = _FOnLerp._of<T>(a, b);
     return (t) => onLerp(curving(t));
   }
 
@@ -359,7 +359,7 @@ class BetweenPathOffset extends BetweenPath<Offset> {
           bound = intervals[i];
           drawing = i == length - 1 ? drawing : lining(nodes[i], nodes[i + 1]);
         }
-        draw = draw.union(drawing(t, current));
+        draw = draw.combine(drawing(t, current));
         return draw;
       },
       curve: curve,
@@ -407,7 +407,7 @@ class BetweenPathPolygon extends _BetweenPathConcurrent<double> {
               edgeVectorTimes ?? BetweenDoubleExtension.zero,
               scale ?? BetweenDoubleExtension.k1,
             ],
-            onAnimate: (t, values) => FSizingPath.polygonCubicFromSize(
+            onAnimate: (t, values) => FSizingPath.polygonCubic(
               polygon.cubicPointsOf(values[0], values[1]),
               scale: values[2],
               adjust: polygon.cornerAdjust,
