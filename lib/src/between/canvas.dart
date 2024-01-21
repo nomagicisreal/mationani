@@ -210,7 +210,7 @@ extension FSizingPath on SizingPath {
         .map((points) => scaling(points).toList(growable: false))
         .foldWithIndex(
           Path(),
-          (path, points, index) => path
+          (index, path, points) => path
             ..moveOrLineToPoint(points[0], index == 0)
             ..cubicToPointsList(points.sublist(1)),
         )..close();

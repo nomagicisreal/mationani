@@ -41,23 +41,22 @@ part of mationani;
 ///
 ///
 /// [Mationani.sequence]
-///
 /// [Mationani.rotateClipping]
 /// [Mationani.rotateSemicircleRowClipping]
 ///
 ///
 ///
 class Mationani extends StatefulWidget {
-  final MationBase mation;
+  final Mation mation;
   final Ani ani;
-  final Widget child;
+  final WidgetBuilder builder;
 
-  const Mationani({
+  Mationani({
     super.key,
     required this.mation,
     required this.ani,
-    this.child = const SizedBox(),
-  });
+    Widget child = WSizedBox.none,
+  }) : builder = WWidgetBuilder.of(child);
 
   ///
   /// if [step] == null, there is no animation,
@@ -72,7 +71,7 @@ class Mationani extends StatefulWidget {
     required MationSequence sequence,
     required Widget child,
     AnimationControllerInitializer? initializer,
-    AnimationStatusListener? initialStatusListener,
+    AnimationStatusController? initialStatusController,
     IfAnimating? onAnimating,
     Curve? curve,
   }) {
@@ -83,7 +82,7 @@ class Mationani extends StatefulWidget {
         step == null ? null : i % 2 == 0,
         duration: sequence.durations[i],
         initializer: initializer,
-        initialStatusListener: initialStatusListener,
+        initialStatusController: initialStatusController,
         onAnimating: onAnimating,
         curve: curve,
       ),
@@ -102,15 +101,15 @@ class Mationani extends StatefulWidget {
 
   factory Mationani.rotateClipping({
     Clip clipBehavior = Clip.antiAlias,
-    required AlignmentGeometry alignment,
+    required Alignment alignment,
     required Ani ani,
-    required Between<Coordinate> tween,
+    required Between<double> between,
     required SizingPath sizeToPath,
     required Widget child,
   }) =>
       Mationani(
         ani: ani,
-        mation: MationTransformBase.rotation(alignment: alignment, tween),
+        mation: MationTransition.rotate(between, alignment: alignment),
         child: ClipPath(
           clipper: Clipping.reclipNever(sizeToPath),
           clipBehavior: clipBehavior,
@@ -121,10 +120,10 @@ class Mationani extends StatefulWidget {
   factory Mationani.rotateSemicircleRowClipping({
     MainAxisAlignment semicircleAlignment = MainAxisAlignment.center,
     required DurationFR duration,
-    required Between<Coordinate> tweenRotate,
-    required Between<Coordinate> tweenFlip,
-    required AnimationStatusListener statusListenerRotate,
-    required AnimationStatusListener statusListenerFlip,
+    required Between<double> rotating,
+    required Between<double> flipping,
+    required AnimationStatusController statusListenerRotate,
+    required AnimationStatusController statusListenerFlip,
     required bool isFlipped,
     required Widget childRight,
     required Widget childLeft,
@@ -133,18 +132,15 @@ class Mationani extends StatefulWidget {
         ani: Ani(
           duration: duration,
           initializer: Ani.initializeForward,
-          initialStatusListener: statusListenerRotate,
+          initialStatusController: statusListenerRotate,
           updateConsumer: Ani.decideResetForward(isFlipped),
         ),
-        mation: MationTransformBase.rotation(
-          alignment: Alignment.center,
-          tweenRotate,
-        ),
+        mation: MationTransition.rotate(rotating, alignment: Alignment.center),
         child: Row(
           mainAxisAlignment: semicircleAlignment,
           children: [
             Mationani.rotateClipping(
-              tween: tweenFlip,
+              between: flipping,
               alignment: Alignment.centerRight,
               sizeToPath: FSizingPath.pieOfLeftRight(false),
               ani: Ani(
@@ -156,10 +152,10 @@ class Mationani extends StatefulWidget {
             Mationani.rotateClipping(
               ani: Ani(
                 duration: duration,
-                initialStatusListener: statusListenerFlip,
+                initialStatusController: statusListenerFlip,
                 updateConsumer: Ani.decideResetForward(!isFlipped),
               ),
-              tween: tweenFlip,
+              between: flipping,
               alignment: Alignment.centerLeft,
               sizeToPath: FSizingPath.pieOfLeftRight(true),
               child: childRight,
@@ -170,13 +166,13 @@ class Mationani extends StatefulWidget {
       );
 
   @override
-  State<Mationani> createState() => MationaniState();
+  State<Mationani> createState() => _MationaniState();
 
-  static MationaniState of(BuildContext context) =>
-      context.findAncestorStateOfType<MationaniState>()!;
+  static _MationaniState of(BuildContext context) =>
+      context.findAncestorStateOfType<_MationaniState>()!;
 }
 
-class MationaniState extends State<Mationani>
+class _MationaniState extends State<Mationani>
     with SingleTickerProviderStateMixin {
   late final AnimationController controller;
 
@@ -186,7 +182,7 @@ class MationaniState extends State<Mationani>
   void initState() {
     final ani = widget.ani;
     controller = ani._initializing(this);
-    _builder = ani._building(controller, widget.mation, widget.child);
+    _builder = ani._plan(controller, widget.mation, widget.builder);
     super.initState();
   }
 
@@ -202,7 +198,7 @@ class MationaniState extends State<Mationani>
       controller: controller,
       oldWidget: oldWidget,
       mation: widget.mation,
-      child: widget.child,
+      builder: widget.builder,
     );
 
     super.didUpdateWidget(oldWidget);
@@ -245,10 +241,12 @@ class MationaniSin extends StatelessWidget {
         duration: duration ~/ 2,
         initializer: initializer,
         updateListener: updateListener,
-        mation: MationTransitionDouble.rotate(
-          0,
-          amplitudeRadian / KRadian.angle_360,
-          curve: CurveFR.symmetry(Curving.sinPeriodOf(times)),
+        mation: MationTransition.rotate(
+          Between(
+            0,
+            amplitudeRadian / KRadian.angle_360,
+            curve: CurveFR.symmetry(Curving.sinPeriodOf(times)),
+          ),
           alignment: alignment,
         ),
         child: child,
@@ -268,11 +266,11 @@ class MationaniSin extends StatelessWidget {
         duration: duration ~/ 2,
         initializer: initializer,
         updateListener: updateListener,
-        mation: MationTransitionDouble.fade(
+        mation: MationTransition.fade(Between(
           1.0,
           amplitudeOpacity,
           curve: CurveFR.symmetry(Curving.sinPeriodOf(times)),
-        ),
+        )),
         child: child,
       );
 
@@ -290,18 +288,18 @@ class MationaniSin extends StatelessWidget {
         duration: duration,
         initializer: initializer,
         updateListener: updateListener,
-        mation: MationTransitionOffset(
+        mation: MationTransition.slide(Between(
           Offset.zero,
           amplitudePosition,
           curve: CurveFR.symmetry(Curving.sinPeriodOf(times)),
-        ),
+        )),
         child: child,
       );
 
   final DurationFR duration;
   final AnimationControllerInitializer initializer;
   final Consumer<AnimationController> updateListener;
-  final MationBase mation;
+  final Mation mation;
   final Widget child;
 
   @override
@@ -348,7 +346,7 @@ class MationaniPenetration extends StatelessWidget {
       onTap: onTap,
       child: Mationani(
         ani: ani,
-        mation: Mations<dynamic, Mation>([
+        mation: MationMulti<MationSingle>([
           MationClipper(
             BetweenPath<Rect>(
               rect,
@@ -357,11 +355,7 @@ class MationaniPenetration extends StatelessWidget {
             ),
             behavior: clip,
           ),
-          MationTransitionDouble.fade(
-            0.0,
-            opacityEnd,
-            curve: curveFade,
-          ),
+          MationTransition.fade(Between(0.0, opacityEnd, curve: curveFade)),
         ]),
         child: ColoredBox(color: color, child: child),
       ),
@@ -397,24 +391,26 @@ class MationaniCutting extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Mationani(
-      mation: MationTransitionDouble.fadeOut(curve: curveFadeOut),
+      mation: MationTransition.fadeOut(curve: curveFadeOut),
       ani: aniFadeOut,
       child: Stack(
         children: List.generate(
           pieces,
           (index) => Mationani(
-            mation: Mations<dynamic, Mation>([
-              MationTransitionDouble.rotateZeroTo(
-                index == 0 ? -rotation : rotation,
+            mation: MationMulti<MationSingle>([
+              MationTransition.rotate(
+                FBetween.doubleZeroTo(
+                  (index == 0 ? -rotation : rotation) / KRadian.angle_360,
+                  curve: curve,
+                ),
                 alignment: Alignment.bottomRight,
-                curve: curve,
               ),
-              MationTransitionOffset.zeroTo(
+              MationTransition.slide(FBetween.offsetZeroTo(
                 index == 0
                     ? Direction.offset_bottomLeft * distance
                     : Direction.offset_topRight * distance,
                 curve: curve,
-              ),
+              )),
             ]),
             ani: ani,
             child: ClipPath(
@@ -459,9 +455,11 @@ class MationaniArrow extends StatelessWidget {
         child: InkWell(
           onTap: onTap,
           child: Mationani(
-            mation: MationTransitionOffset.zeroTo(
-              KOffset.square_1 / 2,
-              curve: CurveFR.symmetry(Curving.sinPeriodOf(2)),
+            mation: MationTransition.slide(
+              FBetween.offsetZeroTo(
+                KOffset.square_1 / 2,
+                curve: CurveFR.symmetry(Curving.sinPeriodOf(2)),
+              ),
             ),
             ani: Ani(
               duration: KDurationFR.second1,
@@ -617,8 +615,8 @@ mixin OverlayMixin {
     late final OverlayEntry entry;
     entry = insertion.entry;
     final onRemove = insertion.onRemoveEntry;
-    insertion.onRemoveEntry = () {
-      onRemove();
+    insertion.onRemoveEntry = (controller) {
+      onRemove(controller);
       onRemoveEntry();
       _removeEntry(entry);
     };
@@ -654,7 +652,7 @@ class OverlayInsertionFading<T extends Widget> extends OverlayInsertion<T> {
   final IfAnimating onAnimating;
   final CurveFR? curveFade;
   final Curve? curveAni;
-  VoidCallback onRemoveEntry;
+  Consumer<AnimationController> onRemoveEntry;
 
   OverlayInsertionFading({
     super.opaque,
@@ -675,13 +673,13 @@ class OverlayInsertionFading<T extends Widget> extends OverlayInsertion<T> {
         opaque: opaque,
         maintainState: maintainState,
         builder: (context) => Mationani(
-          mation: MationTransitionDouble.fadeIn(curve: curveFade),
+          mation: MationTransition.fadeIn(curve: curveFade),
           ani: Ani.initForwardAndUpdateReverseWhen(
             shouldFadeOut(),
             curve: curveAni,
             duration: duration,
             onAnimating: onAnimating,
-            initialStatusListener: Ani.listenDismissed(onRemoveEntry),
+            initialStatusController: Ani.listenDismissed(onRemoveEntry),
           ),
           child: builder(context),
         ),
@@ -831,12 +829,10 @@ class _FabExpandableState extends State<FabExpandable>
             duration: DurationFR.constant(widget.durationFadeOut),
             updateConsumer: Ani.decideForwardOrReverse(_isOpen),
           ),
-          mation: Mations([
-            MationTransitionDouble.fadeOut(),
-            MationTransitionDouble.scale(
-              1.0,
-              0.7,
-              curve: widget.curveFadeOut,
+          mation: MationMulti([
+            MationTransition.fadeOut(),
+            MationTransition.scale(
+              FBetween.doubleOneTo(0.7, curve: widget.curveFadeOut),
               alignment: Alignment.center,
             ),
           ]),
@@ -916,7 +912,7 @@ class FabExpandableSetup {
   final Rect positioned;
   final Alignment alignment;
   final AniDecider<bool> aniDecider;
-  final Generator<MationBase> mationsGenerator;
+  final Generator<Mation> mationsGenerator;
   final List<IconAction> icons;
 
   FabExpandableSetup._({
@@ -929,7 +925,10 @@ class FabExpandableSetup {
 
   static double _maxIconRadiusOf(BuildContext context, List<IconAction> icons) {
     final size = context.themeIcon.size ?? 24.0;
-    return icons.reduceToNum((i) => i.icon.size ?? size);
+    return icons.reduceToNum(
+      reducer: math.max,
+      translator: (i) => i.icon.size ?? size,
+    );
   }
 
   static AniDecider<bool> _decider(
@@ -966,7 +965,7 @@ class FabExpandableSetup {
             FMationsGenerator.fadeInRadiationStyle1(
               direction,
               distance,
-              curve,
+              curve: curve,
             ),
         icons: icons,
       );
@@ -992,14 +991,14 @@ class FabExpandableSetup {
       positioned: openIconRect.expandToInclude(
         direction.sizingExtrudingOfDimension(maxIconRadius * 2)(
           distance * icons.length,
-          ),
+        ),
       ),
       alignment: direction.flipped.toAlignment,
       aniDecider: _decider(duration, updateHear),
       mationsGenerator: mations ??
           FMationsGenerator.lineAndScale(
             direction.toOffset * distance,
-            curve,
+            curve: curve,
           ),
       icons: icons,
     );

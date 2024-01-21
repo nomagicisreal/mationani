@@ -40,7 +40,7 @@ part of mationani;
 
 ///
 /// [Between] is my implementation for [Tween],
-/// which aims to have an easier way to enable beautiful animation for [MationBase] in [Mationani]
+/// which aims to have an easier way to enable beautiful animation for [Mationable] in [Mationani]
 ///
 /// implementations: [Between._onLerp], [Between.curve], ...
 /// constructors: [Between.constant], [Between.sequenceFromGenerator], ...
@@ -74,12 +74,9 @@ class Between<T> extends Tween<T> {
   /// [Between.constant]
   /// [Between.sequenceFromGenerator]
   ///
-  Between({
-    required T super.begin,
-    required T super.end,
-    OnLerp<T>? onLerp,
-    this.curve,
-  }) : _onLerp = onLerp ?? _FOnLerp._of(begin, end);
+  Between(T begin, T end, {OnLerp<T>? onLerp, this.curve})
+      : _onLerp = onLerp ?? _FOnLerp._of(begin, end),
+        super(begin: begin, end: end);
 
   Between.constant(T value)
       : curve = null,
@@ -113,10 +110,10 @@ class Between<T> extends Tween<T> {
   Between.outAndBack({
     required T super.begin,
     required T target,
-    this.curve,
+    this.curve = KCurveFR.linear,
     double ratio = 1.0,
-    Curve curveOut = Curves.linear,
-    Curve curveBack = Curves.linear,
+    Curve curveOut = Curves.fastOutSlowIn,
+    Curve curveBack = Curves.fastOutSlowIn,
     Sequencer<Between<T>, T, OnLerp<T>>? sequencer,
   })  : _onLerp = BetweenInterval._linking(
           totalStep: 3,
@@ -140,43 +137,43 @@ class Between<T> extends Tween<T> {
   ///
 
   Between<T> get reverse => Between(
-        begin: end,
-        end: begin,
+        end,
+        begin,
         onLerp: _onLerp,
         curve: curve,
       );
 
   Between<T> follow(T next) => Between(
-        begin: end,
-        end: next,
+        end,
+        next,
         onLerp: _onLerp,
         curve: curve,
       );
 
   Between<T> followPlus(T next) => Between(
-        begin: end,
-        end: Operator.plus.operationOf(end, next),
+        end,
+        Operator.plus.operationOf(end, next),
         onLerp: _onLerp,
         curve: curve,
       );
 
   Between<T> followMinus(T next) => Between(
-        begin: end,
-        end: Operator.minus.operationOf(end, next),
+        end,
+        Operator.minus.operationOf(end, next),
         onLerp: _onLerp,
         curve: curve,
       );
 
   Between<T> followMultiply(T next) => Between(
-        begin: end,
-        end: Operator.multiply.operationOf(end, next),
+        end,
+        Operator.multiply.operationOf(end, next),
         onLerp: _onLerp,
         curve: curve,
       );
 
   Between<T> followDivide(T next) => Between(
-        begin: end,
-        end: Operator.divide.operationOf(end, next),
+        end,
+        Operator.divide.operationOf(end, next),
         onLerp: _onLerp,
         curve: curve,
       );
@@ -229,8 +226,8 @@ class BetweenInterval {
     OnLerp<T> onLerp,
   ) =>
       (_) => Between(
-            begin: previous,
-            end: next,
+            previous,
+            next,
             onLerp: onLerp,
           );
 }
@@ -284,7 +281,7 @@ class BetweenSpline2D extends Between<Offset> {
   BetweenSpline2D({
     required OnLerp<Offset> super.onLerp,
     super.curve,
-  }) : super(begin: onLerp(0), end: onLerp(1));
+  }) : super(onLerp(0), onLerp(1));
 }
 
 ///
@@ -294,9 +291,9 @@ class BetweenSpline2D extends Between<Offset> {
 class BetweenPath<T> extends Between<SizingPath> {
   final OnAnimatePath<T> onAnimate;
 
-  BetweenPath._({
-    required super.begin,
-    required super.end,
+  BetweenPath._(
+    super.begin,
+    super.end, {
     required this.onAnimate,
     super.onLerp,
     super.curve,
@@ -314,8 +311,8 @@ class BetweenPath<T> extends Between<SizingPath> {
     required this.onAnimate,
     super.curve,
   }) : super(
-          begin: onAnimate(0, between.begin),
-          end: onAnimate(0, between.begin),
+          onAnimate(0, between.begin),
+          onAnimate(0, between.begin),
           onLerp: FOnAnimatePath.of(onAnimate, between._onLerp),
         );
 }
@@ -386,8 +383,8 @@ class BetweenPathOffset extends BetweenPath<Offset> {
 class _BetweenPathConcurrent<T> extends BetweenPath<List<T>> {
   _BetweenPathConcurrent(BetweenConcurrent<T, SizingPath> concurrent)
       : super._(
-          begin: concurrent.begins,
-          end: concurrent.ends,
+          concurrent.begins,
+          concurrent.ends,
           onLerp: concurrent.onLerps,
           onAnimate: concurrent.onAnimate,
         );
@@ -403,9 +400,9 @@ class BetweenPathPolygon extends _BetweenPathConcurrent<double> {
   }) : super(
           BetweenConcurrent(
             betweens: [
-              cornerRadius?.call(polygon) ?? BetweenDoubleExtension.zero,
-              edgeVectorTimes ?? BetweenDoubleExtension.zero,
-              scale ?? BetweenDoubleExtension.k1,
+              cornerRadius?.call(polygon) ?? FBetween.doubleKZero,
+              edgeVectorTimes ?? FBetween.doubleKZero,
+              scale ?? FBetween.doubleKOne,
             ],
             onAnimate: (t, values) => FSizingPath.polygonCubic(
               polygon.cubicPointsOf(values[0], values[1]),
@@ -416,4 +413,3 @@ class BetweenPathPolygon extends _BetweenPathConcurrent<double> {
           ),
         );
 }
-

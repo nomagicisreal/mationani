@@ -10,7 +10,7 @@
 /// typedefs:
 /// [IfAnimating]
 ///
-/// [AnimationBuilder]
+/// [AnimationBuilder], [AnimationStatusController]
 /// [AnimationControllerInitializer]
 /// [AnimationControllerDecider], [AnimationControllerDeciderTernary], ...
 ///
@@ -22,13 +22,12 @@
 ///
 ///
 /// global extensions:
-/// [BetweenDoubleExtension], [BetweenOffsetExtension]
-/// [BetweenCoordinateExtension], [BetweenCoordinateRadianExtension]
+/// [BetweenOffsetExtension], [BetweenCoordinateRadianExtension]
 /// [FMationsGenerator]
+/// [FBetween]
 ///
 ///
 /// private typedef, extensions:
-/// [_AnimationsBuilder]
 /// [_AnimationControllerExtension]
 /// [_IterableMationTransformBase]
 ///
@@ -249,6 +248,16 @@ typedef AnimationBuilder<T> = Widget Function(
   Widget child,
 );
 
+typedef AnimationStatusController = void Function(
+  AnimationStatus status,
+  AnimationController controller,
+);
+
+// typedef AnimationsBuilder<T> = Widget Function(
+//   Iterable<Animation<T>> animations,
+//   Widget child,
+// );
+
 typedef AnimationControllerDecider = Decider<AnimationController, bool>;
 typedef AnimationControllerDeciderTernary = Decider<AnimationController, bool?>;
 
@@ -263,14 +272,14 @@ typedef AnimationControllerInitializer = AnimationController Function(
 /// mations
 ///
 ///
-typedef MationBuilder<T> = Widget Function(
+typedef MationBuilder<M extends Mationable> = Widget Function(
   BuildContext context,
-  MationBase<T> mation,
+  M mation,
 );
 
-typedef MationsGenerator = Generator<Mations<dynamic, Mation<dynamic>>>;
+typedef MationsGenerator = Generator<MationMulti<Mationable>>;
 
-typedef MationSequencer<T> = Translator<int, MationBase<T>> Function(
+typedef MationSequencer<T> = Translator<int, Mation> Function(
   MationSequenceStep previos,
   MationSequenceStep next,
   MationSequenceInterval interval,
@@ -302,117 +311,44 @@ typedef FabExpandableSetupInitializer = FabExpandableSetup Function({
   required List<IconAction> icons,
 });
 
-extension BetweenDoubleExtension on Between<double> {
-  static Between<double> get zero => Between.constant(0);
-
-  static Between<double> get k1 => Between.constant(1);
-
-  static Between<double> zeroFrom(double v) => Between(begin: v, end: 0);
-
-  static Between<double> zeroTo(double v) => Between(begin: 0, end: v);
-
-  static Between<double> oneFrom(double v) => Between(begin: v, end: 1);
-
-  static Between<double> oneTo(double v) => Between(begin: 1, end: v);
-
-  static Between<double> o1From(double v) => Between(begin: v, end: 0.1);
-
-  static Between<double> o1To(double v) => Between(begin: 0.1, end: v);
-}
-
 extension BetweenOffsetExtension on Between<Offset> {
   double get direction => begin.directionTo(end);
-
-  static Between<Offset> get zero => Between.constant(Offset.zero);
-
-  static Between<Offset> zeroFrom(Offset begin, {CurveFR? curve}) =>
-      Between(begin: begin, end: Offset.zero, curve: curve);
-
-  static Between<Offset> zeroTo(Offset end, {CurveFR? curve}) =>
-      Between(begin: Offset.zero, end: end, curve: curve);
-}
-
-extension BetweenCoordinateExtension on Between<Coordinate> {
-  static Between<Coordinate> get zero => Between.constant(Coordinate.zero);
-
-  static Between<Coordinate> get one => Between.constant(KCoordinate.cube_1);
-
-  static Between<Coordinate> zeroFrom(Coordinate begin, {CurveFR? curve}) =>
-      Between<Coordinate>(begin: begin, end: Coordinate.zero, curve: curve);
-
-  static Between<Coordinate> zeroTo(Coordinate end, {CurveFR? curve}) =>
-      Between<Coordinate>(begin: Coordinate.zero, end: end, curve: curve);
-
-  static Between<Coordinate> zeroBeginOrEnd(
-    Coordinate another, {
-    required bool isEndZero,
-    CurveFR? curve,
-  }) =>
-      Between<Coordinate>(
-        begin: isEndZero ? another : Coordinate.zero,
-        end: isEndZero ? Coordinate.zero : another,
-        curve: curve,
-      );
 }
 
 extension BetweenCoordinateRadianExtension on Between<Coordinate> {
-  static Between<Coordinate> get x_0_360 =>
-      Between(begin: Coordinate.zero, end: KRadianCoordinate.angleX_360);
-
-  static Between<Coordinate> get y_0_360 =>
-      Between(begin: Coordinate.zero, end: KRadianCoordinate.angleY_360);
-
-  static Between<Coordinate> get z_0_360 =>
-      Between(begin: Coordinate.zero, end: KRadianCoordinate.angleZ_360);
-
-  static Between<Coordinate> get x_0_180 =>
-      Between(begin: Coordinate.zero, end: KRadianCoordinate.angleX_180);
-
-  static Between<Coordinate> get y_0_180 =>
-      Between(begin: Coordinate.zero, end: KRadianCoordinate.angleY_180);
-
-  static Between<Coordinate> get z_0_180 =>
-      Between(begin: Coordinate.zero, end: KRadianCoordinate.angleZ_180);
-
-  static Between<Coordinate> get x_0_90 =>
-      Between(begin: Coordinate.zero, end: KRadianCoordinate.angleX_90);
-
-  static Between<Coordinate> get y_0_90 =>
-      Between(begin: Coordinate.zero, end: KRadianCoordinate.angleY_90);
-
-  static Between<Coordinate> get z_0_90 =>
-      Between(begin: Coordinate.zero, end: KRadianCoordinate.angleZ_90);
-
   static Between<Coordinate> toX360From(Coordinate from) =>
-      Between<Coordinate>(begin: from, end: KRadianCoordinate.angleX_360);
+      Between<Coordinate>(from, KRadianCoordinate.angleX_360);
 
   static Between<Coordinate> toY360From(Coordinate from) =>
-      Between<Coordinate>(begin: from, end: KRadianCoordinate.angleY_360);
+      Between<Coordinate>(from, KRadianCoordinate.angleY_360);
 
   static Between<Coordinate> toZ360From(Coordinate from) =>
-      Between<Coordinate>(begin: from, end: KRadianCoordinate.angleZ_360);
+      Between<Coordinate>(from, KRadianCoordinate.angleZ_360);
 
   static Between<Coordinate> toX180From(Coordinate from) =>
-      Between<Coordinate>(begin: from, end: KRadianCoordinate.angleX_180);
+      Between<Coordinate>(from, KRadianCoordinate.angleX_180);
 
   static Between<Coordinate> toY180From(Coordinate from) =>
-      Between<Coordinate>(begin: from, end: KRadianCoordinate.angleY_180);
+      Between<Coordinate>(from, KRadianCoordinate.angleY_180);
 
   static Between<Coordinate> toZ180From(Coordinate from) =>
-      Between<Coordinate>(begin: from, end: KRadianCoordinate.angleZ_180);
+      Between<Coordinate>(from, KRadianCoordinate.angleZ_180);
 
   static Between<Coordinate> toX90From(Coordinate from) =>
-      Between<Coordinate>(begin: from, end: KRadianCoordinate.angleX_90);
+      Between<Coordinate>(from, KRadianCoordinate.angleX_90);
 
   static Between<Coordinate> toY90From(Coordinate from) =>
-      Between<Coordinate>(begin: from, end: KRadianCoordinate.angleY_90);
+      Between<Coordinate>(from, KRadianCoordinate.angleY_90);
 
   static Between<Coordinate> toZ90From(Coordinate from) =>
-      Between<Coordinate>(begin: from, end: KRadianCoordinate.angleZ_90);
+      Between<Coordinate>(from, KRadianCoordinate.angleZ_90);
 
+  ///
+  /// see the comment above [Coordinate.transferToTransformOf]
+  ///
   Between<Coordinate> get transferToTransform => Between(
-        begin: Coordinate.transferToTransformOf(begin),
-        end: Coordinate.transferToTransformOf(end),
+        Coordinate.transferToTransformOf(begin),
+        Coordinate.transferToTransformOf(end),
         curve: curve,
         onLerp: _onLerp,
       );
@@ -430,30 +366,185 @@ extension BetweenCoordinateRadianExtension on Between<Coordinate> {
 extension FMationsGenerator on MationsGenerator {
   static MationsGenerator fadeInRadiationStyle1(
     Generator<double> direction,
-    double distance,
-    CurveFR curve,
-  ) =>
-      (index) => Mations<dynamic, Mation>([
-            MationTransitionDouble.fadeIn(curve: curve),
-            MationTransitionOffset.ofDirection(
-              direction(index),
-              0,
-              distance,
-              curve: CurveFR.intervalFlip(0.2 * index, 1.0, curve),
+    double distance, {
+    CurveFR? curve,
+  }) =>
+      (index) => MationMulti<MationSingle>([
+            MationTransition.fadeIn(curve: curve),
+            MationTransition.slide(
+              FBetween.offsetOfDirection(
+                direction(index),
+                0,
+                distance,
+                curve: curve.nullOrTranslate(
+                  (value) => CurveFR.intervalFlip(value, 0.2 * index, 1.0),
+                ),
+              ),
             ),
           ]);
 
-  static MationsGenerator lineAndScale(Offset delta, CurveFR curve) =>
-      (index) => Mations<dynamic, Mation>([
-            MationTransitionOffset.zeroTo(
+  static MationsGenerator lineAndScale(Offset delta, {CurveFR? curve}) =>
+      (index) => MationMulti<MationSingle>([
+            MationTransition.slide(FBetween.offsetZeroTo(
               delta * (index + 1).toDouble(),
               curve: curve,
-            ),
-            MationTransitionDouble.scaleOneFrom(
+            )),
+            MationTransition.scale(FBetween.doubleOneFrom(
               0.0,
-              curve: CurveFR.intervalFlip(0.2 * index, 1.0, curve),
-            ),
+              curve: curve.nullOrTranslate(
+                (value) => CurveFR.intervalFlip(value, 0.2 * index, 1.0),
+              ),
+            )),
           ]);
+}
+
+extension FBetween on Between {
+  ///
+  ///
+  /// [doubleKZero], [doubleKOne]
+  /// [doubleZeroFrom], [doubleZeroTo]
+  /// [doubleOneFrom], [doubleOneTo]
+  /// [doubleZeroBeginOrEnd], [doubleOneBeginOrEnd]
+  ///
+  ///
+  static Between<double> get doubleKZero => Between.constant(0);
+
+  static Between<double> get doubleKOne => Between.constant(1);
+
+  static Between<double> doubleZeroFrom(double begin, {CurveFR? curve}) =>
+      Between(begin, 0, curve: curve);
+
+  static Between<double> doubleZeroTo(double end, {CurveFR? curve}) =>
+      Between(0, end, curve: curve);
+
+  static Between<double> doubleOneFrom(double begin, {CurveFR? curve}) =>
+      Between(begin, 1, curve: curve);
+
+  static Between<double> doubleOneTo(double end, {CurveFR? curve}) =>
+      Between(1, end, curve: curve);
+
+  static Between<double> doubleZeroBeginOrEnd(
+    double another, {
+    CurveFR? curve,
+    required bool isEndZero,
+  }) =>
+      Between(isEndZero ? another : 0, isEndZero ? 0 : another, curve: curve);
+
+  static Between<double> doubleOneBeginOrEnd(
+    double another, {
+    CurveFR? curve,
+    required bool isEndOne,
+  }) =>
+      Between(isEndOne ? another : 1, isEndOne ? 1 : another, curve: curve);
+
+  ///
+  ///
+  /// [offsetKZero]
+  /// [offsetZeroFrom], [offsetZeroTo], [offsetZeroBeginOrEnd]
+  /// [offsetOfDirection], [offsetOfDirectionZeroFrom], [offsetOfDirectionZeroTo]
+  ///
+  ///
+  static Between<Offset> get offsetKZero => Between.constant(Offset.zero);
+
+  static Between<Offset> offsetZeroFrom(Offset begin, {CurveFR? curve}) =>
+      Between(begin, Offset.zero, curve: curve);
+
+  static Between<Offset> offsetZeroTo(Offset end, {CurveFR? curve}) =>
+      Between(Offset.zero, end, curve: curve);
+
+  static Between<Offset> offsetZeroBeginOrEnd(
+    Offset another, {
+    CurveFR? curve,
+    required bool isEndZero,
+  }) =>
+      Between<Offset>(
+        isEndZero ? another : Offset.zero,
+        isEndZero ? Offset.zero : another,
+        curve: curve,
+      );
+
+  static Between<Offset> offsetOfDirection(
+    double direction,
+    double begin,
+    double end, {
+    CurveFR? curve,
+  }) =>
+      Between(
+        Offset.fromDirection(direction, begin),
+        Offset.fromDirection(direction, end),
+        curve: curve,
+      );
+
+  static Between<Offset> offsetOfDirectionZeroFrom(
+    double direction,
+    double begin, {
+    CurveFR? curve,
+  }) =>
+      offsetOfDirection(direction, begin, 0, curve: curve);
+
+  static Between<Offset> offsetOfDirectionZeroTo(
+    double direction,
+    double end, {
+    CurveFR? curve,
+  }) =>
+      offsetOfDirection(direction, 0, end, curve: curve);
+
+  ///
+  ///
+  /// [coordinateKZero]
+  /// [coordinateZeroFrom], [coordinateZeroTo]
+  /// [coordinateOneFrom], [coordinateOneTo]
+  /// [coordinateZeroBeginOrEnd], [coordinateOneBeginOrEnd]
+  ///
+  ///
+  static Between<Coordinate> get coordinateKZero =>
+      Between.constant(Coordinate.zero);
+
+  static Between<Coordinate> coordinateZeroFrom(
+    Coordinate begin, {
+    CurveFR? curve,
+  }) =>
+      Between<Coordinate>(begin, Coordinate.zero, curve: curve);
+
+  static Between<Coordinate> coordinateZeroTo(
+    Coordinate end, {
+    CurveFR? curve,
+  }) =>
+      Between<Coordinate>(Coordinate.zero, end, curve: curve);
+
+  static Between<Coordinate> coordinateOneFrom(
+    Coordinate begin, {
+    CurveFR? curve,
+  }) =>
+      Between<Coordinate>(begin, KCoordinate.cube_1, curve: curve);
+
+  static Between<Coordinate> coordinateOneTo(
+    Coordinate end, {
+    CurveFR? curve,
+  }) =>
+      Between<Coordinate>(KCoordinate.cube_1, end, curve: curve);
+
+  static Between<Coordinate> coordinateZeroBeginOrEnd(
+    Coordinate another, {
+    CurveFR? curve,
+    required bool isEndZero,
+  }) =>
+      Between<Coordinate>(
+        isEndZero ? another : Coordinate.zero,
+        isEndZero ? Coordinate.zero : another,
+        curve: curve,
+      );
+
+static Between<Coordinate> coordinateOneBeginOrEnd(
+  Coordinate another,
+  CurveFR? curve, {
+  required bool isEndOne,
+}) =>
+    Between<Coordinate>(
+      isEndOne ? another : Coordinate.one,
+      isEndOne ? Coordinate.one : another,
+      curve: curve,
+    );
 }
 
 ///
@@ -473,10 +564,8 @@ extension FMationsGenerator on MationsGenerator {
 ///
 ///
 ///
-typedef _AnimationsBuilder<T> = Widget Function(
-  Iterable<Animation<T>> animations,
-  Widget child,
-);
+
+typedef _MationAnimating = Iterable<Animation> Function(Mationable mation);
 
 extension _AnimationControllerExtension on AnimationController {
   void forwardReset({double? from}) => forward(from: from).then((_) => reset());
@@ -485,16 +574,17 @@ extension _AnimationControllerExtension on AnimationController {
     ..reset()
     ..forward(from: from);
 
-  void addStatusListenerIfNotNull(AnimationStatusListener? listener) {
-    if (listener != null) {
-      addStatusListener(listener);
+  void addStatusListenerIfNotNull(AnimationStatusController? controller) {
+    if (controller != null) {
+      addStatusListener((status) => controller(status, this));
     }
   }
 }
 
-extension _IterableMationTransformBase on Iterable<MationTransformBase> {
-  Iterable<MationTransformBase> sort(List<OnAnimateMatrix4> order) {
-    final map = Map.fromIterable(order, value: (_) => <MationTransformBase>[]);
+extension _IterableMationTransformBase on Iterable<MationTransformDelegate> {
+  Iterable<MationTransformDelegate> sort(List<OnAnimateMatrix4> order) {
+    final map =
+        Map.fromIterable(order, value: (_) => <MationTransformDelegate>[]);
     for (var delegate in this) {
       map[delegate.onAnimate]!.add(delegate);
     }

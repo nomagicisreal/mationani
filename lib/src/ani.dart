@@ -40,7 +40,7 @@ part of mationani;
 
 ///
 /// [initializer] see [Ani.initialize], ...
-/// [initialStatusListener] see [Ani.listenForward]
+/// [initialStatusController] see [Ani.listenForward]
 /// [onAnimating] see [Ani.animatingNothing], [Ani.animatingBack]
 /// [updateConsumer] see [Ani.consumeNothing], ..., [Ani.decideNothing], ...
 ///
@@ -48,7 +48,7 @@ class Ani extends _AniBase {
   const Ani({
     required super.duration,
     super.initializer,
-    super.initialStatusListener,
+    super.initialStatusController,
     super.updateConsumer,
     super.onAnimating,
     super.curve,
@@ -57,7 +57,7 @@ class Ani extends _AniBase {
   const Ani.initRepeat({
     bool reverseEnable = false,
     required super.duration,
-    super.initialStatusListener,
+    super.initialStatusController,
     super.updateConsumer,
     super.onAnimating,
     super.curve,
@@ -68,7 +68,7 @@ class Ani extends _AniBase {
 
   const Ani.initForwardAndUpdateReverse({
     required super.duration,
-    super.initialStatusListener,
+    super.initialStatusController,
     super.onAnimating,
     super.curve,
   }) : super(
@@ -78,7 +78,7 @@ class Ani extends _AniBase {
   const Ani.initForwardAndUpdateRepeat({
     bool reverseEnable = false,
     required super.duration,
-    super.initialStatusListener,
+    super.initialStatusController,
     super.onAnimating,
     super.curve,
   }) : super(
@@ -88,7 +88,7 @@ class Ani extends _AniBase {
 
   const Ani.initForwardAndUpdateResetForward({
     required super.duration,
-    super.initialStatusListener,
+    super.initialStatusController,
     super.onAnimating,
     super.curve,
   }) : super(
@@ -97,7 +97,7 @@ class Ani extends _AniBase {
 
   const Ani.initForwardAndUpdateForwardOrReverse({
     required super.duration,
-    super.initialStatusListener,
+    super.initialStatusController,
     super.onAnimating,
     super.curve,
   }) : super(
@@ -106,7 +106,7 @@ class Ani extends _AniBase {
 
   const Ani.initForwardResetAndUpdateForwardReset({
     required super.duration,
-    super.initialStatusListener,
+    super.initialStatusController,
     super.onAnimating,
     super.curve,
   }) : super(
@@ -116,7 +116,7 @@ class Ani extends _AniBase {
   Ani.initForwardAndUpdateReverseWhen(
     bool trigger, {
     required super.duration,
-    super.initialStatusListener,
+    super.initialStatusController,
     super.onAnimating,
     super.curve,
   }) : super(
@@ -126,7 +126,7 @@ class Ani extends _AniBase {
   Ani.initForwardAndUpdateSequencingWhen(
     bool? trigger, {
     required Duration duration,
-    super.initialStatusListener,
+    super.initialStatusController,
     super.onAnimating,
     super.curve,
   }) : super(
@@ -139,7 +139,7 @@ class Ani extends _AniBase {
     bool trigger, {
     required super.duration,
     super.initializer,
-    super.initialStatusListener,
+    super.initialStatusController,
     super.onAnimating,
     super.curve,
   }) : super(updateConsumer: Ani.decideForward(trigger));
@@ -148,7 +148,7 @@ class Ani extends _AniBase {
     bool? trigger, {
     required Duration duration,
     super.initializer,
-    super.initialStatusListener,
+    super.initialStatusController,
     super.onAnimating,
     super.curve,
   }) : super(
@@ -207,7 +207,7 @@ class Ani extends _AniBase {
 
   ///
   ///
-  /// belows are variables for [initialStatusListener],
+  /// belows are variables for [initialStatusController],
   ///
   /// [listenForward]
   /// [listenReverse]
@@ -216,24 +216,36 @@ class Ani extends _AniBase {
   /// [listenCompletedOrDismissed]
   ///
   ///
-  static AnimationStatusListener listenForward(VoidCallback listener) =>
-      (status) => status == AnimationStatus.forward ? listener() : null;
-
-  static AnimationStatusListener listenReverse(VoidCallback listener) =>
-      (status) => status == AnimationStatus.reverse ? listener() : null;
-
-  static AnimationStatusListener listenCompleted(VoidCallback listener) =>
-      (status) => status == AnimationStatus.completed ? listener() : null;
-
-  static AnimationStatusListener listenDismissed(VoidCallback listener) =>
-      (status) => status == AnimationStatus.dismissed ? listener() : null;
-
-  static AnimationStatusListener listenCompletedOrDismissed(
-    VoidCallback listener,
+  static AnimationStatusController listenForward(
+    Consumer<AnimationController> consume,
   ) =>
-      (status) => status == AnimationStatus.completed ||
+      (status, controller) =>
+          status == AnimationStatus.forward ? consume(controller) : null;
+
+  static AnimationStatusController listenReverse(
+    Consumer<AnimationController> consume,
+  ) =>
+      (status, controller) =>
+          status == AnimationStatus.reverse ? consume(controller) : null;
+
+  static AnimationStatusController listenCompleted(
+    Consumer<AnimationController> consume,
+  ) =>
+      (status, controller) =>
+          status == AnimationStatus.completed ? consume(controller) : null;
+
+  static AnimationStatusController listenDismissed(
+    Consumer<AnimationController> consume,
+  ) =>
+      (status, controller) =>
+          status == AnimationStatus.dismissed ? consume(controller) : null;
+
+  static AnimationStatusController listenCompletedOrDismissed(
+    Consumer<AnimationController> consume,
+  ) =>
+      (status, controller) => status == AnimationStatus.completed ||
               status == AnimationStatus.dismissed
-          ? listener()
+          ? consume(controller)
           : null;
 
   ///
@@ -340,19 +352,19 @@ class Ani extends _AniBase {
 ///
 ///
 /// [_AniBase] is the implementation for [Mationani] to trigger animation by
-/// 1. invoking [_initializing] in [MationaniState.initState]
-/// 2. invoking [_updating] in [MationaniState.didUpdateWidget]
-/// 3. invoking [_building] in both [MationaniState.initState] and [MationaniState.didUpdateWidget]
+/// 1. invoking [_initializing] in [_MationaniState.initState]
+/// 2. invoking [_updating] in [_MationaniState.didUpdateWidget]
+/// 3. invoking [_plan] in both [_MationaniState.initState] and [_MationaniState.didUpdateWidget]
 ///
-/// [_building] returns a [WidgetBuilder] to [MationaniState._builder].
-/// see also [MationBase._animationsOf] to understand how animation works.
+/// [_plan] returns a [WidgetBuilder] to [_MationaniState._builder].
+/// see the implementations of [Mationable._animate] to understand how animation works.
 ///
 ///
 abstract class _AniBase {
   final DurationFR duration;
   final Curve? curve;
   final AnimationControllerInitializer? initializer;
-  final AnimationStatusListener? initialStatusListener;
+  final AnimationStatusController? initialStatusController;
   final Consumer<AnimationController>? updateConsumer;
   final IfAnimating? onAnimating;
 
@@ -360,7 +372,7 @@ abstract class _AniBase {
     required this.duration,
     required this.curve,
     required this.initializer,
-    required this.initialStatusListener,
+    required this.initialStatusController,
     required this.updateConsumer,
     required this.onAnimating,
   });
@@ -370,21 +382,25 @@ abstract class _AniBase {
         ticker,
         duration.forward,
         duration.reverse,
-      )..addStatusListenerIfNotNull(initialStatusListener);
+      )..addStatusListenerIfNotNull(initialStatusController);
 
-  WidgetBuilder _building(
+  ///
+  /// [Ani.curve] is an easy way to control entire [AnimationController] flow.
+  /// notice that there is also a [Between.curve] when [Between.animate].
+  /// this method is called when [_MationaniState.initState] and [_MationaniState.didUpdateWidget]
+  ///
+  WidgetBuilder _plan(
     AnimationController controller,
-    MationBase mation,
-    Widget child,
+    Mation mation,
+    WidgetBuilder builder,
   ) {
-    final animations = mation._animationsOf(
-      controller,
-      curve ?? Curves.linear,
+    final build = mation._plan(
+      controller.drive(CurveTween(curve: curve ?? Curves.linear)),
+      builder,
     );
-    Widget build(BuildContext context) => mation._builder(animations, child);
 
     return switch (mation) {
-      _MationTransition() => build,
+      MationTransition() => build,
       _ => (_) => AnimatedBuilder(
             animation: controller,
             builder: (context, __) => build(context),
@@ -395,8 +411,8 @@ abstract class _AniBase {
   WidgetBuilder _updating({
     required AnimationController controller,
     required Mationani oldWidget,
-    required MationBase mation,
-    required Widget child,
+    required Mation mation,
+    required WidgetBuilder builder,
   }) {
     if (controller.isAnimating) {
       (onAnimating ?? Ani.animatingBack)(
@@ -410,7 +426,7 @@ abstract class _AniBase {
       }
       (updateConsumer ?? Ani.consumeNothing)(controller);
     }
-    return _building(controller, mation, child);
+    return _plan(controller, mation, builder);
   }
 }
 
@@ -436,7 +452,7 @@ abstract class AniProgress extends Ani {
     required super.duration,
     required this.delegate,
     super.initializer,
-    super.initialStatusListener,
+    super.initialStatusController,
     super.updateConsumer,
     super.onAnimating,
     super.curve,
@@ -456,7 +472,7 @@ class AniProgressBool extends AniProgress {
     required super.duration,
     required super.delegate,
     super.initializer,
-    super.initialStatusListener,
+    super.initialStatusController,
     super.onAnimating,
     super.curve,
     this.hear,
@@ -480,10 +496,9 @@ class AniProgressTernary extends AniProgress {
     required super.duration,
     required super.delegate,
     super.initializer,
-    super.initialStatusListener,
+    super.initialStatusController,
     super.onAnimating,
     this.hear,
     this.comparison,
   });
 }
-
