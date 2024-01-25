@@ -3,9 +3,9 @@
 /// this file contains:
 ///
 /// [Mationani]
-///   [MationaniSin]
-///   [MationaniPenetration]
 ///   [MationaniArrow]
+///   [MationaniSin]
+///   [MationaniCutting]
 ///   ...
 ///
 /// [OverlayFadingStream]
@@ -40,149 +40,81 @@ part of mationani;
 
 ///
 ///
-/// [Mationani.sequence]
-/// [Mationani.rotateClipping]
-/// [Mationani.rotateSemicircleRowClipping]
-///
+/// [Mationani.mamion], [Mationani.manion]
+/// [Mationani.mamionSequence]
 ///
 ///
 class Mationani extends StatefulWidget {
   final Mation mation;
   final Ani ani;
-  final WidgetBuilder builder;
 
-  Mationani({
+  const Mationani({
     super.key,
-    required this.mation,
     required this.ani,
-    Widget child = WSizedBox.none,
-  }) : builder = WWidgetBuilder.of(child);
+    required this.mation,
+  });
+
+  Mationani.mamion({
+    super.key,
+    required this.ani,
+    required Mamionability ability,
+    required WidgetBuilder builder,
+  }) : mation = Mamion(ability: ability, builder: builder);
+
+  Mationani.manion({
+    super.key,
+    required this.ani,
+    required WidgetParentBuilder parent,
+    required Manionability ability,
+  }) : mation = Manion(parent: parent, ability: ability);
 
   ///
   /// if [step] == null, there is no animation,
   /// if [step] % 2 == 0, there is forward animation,
   /// if [step] % 2 == 1, there is reverse animation,
   ///
-  /// see [MationSequenceStyle.sequence] for [mations] creation
+  /// see [AniSequenceStyle.sequence] for [motivations] creation
   ///
-  factory Mationani.sequence(
+  factory Mationani.mamionSequence(
     int? step, {
     Key? key,
-    required MationSequence sequence,
-    required Widget child,
+    required AniSequence sequence,
+    required WidgetBuilder builder,
     AnimationControllerInitializer? initializer,
     AnimationStatusController? initialStatusController,
-    IfAnimating? onAnimating,
+    Consumer<AnimationController>? updateOnAnimating,
     Curve? curve,
   }) {
     final i = step ?? 0;
-    return Mationani(
+    return Mationani.mamion(
       key: key,
-      ani: Ani.updateSequencingWhen(
+      ani: AniGeneral.updateSequencingWhen(
         step == null ? null : i % 2 == 0,
         duration: sequence.durations[i],
         initializer: initializer,
         initialStatusController: initialStatusController,
-        onAnimating: onAnimating,
+        updateOnAnimating: updateOnAnimating,
         curve: curve,
       ),
-      mation: sequence.mations[i],
-      child: child,
+      ability: sequence.motivations[i],
+      builder: builder,
     );
   }
 
-  ///
-  ///
-  ///
-  /// other factories
-  ///
-  ///
-  ///
-
-  factory Mationani.rotateClipping({
-    Clip clipBehavior = Clip.antiAlias,
-    required Alignment alignment,
-    required Ani ani,
-    required Between<double> between,
-    required SizingPath sizeToPath,
-    required Widget child,
-  }) =>
-      Mationani(
-        ani: ani,
-        mation: MationTransition.rotate(between, alignment: alignment),
-        child: ClipPath(
-          clipper: Clipping.reclipNever(sizeToPath),
-          clipBehavior: clipBehavior,
-          child: child,
-        ),
-      );
-
-  factory Mationani.rotateSemicircleRowClipping({
-    MainAxisAlignment semicircleAlignment = MainAxisAlignment.center,
-    required DurationFR duration,
-    required Between<double> rotating,
-    required Between<double> flipping,
-    required AnimationStatusController statusListenerRotate,
-    required AnimationStatusController statusListenerFlip,
-    required bool isFlipped,
-    required Widget childRight,
-    required Widget childLeft,
-  }) =>
-      Mationani(
-        ani: Ani(
-          duration: duration,
-          initializer: Ani.initializeForward,
-          initialStatusController: statusListenerRotate,
-          updateConsumer: Ani.decideResetForward(isFlipped),
-        ),
-        mation: MationTransition.rotate(rotating, alignment: Alignment.center),
-        child: Row(
-          mainAxisAlignment: semicircleAlignment,
-          children: [
-            Mationani.rotateClipping(
-              between: flipping,
-              alignment: Alignment.centerRight,
-              sizeToPath: FSizingPath.pieOfLeftRight(false),
-              ani: Ani(
-                duration: duration,
-                updateConsumer: Ani.decideResetForward(!isFlipped),
-              ),
-              child: childLeft,
-            ),
-            Mationani.rotateClipping(
-              ani: Ani(
-                duration: duration,
-                initialStatusController: statusListenerFlip,
-                updateConsumer: Ani.decideResetForward(!isFlipped),
-              ),
-              between: flipping,
-              alignment: Alignment.centerLeft,
-              sizeToPath: FSizingPath.pieOfLeftRight(true),
-              child: childRight,
-            ),
-          ],
-          // children: [VContainerStyled.gradiantWhitRed],
-        ),
-      );
-
   @override
   State<Mationani> createState() => _MationaniState();
-
-  static _MationaniState of(BuildContext context) =>
-      context.findAncestorStateOfType<_MationaniState>()!;
 }
 
 class _MationaniState extends State<Mationani>
     with SingleTickerProviderStateMixin {
   late final AnimationController controller;
-
-  late WidgetBuilder _builder;
+  late WidgetBuilder builder;
 
   @override
   void initState() {
     final ani = widget.ani;
-    controller = ani._initializing(this);
-    _builder = ani._plan(controller, widget.mation, widget.builder);
+    controller = ani.initializing(this);
+    builder = ani.building(controller, widget.mation);
     super.initState();
   }
 
@@ -194,18 +126,58 @@ class _MationaniState extends State<Mationani>
 
   @override
   void didUpdateWidget(covariant Mationani oldWidget) {
-    _builder = widget.ani._updating(
+    builder = widget.ani.updating(
       controller: controller,
       oldWidget: oldWidget,
-      mation: widget.mation,
-      builder: widget.builder,
+      widget: widget,
     );
 
     super.didUpdateWidget(oldWidget);
   }
 
   @override
-  Widget build(BuildContext context) => _builder(context);
+  Widget build(BuildContext context) => builder(context);
+}
+
+class MationaniArrow extends StatelessWidget {
+  MationaniArrow({
+    super.key,
+    this.dimension = 40,
+    required this.onTap,
+    required this.direction,
+    WidgetBuilder? builder,
+  }) : builder = builder ?? WWidgetBuilder.of(FlutterLogo(size: dimension));
+
+  final double dimension;
+  final VoidCallback onTap;
+  final Direction2DIn4 direction;
+  final WidgetBuilder builder;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox.square(
+      dimension: dimension,
+      child: RotatedBox(
+        quarterTurns: direction.index,
+        child: InkWell(
+          onTap: onTap,
+          child: Mationani.mamion(
+            ability: MamionTransition.slide(
+              FBetween.offsetZeroTo(
+                KOffset.square_1 / 2,
+                curve: CurveFR.symmetry(Curving.sinPeriodOf(2)),
+              ),
+            ),
+            ani: AniGeneral(
+              duration: KDurationFR.second1,
+              initializer: AniGeneral.initializeRepeat,
+            ),
+            builder: builder,
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 ///
@@ -220,28 +192,27 @@ class MationaniSin extends StatelessWidget {
     super.key,
     required this.duration,
     required this.initializer,
-    required this.updateListener,
+    required this.updateConsumer,
     required this.mation,
-    required this.child,
+    required this.builder,
   });
 
   factory MationaniSin.shaker({
     required DurationFR duration,
     required int times,
     required double amplitudeRadian,
+    required Consumer<AnimationController> updateConsumer,
     required Widget child,
     Key? key,
     Alignment alignment = Alignment.center,
-    bool adjustStart = true,
-    AnimationControllerInitializer initializer = Ani.initialize,
-    Consumer<AnimationController> updateListener = Ani.consumeNothing,
+    AnimationControllerInitializer initializer = AniGeneral.initialize,
   }) =>
       MationaniSin._(
         key: key,
         duration: duration ~/ 2,
         initializer: initializer,
-        updateListener: updateListener,
-        mation: MationTransition.rotate(
+        updateConsumer: updateConsumer,
+        mation: MamionTransition.rotate(
           Between(
             0,
             amplitudeRadian / KRadian.angle_360,
@@ -249,118 +220,69 @@ class MationaniSin extends StatelessWidget {
           ),
           alignment: alignment,
         ),
-        child: child,
+        builder: (context) => child,
       );
 
   factory MationaniSin.flicker({
     required DurationFR duration,
     required int times,
     required double amplitudeOpacity,
+    required Consumer<AnimationController> updateConsumer,
     required Widget child,
     Key? key,
-    AnimationControllerInitializer initializer = Ani.initialize,
-    Consumer<AnimationController> updateListener = Ani.consumeNothing,
+    AnimationControllerInitializer initializer = AniGeneral.initialize,
   }) =>
       MationaniSin._(
         key: key,
         duration: duration ~/ 2,
         initializer: initializer,
-        updateListener: updateListener,
-        mation: MationTransition.fade(Between(
+        updateConsumer: updateConsumer,
+        mation: MamionTransition.fade(Between(
           1.0,
           amplitudeOpacity,
           curve: CurveFR.symmetry(Curving.sinPeriodOf(times)),
         )),
-        child: child,
+        builder: (context) => child,
       );
 
   factory MationaniSin.slider({
     required DurationFR duration,
     required int times,
     required Offset amplitudePosition,
+    required Consumer<AnimationController> updateConsumer,
     required Widget child,
     Key? key,
-    AnimationControllerInitializer initializer = Ani.initialize,
-    Consumer<AnimationController> updateListener = Ani.consumeNothing,
+    AnimationControllerInitializer initializer = AniGeneral.initialize,
   }) =>
       MationaniSin._(
         key: key,
         duration: duration,
         initializer: initializer,
-        updateListener: updateListener,
-        mation: MationTransition.slide(Between(
+        updateConsumer: updateConsumer,
+        mation: MamionTransition.slide(Between(
           Offset.zero,
           amplitudePosition,
           curve: CurveFR.symmetry(Curving.sinPeriodOf(times)),
         )),
-        child: child,
+        builder: (context) => child,
       );
 
   final DurationFR duration;
   final AnimationControllerInitializer initializer;
-  final Consumer<AnimationController> updateListener;
-  final Mation mation;
-  final Widget child;
+  final Consumer<AnimationController> updateConsumer;
+  final Mamionability mation;
+  final WidgetBuilder builder;
 
   @override
-  Widget build(BuildContext context) => Mationani(
-        ani: Ani(
+  Widget build(BuildContext context) => Mationani.mamion(
+        ani: AniGeneral(
           duration: duration,
           initializer: initializer,
-          updateConsumer: updateListener,
+          updateConsumer: updateConsumer,
         ),
-        mation: mation,
-        child: child,
+        ability: mation,
+        builder: builder,
       );
-}
-
-class MationaniPenetration extends StatelessWidget {
-  const MationaniPenetration({
-    required this.ani,
-    required this.onTap,
-    required this.rect,
-    required this.path,
-    super.key,
-    this.opacityEnd = 1.0,
-    this.curveFade,
-    this.curveClipper,
-    this.clip = Clip.antiAlias,
-    this.color = Colors.black54,
-    this.child,
-  });
-
-  final Ani ani;
-  final double opacityEnd;
-  final CurveFR? curveFade;
-  final CurveFR? curveClipper;
-  final Clip clip;
-  final Color color;
-  final Widget? child;
-  final Between<Rect> rect;
-  final SizingPathWithRect path;
-  final GestureTapCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Mationani(
-        ani: ani,
-        mation: MationMulti<MationSingle>([
-          MationClipper(
-            BetweenPath<Rect>(
-              rect,
-              onAnimate: (t, rect) => (size) => path(rect, size),
-              curve: curveClipper,
-            ),
-            behavior: clip,
-          ),
-          MationTransition.fade(Between(0.0, opacityEnd, curve: curveFade)),
-        ]),
-        child: ColoredBox(color: color, child: child),
-      ),
-    );
-  }
 }
 
 class MationaniCutting extends StatelessWidget {
@@ -370,20 +292,18 @@ class MationaniCutting extends StatelessWidget {
     this.direction = Direction.radian2D_bottomRight,
     this.curveFadeOut,
     this.curve,
-    Ani? aniFadeOut,
+    AniGeneral? aniFadeOut,
     required this.ani,
     required this.rotation,
     required this.distance,
     required this.child,
-  })  : aniFadeOut = aniFadeOut ?? ani,
-        assert(pieces == 2 && direction == Direction.radian2D_bottomRight);
+  }) : assert(pieces == 2 && direction == Direction.radian2D_bottomRight);
 
   final int pieces;
   final double direction;
   final double rotation;
   final double distance;
-  final Ani aniFadeOut;
-  final Ani ani;
+  final AniGeneral ani;
   final CurveFR? curveFadeOut;
   final CurveFR? curve;
   final Widget child;
@@ -391,81 +311,39 @@ class MationaniCutting extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Mationani(
-      mation: MationTransition.fadeOut(curve: curveFadeOut),
-      ani: aniFadeOut,
-      child: Stack(
-        children: List.generate(
-          pieces,
-          (index) => Mationani(
-            mation: MationMulti<MationSingle>([
-              MationTransition.rotate(
-                FBetween.doubleZeroTo(
+      ani: ani,
+      mation: Manion.stack(
+        ability: ManionParentChildren(
+          parent: MamionTransition.fadeOut(curve: curveFadeOut),
+          children: List.generate(
+            pieces,
+            (index) => Mamion(
+              ability: MamionMulti.leaving(
+                alignment: Alignment.bottomRight,
+                rotation: FBetween.doubleZeroTo(
                   (index == 0 ? -rotation : rotation) / KRadian.angle_360,
                   curve: curve,
                 ),
-                alignment: Alignment.bottomRight,
+                sliding: FBetween.offsetZeroTo(
+                  index == 0
+                      ? Direction.offset_bottomLeft * distance
+                      : Direction.offset_topRight * distance,
+                  curve: curve,
+                ),
               ),
-              MationTransition.slide(FBetween.offsetZeroTo(
-                index == 0
-                    ? Direction.offset_bottomLeft * distance
-                    : Direction.offset_topRight * distance,
-                curve: curve,
-              )),
-            ]),
-            ani: ani,
-            child: ClipPath(
-              clipper: Clipping.reclipNever(
-                index == 0
-                    ? (size) => Path()
-                      ..lineToPoint(size.bottomRight(Offset.zero))
-                      ..lineToPoint(size.bottomLeft(Offset.zero))
-                    : (size) => Path()
-                      ..lineToPoint(size.bottomRight(Offset.zero))
-                      ..lineToPoint(size.topRight(Offset.zero)),
-              ),
-              child: child,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class MationaniArrow extends StatelessWidget {
-  const MationaniArrow({
-    super.key,
-    this.dimension = 40,
-    required this.onTap,
-    required this.direction,
-    this.child = const FlutterLogo(size: 40),
-  });
-
-  final double dimension;
-  final VoidCallback onTap;
-  final Direction2DIn4 direction;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox.square(
-      dimension: dimension,
-      child: RotatedBox(
-        quarterTurns: direction.index,
-        child: InkWell(
-          onTap: onTap,
-          child: Mationani(
-            mation: MationTransition.slide(
-              FBetween.offsetZeroTo(
-                KOffset.square_1 / 2,
-                curve: CurveFR.symmetry(Curving.sinPeriodOf(2)),
+              builder: (context) => ClipPath(
+                clipper: Clipping.reclipNever(
+                  index == 0
+                      ? (size) => Path()
+                        ..lineToPoint(size.bottomRight(Offset.zero))
+                        ..lineToPoint(size.bottomLeft(Offset.zero))
+                      : (size) => Path()
+                        ..lineToPoint(size.bottomRight(Offset.zero))
+                        ..lineToPoint(size.topRight(Offset.zero)),
+                ),
+                child: child,
               ),
             ),
-            ani: Ani(
-              duration: KDurationFR.second1,
-              initializer: Ani.initializeRepeat,
-            ),
-            child: child,
           ),
         ),
       ),
@@ -556,9 +434,7 @@ class _OverlayFadingStreamState extends State<OverlayFadingStream>
 ///
 /// [context]
 /// [entries]
-/// [_insertEntry]
-/// [_updateEntry]
-/// [_removeEntry]
+/// [_insertEntry], [_updateEntry], [_removeEntry]
 ///
 /// [overlayInsert]
 /// [overlayUpdate]
@@ -649,7 +525,7 @@ class OverlayInsertion<T extends Widget> {
 class OverlayInsertionFading<T extends Widget> extends OverlayInsertion<T> {
   final DurationFR duration;
   final Supplier<bool> shouldFadeOut;
-  final IfAnimating onAnimating;
+  final Consumer<AnimationController>? updateOnAnimating;
   final CurveFR? curveFade;
   final Curve? curveAni;
   Consumer<AnimationController> onRemoveEntry;
@@ -663,7 +539,7 @@ class OverlayInsertionFading<T extends Widget> extends OverlayInsertion<T> {
     required this.duration,
     required this.shouldFadeOut,
     required this.onRemoveEntry,
-    this.onAnimating = Ani.animatingNothing,
+    this.updateOnAnimating,
     this.curveFade,
     this.curveAni,
   });
@@ -672,16 +548,16 @@ class OverlayInsertionFading<T extends Widget> extends OverlayInsertion<T> {
   OverlayEntry get entry => OverlayEntry(
         opaque: opaque,
         maintainState: maintainState,
-        builder: (context) => Mationani(
-          mation: MationTransition.fadeIn(curve: curveFade),
-          ani: Ani.initForwardAndUpdateReverseWhen(
+        builder: (context) => Mationani.mamion(
+          ability: MamionTransition.fadeIn(curve: curveFade),
+          ani: AniGeneral.initForwardAndUpdateReverseWhen(
             shouldFadeOut(),
             curve: curveAni,
             duration: duration,
-            onAnimating: onAnimating,
-            initialStatusController: Ani.listenDismissed(onRemoveEntry),
+            updateOnAnimating: updateOnAnimating ?? AniGeneral.consumeNothing,
+            initialStatusController: AniGeneral.listenDismissed(onRemoveEntry),
           ),
-          child: builder(context),
+          builder: builder,
         ),
       );
 }
@@ -824,19 +700,19 @@ class _FabExpandableState extends State<FabExpandable>
   Widget get _openButton => IgnorePointer(
         key: _openIconKey,
         ignoring: _isOpen,
-        child: Mationani(
-          ani: Ani(
+        child: Mationani.mamion(
+          ani: AniGeneral(
             duration: DurationFR.constant(widget.durationFadeOut),
-            updateConsumer: Ani.decideForwardOrReverse(_isOpen),
+            updateConsumer: AniGeneral.decideForwardOrReverse(_isOpen),
           ),
-          mation: MationMulti([
-            MationTransition.fadeOut(),
-            MationTransition.scale(
+          ability: MamionMulti([
+            MamionTransition.fadeOut(),
+            MamionTransition.scale(
               FBetween.doubleOneTo(0.7, curve: widget.curveFadeOut),
               alignment: Alignment.center,
             ),
           ]),
-          child: FloatingActionButton(
+          builder: (context) => FloatingActionButton(
             onPressed: _toggle,
             child: widget.openIcon,
           ),
@@ -878,10 +754,10 @@ class _FabExpandableElements extends StatelessWidget {
             icons.length,
             (index) {
               final element = icons[index];
-              return Mationani(
+              return Mationani.mamion(
                 ani: setup.aniDecider(isOpen),
-                mation: setup.mationsGenerator(index),
-                child: MaterialIconButton(
+                ability: setup.mationsGenerator(index),
+                builder: (context) => MaterialIconButton(
                   onPressed: element.action,
                   child: element.icon,
                 ),
@@ -896,23 +772,15 @@ class _FabExpandableElements extends StatelessWidget {
 
 ///
 ///
-/// [positioned]
-/// [alignment]
-/// [duration]
-/// [updateHear]
-/// [mationsGenerator]
-/// [icons]
-/// [aniOf]
-///
+/// [positioned], [alignment], [mationsGenerator], [icons], ...
 /// [_maxIconRadiusOf]
-///
 ///
 ///
 class FabExpandableSetup {
   final Rect positioned;
   final Alignment alignment;
   final AniDecider<bool> aniDecider;
-  final Generator<Mation> mationsGenerator;
+  final Generator<Mamionability> mationsGenerator;
   final List<IconAction> icons;
 
   FabExpandableSetup._({
@@ -935,11 +803,11 @@ class FabExpandableSetup {
     DurationFR duration,
     AnimationControllerDecider updateHear,
   ) =>
-      (open) => Ani(
+      (open) => AniGeneral(
             duration: duration,
-            initializer: Ani.initializeForward,
+            initializer: AniGeneral.initializeForward,
             updateConsumer: updateHear(open),
-            onAnimating: Ani.animatingBack,
+            updateOnAnimating: AniGeneral.consumeBack,
           );
 
   factory FabExpandableSetup.radiationOnOpenIcon({
@@ -951,8 +819,8 @@ class FabExpandableSetup {
     double distance = 2,
     double maxElementsIconSize = 24,
     CurveFR curve = KCurveFR.fastOutSlowIn,
-    AnimationControllerDecider updateHear = Ani.decideForwardOrReverse,
-    MationsGenerator? mations,
+    AnimationControllerDecider updateHear = AniGeneral.decideForwardOrReverse,
+    MationMultiGenerator? mations,
   }) =>
       FabExpandableSetup._(
         positioned: RectExtension.fromCircle(
@@ -978,8 +846,8 @@ class FabExpandableSetup {
     required List<IconAction> icons,
     double distance = 1.2,
     CurveFR curve = KCurveFR.ease,
-    AnimationControllerDecider updateHear = Ani.decideForwardOrReverse,
-    MationsGenerator? mations,
+    AnimationControllerDecider updateHear = AniGeneral.decideForwardOrReverse,
+    MationMultiGenerator? mations,
   }) {
     final maxIconRadius = _maxIconRadiusOf(context, icons);
     return FabExpandableSetup._(

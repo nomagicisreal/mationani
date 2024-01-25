@@ -8,14 +8,12 @@
 ///
 ///
 /// typedefs:
-/// [IfAnimating]
-///
-/// [AnimationBuilder], [AnimationStatusController]
+/// [AnimationBuilder], [AnimationStatusController], [AnimatedStatefulWidgetUpdater]
 /// [AnimationControllerInitializer]
 /// [AnimationControllerDecider], [AnimationControllerDeciderTernary], ...
 ///
 /// [AniDecider]
-/// [MationBuilder], [MationSequencer],
+/// [MationBuilder], [MationMultiGenerator], [MationSequencer],
 ///
 /// [FollowerInitializer]
 /// [FabExpandableSetupInitializer]
@@ -28,8 +26,10 @@
 ///
 ///
 /// private typedef, extensions:
+/// [_BetweenAnimation]
+/// [_MationAnimating]
 /// [_AnimationControllerExtension]
-/// [_IterableMationTransformBase]
+/// [_IterableMamionTransformBase], [IterableWidgetBuilderExtension]
 ///
 ///
 ///
@@ -47,8 +47,6 @@ part of mationani;
 /// [paintFrom]
 /// [sizingPath]
 /// [paintingPath]
-///
-/// [draw]
 ///
 /// [Painting.rePaintWhenUpdate]
 /// [Painting.rePaintNever]
@@ -238,11 +236,6 @@ extension WClipping on ClipPath {
       );
 }
 
-typedef IfAnimating = void Function(
-  AnimationController controller,
-  bool isForward,
-);
-
 typedef AnimationBuilder<T> = Widget Function(
   Animation<T> animation,
   Widget child,
@@ -253,11 +246,6 @@ typedef AnimationStatusController = void Function(
   AnimationController controller,
 );
 
-// typedef AnimationsBuilder<T> = Widget Function(
-//   Iterable<Animation<T>> animations,
-//   Widget child,
-// );
-
 typedef AnimationControllerDecider = Decider<AnimationController, bool>;
 typedef AnimationControllerDeciderTernary = Decider<AnimationController, bool?>;
 
@@ -267,22 +255,28 @@ typedef AnimationControllerInitializer = AnimationController Function(
   Duration reverse,
 );
 
+typedef AnimatedStatefulWidgetUpdater<W extends StatefulWidget> = void Function(
+  AnimationController controller,
+  W oldWidget,
+  W newWidget,
+);
+
 ///
 ///
 /// mations
 ///
 ///
-typedef MationBuilder<M extends Mationable> = Widget Function(
+typedef MationBuilder<M extends Mamionability> = Widget Function(
   BuildContext context,
   M mation,
 );
 
-typedef MationsGenerator = Generator<MationMulti<Mationable>>;
+typedef MationMultiGenerator = Generator<MamionMulti>;
 
-typedef MationSequencer<T> = Translator<int, Mation> Function(
-  MationSequenceStep previos,
-  MationSequenceStep next,
-  MationSequenceInterval interval,
+typedef MationSequencer<T> = Translator<int, Mamionability> Function(
+  AniSequenceStep previos,
+  AniSequenceStep next,
+  AniSequenceInterval interval,
 );
 
 ///
@@ -290,7 +284,7 @@ typedef MationSequencer<T> = Translator<int, Mation> Function(
 /// ani
 ///
 ///
-typedef AniDecider<T> = Ani Function(T toggle);
+typedef AniDecider<T> = AniGeneral Function(T toggle);
 
 ///
 ///
@@ -350,7 +344,7 @@ extension BetweenCoordinateRadianExtension on Between<Coordinate> {
         Coordinate.transferToTransformOf(begin),
         Coordinate.transferToTransformOf(end),
         curve: curve,
-        onLerp: _onLerp,
+        onLerp: onLerp,
       );
 }
 
@@ -363,15 +357,15 @@ extension BetweenCoordinateRadianExtension on Between<Coordinate> {
 ///
 ///
 
-extension FMationsGenerator on MationsGenerator {
-  static MationsGenerator fadeInRadiationStyle1(
+extension FMationsGenerator on MationMultiGenerator {
+  static MationMultiGenerator fadeInRadiationStyle1(
     Generator<double> direction,
     double distance, {
     CurveFR? curve,
   }) =>
-      (index) => MationMulti<MationSingle>([
-            MationTransition.fadeIn(curve: curve),
-            MationTransition.slide(
+      (index) => MamionMulti([
+            MamionTransition.fadeIn(curve: curve),
+            MamionTransition.slide(
               FBetween.offsetOfDirection(
                 direction(index),
                 0,
@@ -383,13 +377,13 @@ extension FMationsGenerator on MationsGenerator {
             ),
           ]);
 
-  static MationsGenerator lineAndScale(Offset delta, {CurveFR? curve}) =>
-      (index) => MationMulti<MationSingle>([
-            MationTransition.slide(FBetween.offsetZeroTo(
+  static MationMultiGenerator lineAndScale(Offset delta, {CurveFR? curve}) =>
+      (index) => MamionMulti([
+            MamionTransition.slide(FBetween.offsetZeroTo(
               delta * (index + 1).toDouble(),
               curve: curve,
             )),
-            MationTransition.scale(FBetween.doubleOneFrom(
+            MamionTransition.scale(FBetween.doubleOneFrom(
               0.0,
               curve: curve.nullOrTranslate(
                 (value) => CurveFR.intervalFlip(value, 0.2 * index, 1.0),
@@ -407,9 +401,9 @@ extension FBetween on Between {
   /// [doubleZeroBeginOrEnd], [doubleOneBeginOrEnd]
   ///
   ///
-  static Between<double> get doubleKZero => Between.constant(0);
+  static Between<double> get doubleKZero => Between.of(0);
 
-  static Between<double> get doubleKOne => Between.constant(1);
+  static Between<double> get doubleKOne => Between.of(1);
 
   static Between<double> doubleZeroFrom(double begin, {CurveFR? curve}) =>
       Between(begin, 0, curve: curve);
@@ -444,7 +438,7 @@ extension FBetween on Between {
   /// [offsetOfDirection], [offsetOfDirectionZeroFrom], [offsetOfDirectionZeroTo]
   ///
   ///
-  static Between<Offset> get offsetKZero => Between.constant(Offset.zero);
+  static Between<Offset> get offsetKZero => Between.of(Offset.zero);
 
   static Between<Offset> offsetZeroFrom(Offset begin, {CurveFR? curve}) =>
       Between(begin, Offset.zero, curve: curve);
@@ -497,8 +491,7 @@ extension FBetween on Between {
   /// [coordinateZeroBeginOrEnd], [coordinateOneBeginOrEnd]
   ///
   ///
-  static Between<Coordinate> get coordinateKZero =>
-      Between.constant(Coordinate.zero);
+  static Between<Coordinate> get coordinateKZero => Between.of(Coordinate.zero);
 
   static Between<Coordinate> coordinateZeroFrom(
     Coordinate begin, {
@@ -535,16 +528,16 @@ extension FBetween on Between {
         curve: curve,
       );
 
-static Between<Coordinate> coordinateOneBeginOrEnd(
-  Coordinate another,
-  CurveFR? curve, {
-  required bool isEndOne,
-}) =>
-    Between<Coordinate>(
-      isEndOne ? another : Coordinate.one,
-      isEndOne ? Coordinate.one : another,
-      curve: curve,
-    );
+  static Between<Coordinate> coordinateOneBeginOrEnd(
+    Coordinate another,
+    CurveFR? curve, {
+    required bool isEndOne,
+  }) =>
+      Between<Coordinate>(
+        isEndOne ? another : Coordinate.one,
+        isEndOne ? Coordinate.one : another,
+        curve: curve,
+      );
 }
 
 ///
@@ -565,7 +558,26 @@ static Between<Coordinate> coordinateOneBeginOrEnd(
 ///
 ///
 
-typedef _MationAnimating = Iterable<Animation> Function(Mationable mation);
+class _BetweenAnimation<T> extends Animation<T>
+    with AnimationWithParentMixin<double> {
+  _BetweenAnimation(this.parent, this.between);
+
+  @override
+  final Animation<double> parent;
+
+  final Between<T> between;
+
+  @override
+  T get value => between.evaluate(parent);
+
+  @override
+  String toString() => '$parent\u27A9$between\u27A9$value';
+
+  @override
+  String toStringDetails() => '${super.toStringDetails()} $between';
+}
+
+typedef _MationAnimating = Iterable<Animation> Function(_Mationable able);
 
 extension _AnimationControllerExtension on AnimationController {
   void forwardReset({double? from}) => forward(from: from).then((_) => reset());
@@ -578,16 +590,5 @@ extension _AnimationControllerExtension on AnimationController {
     if (controller != null) {
       addStatusListener((status) => controller(status, this));
     }
-  }
-}
-
-extension _IterableMationTransformBase on Iterable<MationTransformDelegate> {
-  Iterable<MationTransformDelegate> sort(List<OnAnimateMatrix4> order) {
-    final map =
-        Map.fromIterable(order, value: (_) => <MationTransformDelegate>[]);
-    for (var delegate in this) {
-      map[delegate.onAnimate]!.add(delegate);
-    }
-    return order.expand((onAnimate) => map[onAnimate]!);
   }
 }

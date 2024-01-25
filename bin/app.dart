@@ -31,9 +31,11 @@ class MyHome extends StatefulWidget {
 class _MyHomeState extends State<MyHome> {
   bool toggle = false;
 
-  void onPressed() => setState(() {
-        toggle = !toggle;
-      });
+  void onPressed({bool update = true}) => update
+      ? setState(() {
+          toggle = !toggle;
+        })
+      : toggle = !toggle;
 
   @override
   Widget build(BuildContext context) {
@@ -44,51 +46,11 @@ class _MyHomeState extends State<MyHome> {
       ),
       backgroundColor: Colors.white38,
       body: Center(
-        child: Mationani(
-          ani: Ani(
-            duration: KDurationFR.second1,
-            updateConsumer: Ani.decideForwardOrReverse(!toggle),
-          ),
-          mation: MationStackSibling<Mationable>(
-            alignment: Alignment.center,
-            mationSibling: MationMulti([
-              MationClipper(BetweenPath(
-                FBetween.offsetOfDirection(
-                  KRadian.angle_90,
-                  0,
-                  100,
-                  curve: KCurveFR.fastOutSlowIn,
-                ),
-                onAnimate: (t, value) => FSizingPath.rect(
-                  value & KSize.square_100,
-                ),
-              )),
-              MationTransition.slide(
-                FBetween.offsetOfDirection(
-                  KRadian.angle_90,
-                  0.1,
-                  0.4,
-                  curve: KCurveFR.fastOutSlowIn,
-                ),
-              ),
-            ]),
-            sibling: WSizedBox.squareColored(
-              dimension: 100,
-              color: Colors.red.shade200.withOpacity(0.8),
-            ),
-            mation: MationTransition.slide(
-              FBetween.offsetOfDirection(
-                KRadian.angle_30,
-                1,
-                0.4,
-                curve: KCurveFR.fastOutSlowIn,
-              ),
-            ),
-          ),
-          child: WSizedBox.squareColored(
-            dimension: 80,
-            color: Colors.green.shade200,
-          ),
+        child: MationaniCutting(
+          ani: AniGeneral.initForwardAndUpdateForwardOrReverse(duration: KDurationFR.second1),
+          rotation: KRadian.angle_20,
+          distance: 2,
+          child: WSizedBox.squareColored(dimension: 100, color: Colors.yellow),
         ),
       ),
     );

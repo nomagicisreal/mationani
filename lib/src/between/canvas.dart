@@ -48,8 +48,7 @@ typedef SizingDouble = double Function(Size size);
 typedef SizingOffset = Offset Function(Size size);
 typedef SizingRect = Rect Function(Size size);
 typedef SizingPath = Path Function(Size size);
-typedef SizingPathWithRect = Path Function(Rect rect, Size size);
-typedef SizingPathWithRRect = Path Function(RRect rect, Size size);
+typedef SizingPathFrom<T> = SizingPath Function(T value);
 typedef SizingOffsetIterable = Iterable<Offset> Function(Size size);
 typedef SizingOffsetList = List<Offset> Function(Size size);
 typedef SizingOffsetIterableIterable = Iterable<Iterable<Offset>> Function(
@@ -582,8 +581,8 @@ extension FOnLerpSpline2D on OnLerp<Offset> {
     Between<double> direction,
     Between<double> radius,
   ) {
-    final dOf = direction._onLerp;
-    final rOf = radius._onLerp;
+    final dOf = direction.onLerp;
+    final rOf = radius.onLerp;
     Offset onLerp(double t) => Offset.fromDirection(dOf(t), rOf(t));
     return origin == Offset.zero ? onLerp : (t) => origin + onLerp(t);
   }
@@ -593,7 +592,7 @@ extension FOnLerpSpline2D on OnLerp<Offset> {
     double radius,
     Between<double> direction,
   ) =>
-      FOnLerpSpline2D.arcOval(origin, direction, Between.constant(radius));
+      FOnLerpSpline2D.arcOval(origin, direction, Between.of(radius));
 
   static OnLerp<Offset> arcCircleSemi(Offset a, Offset b, bool clockwise) {
     if (a == b) {

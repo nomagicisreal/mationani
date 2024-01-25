@@ -2,20 +2,20 @@
 /// this file contains:
 ///
 /// [Ani]
-///   * [_AniBase]
-///   --[AniProgress]
-///     [AniProgressBool]
-///     [AniProgressTernary]
+///   [AniGeneral]
+///     [AniGeneralProgress]
+///       [AniGeneralProgressBool]
+///       [AniGeneralProgressTernary]
 ///
 ///
 ///
 ///
 ///
 ///
-///
-///
-///
-///
+/// [AniSequence]
+///   [AniSequenceStep]
+///   [AniSequenceInterval]
+///   [AniSequenceStyle]
 ///
 ///
 ///
@@ -39,121 +39,134 @@ part of mationani;
 // ignore_for_file: use_string_in_part_of_directives
 
 ///
-/// [initializer] see [Ani.initialize], ...
-/// [initialStatusController] see [Ani.listenForward]
-/// [onAnimating] see [Ani.animatingNothing], [Ani.animatingBack]
-/// [updateConsumer] see [Ani.consumeNothing], ..., [Ani.decideNothing], ...
 ///
-class Ani extends _AniBase {
-  const Ani({
+///
+/// [AniGeneral]
+///
+///
+///
+
+///
+/// [AniGeneral] is a class that helps us to create animation for [Mationani].
+/// it's a separate concept from the leading of the word 'animation'.
+///
+
+///
+/// [initializer] see [AniGeneral.initialize], ...
+/// [initialStatusController] see [AniGeneral.listenForward]
+/// [updateOnAnimating] see [AniGeneral.animatingNothing], [AniGeneral.consumeBack]
+/// [updateConsumer] see [AniGeneral.consumeNothing], ..., [AniGeneral.decideNothing], ...
+///
+class AniGeneral extends Ani {
+  const AniGeneral({
     required super.duration,
     super.initializer,
     super.initialStatusController,
     super.updateConsumer,
-    super.onAnimating,
+    super.updateOnAnimating,
     super.curve,
   });
 
-  const Ani.initRepeat({
+  const AniGeneral.initRepeat({
     bool reverseEnable = false,
     required super.duration,
     super.initialStatusController,
     super.updateConsumer,
-    super.onAnimating,
+    super.updateOnAnimating,
     super.curve,
   }) : super(
             initializer: reverseEnable
-                ? Ani.initializeRepeatReverse
-                : Ani.initializeRepeat);
+                ? AniGeneral.initializeRepeatReverse
+                : AniGeneral.initializeRepeat);
 
-  const Ani.initForwardAndUpdateReverse({
+  const AniGeneral.initForwardAndUpdateReverse({
     required super.duration,
     super.initialStatusController,
-    super.onAnimating,
+    super.updateOnAnimating,
     super.curve,
   }) : super(
-            initializer: Ani.initializeForward,
-            updateConsumer: Ani.consumeReverse);
+            initializer: AniGeneral.initializeForward,
+            updateConsumer: AniGeneral.consumeReverse);
 
-  const Ani.initForwardAndUpdateRepeat({
+  const AniGeneral.initForwardAndUpdateRepeat({
     bool reverseEnable = false,
     required super.duration,
     super.initialStatusController,
-    super.onAnimating,
+    super.updateOnAnimating,
     super.curve,
   }) : super(
-            initializer: Ani.initializeForward,
+            initializer: AniGeneral.initializeForward,
             updateConsumer:
-                reverseEnable ? Ani.consumeRepeat : Ani.consumeRepeatReverse);
+                reverseEnable ? AniGeneral.consumeRepeat : AniGeneral.consumeRepeatReverse);
 
-  const Ani.initForwardAndUpdateResetForward({
+  const AniGeneral.initForwardAndUpdateResetForward({
     required super.duration,
     super.initialStatusController,
-    super.onAnimating,
+    super.updateOnAnimating,
     super.curve,
   }) : super(
-            initializer: Ani.initializeForward,
-            updateConsumer: Ani.consumeResetForward);
+            initializer: AniGeneral.initializeForward,
+            updateConsumer: AniGeneral.consumeResetForward);
 
-  const Ani.initForwardAndUpdateForwardOrReverse({
+  const AniGeneral.initForwardAndUpdateForwardOrReverse({
     required super.duration,
     super.initialStatusController,
-    super.onAnimating,
+    super.updateOnAnimating,
     super.curve,
   }) : super(
-            initializer: Ani.initializeForward,
-            updateConsumer: Ani.consumeForwardOrReverse);
+            initializer: AniGeneral.initializeForward,
+            updateConsumer: AniGeneral.consumeForwardOrReverse);
 
-  const Ani.initForwardResetAndUpdateForwardReset({
+  const AniGeneral.initForwardResetAndUpdateForwardReset({
     required super.duration,
     super.initialStatusController,
-    super.onAnimating,
+    super.updateOnAnimating,
     super.curve,
   }) : super(
-            initializer: Ani.initializeForwardReset,
-            updateConsumer: Ani.consumeForwardReset);
+            initializer: AniGeneral.initializeForwardReset,
+            updateConsumer: AniGeneral.consumeForwardReset);
 
-  Ani.initForwardAndUpdateReverseWhen(
+  AniGeneral.initForwardAndUpdateReverseWhen(
     bool trigger, {
     required super.duration,
     super.initialStatusController,
-    super.onAnimating,
+    super.updateOnAnimating,
     super.curve,
   }) : super(
-            initializer: Ani.initializeForward,
-            updateConsumer: Ani.decideReverse(trigger));
+            initializer: AniGeneral.initializeForward,
+            updateConsumer: AniGeneral.decideReverse(trigger));
 
-  Ani.initForwardAndUpdateSequencingWhen(
+  AniGeneral.initForwardAndUpdateSequencingWhen(
     bool? trigger, {
     required Duration duration,
     super.initialStatusController,
-    super.onAnimating,
+    super.updateOnAnimating,
     super.curve,
   }) : super(
-          initializer: Ani.initializeForward,
+          initializer: AniGeneral.initializeForward,
           duration: duration.toDurationFR,
-          updateConsumer: Ani.decideForwardOrReverse(trigger),
+          updateConsumer: AniGeneral.decideForwardOrReverse(trigger),
         );
 
-  Ani.updateForwardWhen(
+  AniGeneral.updateForwardWhen(
     bool trigger, {
     required super.duration,
     super.initializer,
     super.initialStatusController,
-    super.onAnimating,
+    super.updateOnAnimating,
     super.curve,
-  }) : super(updateConsumer: Ani.decideForward(trigger));
+  }) : super(updateConsumer: AniGeneral.decideForward(trigger));
 
-  Ani.updateSequencingWhen(
+  AniGeneral.updateSequencingWhen(
     bool? trigger, {
     required Duration duration,
     super.initializer,
     super.initialStatusController,
-    super.onAnimating,
+    super.updateOnAnimating,
     super.curve,
   }) : super(
             duration: duration.toDurationFR,
-            updateConsumer: Ani.decideForwardOrReverse(trigger));
+            updateConsumer: AniGeneral.decideForwardOrReverse(trigger));
 
   ///
   ///
@@ -250,23 +263,7 @@ class Ani extends _AniBase {
 
   ///
   ///
-  /// belows are variables for [onAnimating],
-  ///
-  /// [animatingNothing]
-  /// [animatingBack]
-  ///
-  ///
-  static void animatingNothing(
-      AnimationController controller, bool isForward) {}
-
-  static void animatingBack(AnimationController controller, bool isForward) =>
-      isForward
-          ? controller.reverse(from: controller.value)
-          : controller.forward(from: controller.value);
-
-  ///
-  ///
-  /// belows are variables for [updateConsumer],
+  /// belows are variables for [updateConsumer] or [updateOnAnimating],
   ///
   /// [consumeNothing]
   /// [consumeForward]
@@ -297,6 +294,11 @@ class Ani extends _AniBase {
       c.repeat(reverse: true);
 
   static void consumeResetForward(AnimationController c) => c.resetForward();
+
+  static void consumeBack(AnimationController controller) =>
+      controller.status == AnimationStatus.forward
+          ? controller.reverse(from: controller.value)
+          : controller.forward(from: controller.value);
 
   ///
   ///
@@ -351,83 +353,106 @@ class Ani extends _AniBase {
 
 ///
 ///
-/// [_AniBase] is the implementation for [Mationani] to trigger animation by
-/// 1. invoking [_initializing] in [_MationaniState.initState]
-/// 2. invoking [_updating] in [_MationaniState.didUpdateWidget]
-/// 3. invoking [_plan] in both [_MationaniState.initState] and [_MationaniState.didUpdateWidget]
+/// [Ani] is the implementation for [Mationani] to trigger animation by
+/// 1. invoking [initializing] in [_MationaniState.initState]
+/// 2. invoking [updating] in [_MationaniState.didUpdateWidget]
+/// 3. invoking [building] in both [_MationaniState.initState] and [_MationaniState.didUpdateWidget]
 ///
-/// [_plan] returns a [WidgetBuilder] to [_MationaniState._builder].
-/// see the implementations of [Mationable._animate] to understand how animation works.
+/// [building] returns a [WidgetBuilder] to [_MationaniState.builder].
+/// see the implementations of [_MationAnimatable.animate] to understand how animation works.
 ///
 ///
-abstract class _AniBase {
+abstract class Ani {
   final DurationFR duration;
   final Curve? curve;
   final AnimationControllerInitializer? initializer;
   final AnimationStatusController? initialStatusController;
   final Consumer<AnimationController>? updateConsumer;
-  final IfAnimating? onAnimating;
+  final Consumer<AnimationController>? updateOnAnimating;
 
-  const _AniBase({
+  const Ani({
     required this.duration,
     required this.curve,
     required this.initializer,
     required this.initialStatusController,
     required this.updateConsumer,
-    required this.onAnimating,
+    required this.updateOnAnimating,
   });
 
-  AnimationController _initializing(TickerProvider ticker) =>
-      (initializer ?? Ani.initialize)(
+  AnimationController initializing(TickerProvider ticker) =>
+      (initializer ?? AniGeneral.initialize)(
         ticker,
         duration.forward,
         duration.reverse,
       )..addStatusListenerIfNotNull(initialStatusController);
 
   ///
-  /// [Ani.curve] is an easy way to control entire [AnimationController] flow.
-  /// notice that there is also a [Between.curve] when [Between.animate].
+  /// [AniGeneral.curve] is an easy way to control entire [AnimationController] flow.
+  /// Notice that there is also a [Between.curve] when [Between.animate] in [_MationAnimatableSingle.animate].
   /// this method is called when [_MationaniState.initState] and [_MationaniState.didUpdateWidget]
   ///
-  WidgetBuilder _plan(
-    AnimationController controller,
-    Mation mation,
-    WidgetBuilder builder,
-  ) {
-    final build = mation._plan(
-      controller.drive(CurveTween(curve: curve ?? Curves.linear)),
-      builder,
-    );
+  WidgetBuilder building(AnimationController controller, Mation mation) =>
+      mation.planning(
+        controller.drive(CurveTween(curve: curve ?? Curves.linear)),
+      );
 
-    return switch (mation) {
-      MationTransition() => build,
-      _ => (_) => AnimatedBuilder(
-            animation: controller,
-            builder: (context, __) => build(context),
-          ),
-    };
-  }
-
-  WidgetBuilder _updating({
+  ///
+  ///
+  /// TODO: custom [AnimatedStatefulWidgetUpdater]
+  ///
+  ///
+  WidgetBuilder updating({
     required AnimationController controller,
     required Mationani oldWidget,
-    required Mation mation,
-    required WidgetBuilder builder,
+    required Mationani widget,
   }) {
-    if (controller.isAnimating) {
-      (onAnimating ?? Ani.animatingBack)(
-        controller,
-        controller.status == AnimationStatus.forward,
-      );
-    } else {
-      if (oldWidget.ani.duration != duration) {
-        controller.duration = duration.forward;
-        controller.reverseDuration = duration.reverse;
-      }
-      (updateConsumer ?? Ani.consumeNothing)(controller);
-    }
-    return _plan(controller, mation, builder);
+    // updateWhenAnimatingOr(
+    //   updateOnAnimating ?? Ani.consumeBack,
+    //   updateConsumer ?? Ani.consumeNothing,
+    // )(
+    //   controller,
+    //   oldWidget,
+    //   widget,
+    // );
+    updateIfNotAnimating(updateConsumer ?? AniGeneral.consumeNothing)(
+      controller,
+      oldWidget,
+      widget,
+    );
+    return building(controller, widget.mation);
   }
+
+  static AnimatedStatefulWidgetUpdater<Mationani> updateWhenAnimatingOr(
+    Consumer<AnimationController> updateOnAnimating,
+    Consumer<AnimationController> updateConsumer,
+  ) =>
+      (controller, oldWidget, widget) {
+        final ani = widget.ani;
+        final duration = ani.duration;
+        if (controller.isAnimating) {
+          updateOnAnimating(controller);
+        } else {
+          if (oldWidget.ani.duration != duration) {
+            controller.duration = duration.forward;
+            controller.reverseDuration = duration.reverse;
+          }
+          updateConsumer(controller);
+        }
+      };
+
+  static AnimatedStatefulWidgetUpdater<Mationani> updateIfNotAnimating(
+    Consumer<AnimationController> updateConsumer,
+  ) =>
+      (controller, oldWidget, widget) {
+        final duration = widget.ani.duration;
+        if (!controller.isAnimating) {
+          if (oldWidget.ani.duration != duration) {
+            controller.duration = duration.forward;
+            controller.reverseDuration = duration.reverse;
+          }
+          updateConsumer(controller);
+        }
+      };
 }
 
 ///
@@ -437,10 +462,10 @@ abstract class _AniBase {
 /// it's useful when there are children instances of a widget, and each of child should be triggered by different step
 ///
 /// See Also
-///   * [AniProgressBool]
-///   * [AniProgressTernary]
+///   * [AniGeneralProgressBool]
+///   * [AniGeneralProgressTernary]
 ///
-abstract class AniProgress extends Ani {
+abstract class AniGeneralProgress extends AniGeneral {
   final int delegate;
   int current = 0;
 
@@ -448,39 +473,39 @@ abstract class AniProgress extends Ani {
   Consumer<AnimationController> get updateConsumer =>
       throw UnimplementedError();
 
-  AniProgress({
+  AniGeneralProgress({
     required super.duration,
     required this.delegate,
     super.initializer,
     super.initialStatusController,
     super.updateConsumer,
-    super.onAnimating,
+    super.updateOnAnimating,
     super.curve,
   });
 }
 
-class AniProgressBool extends AniProgress {
+class AniGeneralProgressBool extends AniGeneralProgress {
   final AnimationControllerDecider? hear;
   final Combiner<int, bool>? comparison;
 
   @override
   Consumer<AnimationController> get updateConsumer => (hear ??
-          Ani.decideForward)(
+          AniGeneral.decideForward)(
       (comparison ?? FPredicatorCombiner.alwaysTrue<int>)(delegate, current));
 
-  AniProgressBool({
+  AniGeneralProgressBool({
     required super.duration,
     required super.delegate,
     super.initializer,
     super.initialStatusController,
-    super.onAnimating,
+    super.updateOnAnimating,
     super.curve,
     this.hear,
     this.comparison,
   });
 }
 
-class AniProgressTernary extends AniProgress {
+class AniGeneralProgressTernary extends AniGeneralProgress {
   final AnimationControllerDeciderTernary? hear;
   final Combiner<int?, bool?>? comparison;
 
@@ -489,16 +514,183 @@ class AniProgressTernary extends AniProgress {
   // 3. delegate < progress, listen reverse
   @override
   Consumer<AnimationController> get updateConsumer =>
-      (hear ?? Ani.decideForwardOrReverse)((comparison ??
+      (hear ?? AniGeneral.decideForwardOrReverse)((comparison ??
           FPredicatorTernaryCombiner.alwaysTrue<int>)(delegate, current));
 
-  AniProgressTernary({
+  AniGeneralProgressTernary({
     required super.duration,
     required super.delegate,
     super.initializer,
     super.initialStatusController,
-    super.onAnimating,
+    super.updateOnAnimating,
     this.hear,
     this.comparison,
   });
+}
+
+///
+///
+///
+/// [AniSequence]
+/// [AniSequenceStep]
+/// [AniSequenceInterval]
+/// [AniSequenceStyle]
+///
+///
+///
+
+///
+/// See Also
+///   * [Mationani.mamionSequence],
+///     which takes [AniSequence] as required argument, and use [Ani.updateSequencingWhen].
+///     it is possible to use other ani like [Ani.initForwardAndUpdateSequencingWhen].
+///
+///   * [Between.sequence],
+///     while [AniSequence] is an easy way to have animation during widget creation
+///     [Between.sequence] focus more on how [Animation.value] or other generic animation.value been lerp.
+///
+
+///
+///
+class AniSequence {
+  final List<Mamionability> motivations;
+  final List<Duration> durations;
+
+  const AniSequence._(this.motivations, this.durations);
+
+  factory AniSequence({
+    required int totalStep,
+    required AniSequenceStyle style,
+    required Generator<AniSequenceStep> step,
+    required Generator<AniSequenceInterval> interval,
+  }) {
+    final durations = <Duration>[];
+    AniSequenceInterval intervalGenerator(int index) {
+      final i = interval(index);
+      durations.add(i.duration);
+      return i;
+    }
+
+    return AniSequence._(
+      ListExtension.linking<Mamionability, AniSequenceStep,
+          AniSequenceInterval>(
+        totalStep: totalStep,
+        step: step,
+        interval: intervalGenerator,
+        sequencer: style.sequencer,
+      ),
+      durations,
+    );
+  }
+}
+
+///
+///
+class AniSequenceStep {
+  final List<double> values;
+  final List<Offset> offsets;
+  final List<Coordinate> coordinates;
+
+  const AniSequenceStep({
+    this.values = const [],
+    this.offsets = const [],
+    this.coordinates = const [],
+  });
+}
+
+///
+///
+class AniSequenceInterval {
+  final Duration duration;
+  final List<Curve> curves;
+  final List<Offset> offsets; // for curving control, interval step
+
+  const AniSequenceInterval({
+    required this.duration,
+    required this.curves,
+    this.offsets = const [],
+  });
+}
+
+///
+///
+enum AniSequenceStyle {
+  // TRS: Translation, Rotation, Scaling
+  transformTRS,
+
+  // rotate, slide in bezier cubic
+  transitionRotateSlideBezierCubic;
+
+  ///
+  /// [_forwardOrReverse] is the only way to sequence [Mamionability] for now
+  ///
+  static bool _forwardOrReverse(int i) => i % 2 == 0;
+
+  static Translator<int, Mamionability> _sequence({
+    Predicator<int> predicator = _forwardOrReverse,
+    required AniSequenceStep previous,
+    required AniSequenceStep next,
+    required Combiner<AniSequenceStep, Mamionability> combine,
+  }) =>
+      (i) => combine(
+            predicator(i) ? previous : next,
+            predicator(i) ? next : previous,
+          );
+
+  MationSequencer get sequencer => switch (this) {
+        transformTRS => (previous, next, interval) {
+            final curve = interval.curves[0].toCurveFR;
+            return AniSequenceStyle._sequence(
+              previous: previous,
+              next: next,
+              combine: (begin, end) {
+                final a = begin.coordinates;
+                final b = end.coordinates;
+                return MamionTransform.list(
+                  [
+                    MamionTransformDelegate.translation(
+                      Between(a[0], b[0], curve: curve),
+                      alignment: Alignment.topLeft,
+                    ),
+                    MamionTransformDelegate.rotation(
+                      Between(a[1], b[1], curve: curve),
+                      alignment: Alignment.topLeft,
+                    ),
+                    MamionTransformDelegate.scale(
+                      Between(a[2], b[2], curve: curve),
+                      alignment: Alignment.topLeft,
+                    ),
+                  ],
+                );
+              },
+            );
+          },
+        transitionRotateSlideBezierCubic => (previous, next, interval) {
+            final curve = interval.curves[0].toCurveFR;
+            final controlPoints = interval.offsets;
+            return AniSequenceStyle._sequence(
+              previous: previous,
+              next: next,
+              combine: (begin, end) => MamionMulti([
+                // MationTransitionDouble.rotate(
+                MamionTransition.rotate(Between(
+                  begin.values[0],
+                  end.values[0],
+                  curve: curve,
+                )),
+                MamionTransition.slide(
+                  BetweenSpline2D(
+                    onLerp: FOnLerpSpline2D.bezierCubic(
+                      begin.offsets[0],
+                      end.offsets[0],
+                      c1: previous.offsets[0] + controlPoints[0],
+                      c2: previous.offsets[0] + controlPoints[1],
+                    ),
+                    curve: curve,
+                  ),
+                ),
+              ]),
+            );
+          },
+      };
 }
