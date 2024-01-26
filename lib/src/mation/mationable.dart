@@ -14,13 +14,18 @@
 ///   [_MationPlanableIterable]
 ///   [_MationPlanableMulti]
 ///
-///
 /// [_MationableBetween]
 ///
-/// [_MationMulti]
 ///
+/// [_MationMulti]
 /// [_ManionChildren]
 ///   [_ManionParentChildren]
+///
+///
+///
+///
+///
+///
 ///
 ///
 ///
@@ -289,12 +294,15 @@ abstract class _MationMulti<M extends _Mationable>
           (child, build, animation) => build(animation, child),
         );
   }
+
+  @override
+  String toString() => _MationableIterable.stringOf(this);
 }
 
 ///
 ///
 ///
-/// [_ManionParentChildren], [_ManionChildren]
+/// [_ManionChildren], [_ManionParentChildren],
 ///
 ///
 ///
@@ -361,3 +369,5 @@ abstract class _ManionParentChildren<M extends Mamionability>
         )(context);
   }
 }
+
+

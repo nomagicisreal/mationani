@@ -17,7 +17,7 @@
 /// [FabExpandable]
 ///   * [_FabExpandableElements]
 ///   * [FabExpandableSetup]
-///     * [FFabExpandableSetupOrbit]
+///     * [FFabExpandableInitializer]
 ///     * [FFabExpandableSetupLine]
 ///
 ///
@@ -80,21 +80,15 @@ class Mationani extends StatefulWidget {
     Key? key,
     required AniSequence sequence,
     required WidgetBuilder builder,
-    AnimationControllerInitializer? initializer,
-    AnimationStatusController? initialStatusController,
-    Consumer<AnimationController>? updateOnAnimating,
-    Curve? curve,
+    required AnimationControllerInitializer initializer,
   }) {
     final i = step ?? 0;
     return Mationani.mamion(
       key: key,
-      ani: AniGeneral.updateSequencingWhen(
+      ani: AniUpdateIfNotAnimating.updateSequencingWhen(
         step == null ? null : i % 2 == 0,
         duration: sequence.durations[i],
         initializer: initializer,
-        initialStatusController: initialStatusController,
-        updateOnAnimating: updateOnAnimating,
-        curve: curve,
       ),
       ability: sequence.motivations[i],
       builder: builder,
@@ -110,11 +104,12 @@ class _MationaniState extends State<Mationani>
   late final AnimationController controller;
   late WidgetBuilder builder;
 
+  WidgetBuilder get planForBuilder => widget.mation.planning(controller);
+
   @override
   void initState() {
-    final ani = widget.ani;
-    controller = ani.initializing(this);
-    builder = ani.building(controller, widget.mation);
+    controller = widget.ani.initializing(this);
+    builder = planForBuilder;
     super.initState();
   }
 
@@ -126,12 +121,8 @@ class _MationaniState extends State<Mationani>
 
   @override
   void didUpdateWidget(covariant Mationani oldWidget) {
-    builder = widget.ani.updating(
-      controller: controller,
-      oldWidget: oldWidget,
-      widget: widget,
-    );
-
+    widget.ani.updater(controller, oldWidget, widget);
+    builder = planForBuilder;
     super.didUpdateWidget(oldWidget);
   }
 
@@ -168,9 +159,9 @@ class MationaniArrow extends StatelessWidget {
                 curve: CurveFR.symmetry(Curving.sinPeriodOf(2)),
               ),
             ),
-            ani: AniGeneral(
+            ani: AniUpdateIfNotAnimating(
               duration: KDurationFR.second1,
-              initializer: AniGeneral.initializeRepeat,
+              initializer: Ani.initializeRepeat,
             ),
             builder: builder,
           ),
@@ -205,7 +196,7 @@ class MationaniSin extends StatelessWidget {
     required Widget child,
     Key? key,
     Alignment alignment = Alignment.center,
-    AnimationControllerInitializer initializer = AniGeneral.initialize,
+    AnimationControllerInitializer initializer = Ani.initialize,
   }) =>
       MationaniSin._(
         key: key,
@@ -230,7 +221,7 @@ class MationaniSin extends StatelessWidget {
     required Consumer<AnimationController> updateConsumer,
     required Widget child,
     Key? key,
-    AnimationControllerInitializer initializer = AniGeneral.initialize,
+    AnimationControllerInitializer initializer = Ani.initialize,
   }) =>
       MationaniSin._(
         key: key,
@@ -252,7 +243,7 @@ class MationaniSin extends StatelessWidget {
     required Consumer<AnimationController> updateConsumer,
     required Widget child,
     Key? key,
-    AnimationControllerInitializer initializer = AniGeneral.initialize,
+    AnimationControllerInitializer initializer = Ani.initialize,
   }) =>
       MationaniSin._(
         key: key,
@@ -275,10 +266,10 @@ class MationaniSin extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Mationani.mamion(
-        ani: AniGeneral(
+        ani: AniUpdateIfNotAnimating(
           duration: duration,
           initializer: initializer,
-          updateConsumer: updateConsumer,
+          consumer: updateConsumer,
         ),
         ability: mation,
         builder: builder,
@@ -292,7 +283,7 @@ class MationaniCutting extends StatelessWidget {
     this.direction = Direction.radian2D_bottomRight,
     this.curveFadeOut,
     this.curve,
-    AniGeneral? aniFadeOut,
+    Ani? aniFadeOut,
     required this.ani,
     required this.rotation,
     required this.distance,
@@ -303,7 +294,7 @@ class MationaniCutting extends StatelessWidget {
   final double direction;
   final double rotation;
   final double distance;
-  final AniGeneral ani;
+  final Ani ani;
   final CurveFR? curveFadeOut;
   final CurveFR? curve;
   final Widget child;
@@ -318,7 +309,7 @@ class MationaniCutting extends StatelessWidget {
           children: List.generate(
             pieces,
             (index) => Mamion(
-              ability: MamionMulti.leaving(
+              ability: MamionMulti.leave(
                 alignment: Alignment.bottomRight,
                 rotation: FBetween.doubleZeroTo(
                   (index == 0 ? -rotation : rotation) / KRadian.angle_360,
@@ -491,8 +482,8 @@ mixin OverlayMixin {
     late final OverlayEntry entry;
     entry = insertion.entry;
     final onRemove = insertion.onRemoveEntry;
-    insertion.onRemoveEntry = (controller) {
-      onRemove(controller);
+    insertion.onRemoveEntry = () {
+      onRemove();
       onRemoveEntry();
       _removeEntry(entry);
     };
@@ -525,12 +516,10 @@ class OverlayInsertion<T extends Widget> {
 class OverlayInsertionFading<T extends Widget> extends OverlayInsertion<T> {
   final DurationFR duration;
   final Supplier<bool> shouldFadeOut;
-  final Consumer<AnimationController>? updateOnAnimating;
   final CurveFR? curveFade;
-  final Curve? curveAni;
-  Consumer<AnimationController> onRemoveEntry;
+  VoidCallback onRemoveEntry;
 
-  OverlayInsertionFading({
+  OverlayInsertionFading.updateToFadeOut({
     super.opaque,
     super.maintainState,
     super.below,
@@ -539,9 +528,7 @@ class OverlayInsertionFading<T extends Widget> extends OverlayInsertion<T> {
     required this.duration,
     required this.shouldFadeOut,
     required this.onRemoveEntry,
-    this.updateOnAnimating,
     this.curveFade,
-    this.curveAni,
   });
 
   @override
@@ -550,12 +537,12 @@ class OverlayInsertionFading<T extends Widget> extends OverlayInsertion<T> {
         maintainState: maintainState,
         builder: (context) => Mationani.mamion(
           ability: MamionTransition.fadeIn(curve: curveFade),
-          ani: AniGeneral.initForwardAndUpdateReverseWhen(
-            shouldFadeOut(),
-            curve: curveAni,
+          ani: AniUpdateIfNotAnimating(
+            initializer: Ani.initializeForwardWithListener(
+              Ani.listenDismissed(onRemoveEntry),
+            ),
             duration: duration,
-            updateOnAnimating: updateOnAnimating ?? AniGeneral.consumeNothing,
-            initialStatusController: AniGeneral.listenDismissed(onRemoveEntry),
+            consumer: Ani.decideReverse(shouldFadeOut()),
           ),
           builder: builder,
         ),
@@ -614,32 +601,28 @@ class Leader extends StatelessWidget {
 ///
 ///
 
-///
-///
-/// TODO: layout every elements no matter size
-///
-///
+//
 class FabExpandable extends StatefulWidget {
   const FabExpandable({
     super.key,
+    this.initializer = FFabExpandableInitializer.orbitClockwise,
     this.initialOpen = false,
     this.openIcon = WIconMaterial.create,
     this.closeIcon = WIconMaterial.close,
-    this.durationFadeOut = KDuration.milli250,
-    this.curveFadeOut = KCurveFR.easeInOut,
+    this.duration = KDurationFR.milli300,
+    this.curve = KCurveFR.easeInOut,
     this.alignment = Alignment.bottomRight,
-    this.initializer = FFabExpandableSetupOrbit.clockwise_2,
     required this.elements,
   });
 
+  final FabExpandableSetupInitializer initializer;
   final bool initialOpen;
   final Icon openIcon;
   final Icon closeIcon;
-  final Duration durationFadeOut;
-  final CurveFR curveFadeOut;
+  final DurationFR duration;
+  final CurveFR curve;
   final Alignment alignment;
   final List<IconAction> elements;
-  final FabExpandableSetupInitializer initializer;
 
   @override
   State<FabExpandable> createState() => _FabExpandableState();
@@ -672,9 +655,10 @@ class _FabExpandableState extends State<FabExpandable>
         if (entries.isEmpty) {
           overlayInsert(OverlayInsertion(
             builder: (context) => _FabExpandableElements(
-              isOpen: _isOpen,
+              open: _isOpen,
+              duration: widget.duration,
+              updateWhen: Ani.decideForwardOrReverse,
               setup: widget.initializer(
-                duration: KDuration.second1.toDurationFR,
                 context: context,
                 openIconRect: _openIconKey.renderRect,
                 openIconAlignment: widget.alignment,
@@ -688,36 +672,34 @@ class _FabExpandableState extends State<FabExpandable>
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox.expand(
-      child: Stack(
-        alignment: widget.alignment,
-        clipBehavior: Clip.none,
-        children: [_closeButton, _openButton],
-      ),
+    return Stack(
+      alignment: widget.alignment,
+      clipBehavior: Clip.none,
+      children: [_closeButton, _openButton],
     );
   }
 
-  Widget get _openButton => IgnorePointer(
-        key: _openIconKey,
-        ignoring: _isOpen,
-        child: Mationani.mamion(
-          ani: AniGeneral(
-            duration: DurationFR.constant(widget.durationFadeOut),
-            updateConsumer: AniGeneral.decideForwardOrReverse(_isOpen),
-          ),
-          ability: MamionMulti([
-            MamionTransition.fadeOut(),
-            MamionTransition.scale(
-              FBetween.doubleOneTo(0.7, curve: widget.curveFadeOut),
-              alignment: Alignment.center,
-            ),
-          ]),
-          builder: (context) => FloatingActionButton(
-            onPressed: _toggle,
-            child: widget.openIcon,
-          ),
+  Widget get _openButton {
+    final fadingCurve = widget.curve;
+    return IgnorePointer(
+      key: _openIconKey,
+      ignoring: _isOpen,
+      child: Mationani.mamion(
+        ani: AniUpdateIfNotAnimating.updateForwardOrReverseWhen(
+          _isOpen,
+          duration: widget.duration,
         ),
-      );
+        ability: MamionMulti.appear(
+          fading: FBetween.doubleZeroFrom(1, curve: fadingCurve),
+          scaling: FBetween.doubleOneTo(0.7, curve: fadingCurve),
+        ),
+        builder: (context) => FloatingActionButton(
+          onPressed: _toggle,
+          child: widget.openIcon,
+        ),
+      ),
+    );
+  }
 
   Widget get _closeButton => SizedBoxCenter.fromSize(
         size: KSize.square_56,
@@ -734,11 +716,15 @@ class _FabExpandableState extends State<FabExpandable>
 
 class _FabExpandableElements extends StatelessWidget {
   const _FabExpandableElements({
-    required this.isOpen,
+    required this.open,
+    required this.duration,
+    required this.updateWhen,
     required this.setup,
   });
 
-  final bool isOpen;
+  final bool open;
+  final DurationFR duration;
+  final AnimationControllerDecider updateWhen;
   final FabExpandableSetup setup;
 
   @override
@@ -747,22 +733,26 @@ class _FabExpandableElements extends StatelessWidget {
     return Positioned.fromRect(
       rect: setup.positioned,
       child: IgnorePointer(
-        ignoring: !isOpen,
+        ignoring: !open,
         child: Stack(
           alignment: setup.alignment,
-          children: List.generate(
-            icons.length,
-            (index) {
-              final element = icons[index];
-              return Mationani.mamion(
-                ani: setup.aniDecider(isOpen),
-                ability: setup.mationsGenerator(index),
-                builder: (context) => MaterialIconButton(
-                  onPressed: element.action,
-                  child: element.icon,
+          children: icons.build(
+            (index, icon, action) => Mationani.mamion(
+              ani: AniUpdateIfAnimating.backOr(
+                initializer: Ani.initializeForward,
+                duration: duration,
+                onNotAnimating: updateWhen(open),
+              ),
+              ability: setup.mationsGenerator(index),
+              builder: (context) => MaterialIconButton(
+                shape: FBorderOutlined.continuousRectangle(
+                  side: FBorderSide.solidCenter(),
+                  borderRadius: KBorderRadius.allCircular_10 * 2,
                 ),
-              );
-            },
+                onPressed: action,
+                child: icon,
+              ),
+            ),
           ),
         ),
       ),
@@ -779,14 +769,12 @@ class _FabExpandableElements extends StatelessWidget {
 class FabExpandableSetup {
   final Rect positioned;
   final Alignment alignment;
-  final AniDecider<bool> aniDecider;
   final Generator<Mamionability> mationsGenerator;
   final List<IconAction> icons;
 
   FabExpandableSetup._({
     required this.positioned,
     required this.alignment,
-    required this.aniDecider,
     required this.mationsGenerator,
     required this.icons,
   });
@@ -799,19 +787,7 @@ class FabExpandableSetup {
     );
   }
 
-  static AniDecider<bool> _decider(
-    DurationFR duration,
-    AnimationControllerDecider updateHear,
-  ) =>
-      (open) => AniGeneral(
-            duration: duration,
-            initializer: AniGeneral.initializeForward,
-            updateConsumer: updateHear(open),
-            updateOnAnimating: AniGeneral.consumeBack,
-          );
-
   factory FabExpandableSetup.radiationOnOpenIcon({
-    required DurationFR duration,
     required BuildContext context,
     required Rect openIconRect,
     required Generator<double> direction,
@@ -819,8 +795,6 @@ class FabExpandableSetup {
     double distance = 2,
     double maxElementsIconSize = 24,
     CurveFR curve = KCurveFR.fastOutSlowIn,
-    AnimationControllerDecider updateHear = AniGeneral.decideForwardOrReverse,
-    MationMultiGenerator? mations,
   }) =>
       FabExpandableSetup._(
         positioned: RectExtension.fromCircle(
@@ -828,74 +802,59 @@ class FabExpandableSetup {
           _maxIconRadiusOf(context, icons) * (1 + 2 * distance),
         ),
         alignment: Alignment.center,
-        aniDecider: _decider(duration, updateHear),
-        mationsGenerator: mations ??
-            FMationsGenerator.fadeInRadiationStyle1(
-              direction,
-              distance,
-              curve: curve,
-            ),
+        mationsGenerator: MamionMulti.generateCover(
+          direction,
+          distance,
+          curve: curve,
+          total: icons.length,
+        ),
         icons: icons,
       );
 
   factory FabExpandableSetup.line({
-    required DurationFR duration,
     required BuildContext context,
     required Rect openIconRect,
     required Direction2DIn8 direction,
     required List<IconAction> icons,
     double distance = 1.2,
     CurveFR curve = KCurveFR.ease,
-    AnimationControllerDecider updateHear = AniGeneral.decideForwardOrReverse,
-    MationMultiGenerator? mations,
   }) {
-    final maxIconRadius = _maxIconRadiusOf(context, icons);
+    final total = icons.length;
+    final d = distance * direction.scaleOnGrid;
+    final alignment = direction.flipped.toAlignment;
     return FabExpandableSetup._(
-      // positioned: openIconRect.expandToIncludeDirection(
-      //   direction: direction,
-      //   width: maxIconRadius * 2,
-      //   length: maxIconRadius * 2 * distance * icons.length,
-      // ),
-      positioned: openIconRect.expandToInclude(
-        direction.sizingExtrudingOfDimension(maxIconRadius * 2)(
-          distance * icons.length,
-        ),
+      positioned: FExtruding2D.directByDimension(
+        rect: openIconRect,
+        direction: direction,
+        dimension: _maxIconRadiusOf(context, icons) * 2,
+      )(d * total),
+      alignment: alignment,
+      mationsGenerator: MamionMulti.generateShoot(
+        direction.toOffset * d,
+        curve: curve,
+        total: total,
+        alignmentScale: alignment,
       ),
-      alignment: direction.flipped.toAlignment,
-      aniDecider: _decider(duration, updateHear),
-      mationsGenerator: mations ??
-          FMationsGenerator.lineAndScale(
-            direction.toOffset * distance,
-            curve: curve,
-          ),
       icons: icons,
     );
   }
 }
 
-extension FFabExpandableSetupOrbit on FabExpandableSetupInitializer {
-  static const clockwise_2 = _clockwise_2;
-  static const counterClockwise_2 = _counterClockwise_2;
-
-  static FabExpandableSetup _clockwise_2({
-    required DurationFR duration,
+extension FFabExpandableInitializer on FabExpandableSetupInitializer {
+  static FabExpandableSetup orbitClockwise({
     required BuildContext context,
     required Rect openIconRect,
     required Alignment openIconAlignment,
     required List<IconAction> icons,
   }) =>
       FabExpandableSetup.radiationOnOpenIcon(
-        duration: duration,
         context: context,
         openIconRect: openIconRect,
-        direction: openIconAlignment.directionOfSideSpace(
-          true,
-          icons.length,
-        ),
+        direction: openIconAlignment.directionOfSideSpace(true, icons.length),
         icons: icons,
       );
 
-  static FabExpandableSetup _counterClockwise_2({
+  static FabExpandableSetup orbitClockwiseCounter({
     required DurationFR duration,
     required BuildContext context,
     required Rect openIconRect,
@@ -903,24 +862,19 @@ extension FFabExpandableSetupOrbit on FabExpandableSetupInitializer {
     required List<IconAction> icons,
   }) =>
       FabExpandableSetup.radiationOnOpenIcon(
-        duration: duration,
         context: context,
         openIconRect: openIconRect,
         direction: openIconAlignment.directionOfSideSpace(false, icons.length),
         icons: icons,
       );
-}
 
-extension FFabExpandableSetupLine on FabExpandableSetupInitializer {
-  static FabExpandableSetupInitializer line1d2Of(Direction2DIn8 direction) => ({
-        required DurationFR duration,
+  static FabExpandableSetupInitializer lineOn(Direction2DIn8 direction) => ({
         required BuildContext context,
         required Rect openIconRect,
         required Alignment openIconAlignment,
         required List<IconAction> icons,
       }) =>
           FabExpandableSetup.line(
-            duration: duration,
             context: context,
             openIconRect: openIconRect,
             direction: direction,

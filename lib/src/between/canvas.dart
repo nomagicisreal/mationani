@@ -2,11 +2,10 @@
 ///
 /// this file contains:
 ///
-/// [SizingPath], [SizingOffset], ..., ...
+/// [SizingPath], [SizingOffset], ...
 /// [FSizingPath]
 /// [FSizingRect]
 /// [FSizingOffset]
-///
 ///
 ///
 /// [PaintFrom], [PaintingPath], [Painter]
@@ -21,9 +20,10 @@
 ///
 ///
 ///
-/// [OnLerp], [OnAnimate], [OnAnimatePath], [OnAnimateMatrix4]
-/// [FOnLerpSpline2D], [FOnAnimatePath], [FOnAnimateMatrix4]
-/// [_FOnLerp]
+///
+///
+///
+///
 ///
 ///
 ///
@@ -51,9 +51,7 @@ typedef SizingPath = Path Function(Size size);
 typedef SizingPathFrom<T> = SizingPath Function(T value);
 typedef SizingOffsetIterable = Iterable<Offset> Function(Size size);
 typedef SizingOffsetList = List<Offset> Function(Size size);
-typedef SizingOffsetIterableIterable = Iterable<Iterable<Offset>> Function(
-  Size size,
-);
+typedef SizingCubicOffsetIterable = Iterable<CubicOffset> Function(Size size);
 
 ///
 /// instance methods
@@ -199,19 +197,19 @@ extension FSizingPath on SizingPath {
       (size) => Path()..addPolygon(corners(size), false);
 
   static SizingPath _polygonCubic(
-    SizingOffsetIterableIterable points,
+    SizingCubicOffsetIterable points,
     double scale, {
-    Companion<Iterable<Offset>, Size>? adjust,
+    Companion<CubicOffset, Size>? adjust,
   }) {
-    final scaling = IterableOffsetExtension.scalingMapper(scale);
+    final Mapper<Iterable<CubicOffset>> scaled = scale == 1
+        ? FMapper.keep
+        : (corners) => corners.map((cubics) => cubics * scale);
 
-    Path from(Iterable<Iterable<Offset>> offsets) => offsets
-        .map((points) => scaling(points).toList(growable: false))
-        .foldWithIndex(
+    Path from(Iterable<CubicOffset> offsets) => scaled(offsets).foldWithIndex(
           Path(),
           (index, path, points) => path
-            ..moveOrLineToPoint(points[0], index == 0)
-            ..cubicToPointsList(points.sublist(1)),
+            ..moveOrLineToPoint(points.a, index == 0)
+            ..cubicToPoint(points.b, points.c, points.d),
         )..close();
 
     return adjust == null
@@ -220,16 +218,16 @@ extension FSizingPath on SizingPath {
   }
 
   static SizingPath polygonCubic(
-    Iterable<List<Offset>> cornersCubic, {
+    Iterable<CubicOffset> cornersCubic, {
     double scale = 1,
-    Companion<Iterable<Offset>, Size>? adjust,
+    Companion<CubicOffset, Size>? adjust,
   }) =>
       _polygonCubic((_) => cornersCubic, scale, adjust: adjust);
 
   static SizingPath polygonCubicFromSize(
-    SizingOffsetIterableIterable cornersCubic, {
+    SizingCubicOffsetIterable cornersCubic, {
     double scale = 1,
-    Companion<Iterable<Offset>, Size>? adjust,
+    Companion<CubicOffset, Size>? adjust,
   }) =>
       _polygonCubic(cornersCubic, scale, adjust: adjust);
 
@@ -482,6 +480,7 @@ extension FPainter on Painter {
 ///
 ///
 typedef RectBuilder = Rect Function(BuildContext context);
+
 extension FRectBuilder on RectBuilder {
   static RectBuilder get zero => (context) => Rect.zero;
 
@@ -489,16 +488,16 @@ extension FRectBuilder on RectBuilder {
   /// rect
   ///
   static RectBuilder get rectZeroToFull =>
-          (context) => Offset.zero & context.mediaSize;
+      (context) => Offset.zero & context.mediaSize;
 
   static RectBuilder rectZeroToSize(Sizing sizing) =>
-          (context) => Offset.zero & sizing(context.mediaSize);
+      (context) => Offset.zero & sizing(context.mediaSize);
 
   static RectBuilder rectOffsetToSize(
-      SizingOffset positioning,
-      Sizing sizing,
-      ) =>
-          (context) {
+    SizingOffset positioning,
+    Sizing sizing,
+  ) =>
+      (context) {
         final size = context.mediaSize;
         return positioning(size) & sizing(size);
       };
@@ -510,16 +509,16 @@ extension FRectBuilder on RectBuilder {
       RectExtension.fromCircle(Offset.zero, context.mediaSize.diagonal);
 
   static RectBuilder circleZeroToRadius(SizingDouble sizing) =>
-          (context) => RectExtension.fromCircle(
-        Offset.zero,
-        sizing(context.mediaSize),
-      );
+      (context) => RectExtension.fromCircle(
+            Offset.zero,
+            sizing(context.mediaSize),
+          );
 
   static RectBuilder circleOffsetToSize(
-      SizingOffset positioning,
-      SizingDouble sizing,
-      ) =>
-          (context) {
+    SizingOffset positioning,
+    SizingDouble sizing,
+  ) =>
+      (context) {
         final size = context.mediaSize;
         return RectExtension.fromCircle(positioning(size), sizing(size));
       };
@@ -528,401 +527,22 @@ extension FRectBuilder on RectBuilder {
   /// oval
   ///
   static RectBuilder get ovalZeroToFull =>
-          (context) => RectExtension.fromCenterSize(Offset.zero, context.mediaSize);
+      (context) => RectExtension.fromCenterSize(Offset.zero, context.mediaSize);
 
   static RectBuilder ovalZeroToSize(Sizing sizing) =>
-          (context) => RectExtension.fromCenterSize(
-        Offset.zero,
-        sizing(context.mediaSize),
-      );
+      (context) => RectExtension.fromCenterSize(
+            Offset.zero,
+            sizing(context.mediaSize),
+          );
 
   static RectBuilder ovalOffsetToSize(
-      SizingOffset positioning,
-      Sizing sizing,
-      ) =>
-          (context) {
+    SizingOffset positioning,
+    Sizing sizing,
+  ) =>
+      (context) {
         final size = context.mediaSize;
         return RectExtension.fromCenterSize(positioning(size), sizing(size));
       };
-}
-
-
-///
-/// on (the type that may process in every tick)
-///
-typedef OnLerp<T> = T Function(double t);
-typedef OnAnimate<T, S> = S Function(double t, T value);
-typedef OnAnimatePath<T> = SizingPath Function(double t, T value);
-typedef OnAnimateMatrix4 = Companion<Matrix4, Coordinate>;
-
-///
-///
-///
-///
-///
-///
-///
-/// [FOnLerpSpline2D.arcOval]
-/// [FOnLerpSpline2D.arcCircleSemi]
-/// [FOnLerpSpline2D.bezierQuadratic]
-/// [FOnLerpSpline2D.bezierQuadraticSymmetry]
-/// [FOnLerpSpline2D.bezierCubic]
-/// [FOnLerpSpline2D.bezierCubicSymmetry]
-/// [FOnLerpSpline2D.catmullRom]
-/// [FOnLerpSpline2D.catmullRomSymmetry]
-///
-/// See Also:
-///   * [BetweenSpline2D]
-///
-///
-extension FOnLerpSpline2D on OnLerp<Offset> {
-  static OnLerp<Offset> arcOval(
-    Offset origin,
-    Between<double> direction,
-    Between<double> radius,
-  ) {
-    final dOf = direction.onLerp;
-    final rOf = radius.onLerp;
-    Offset onLerp(double t) => Offset.fromDirection(dOf(t), rOf(t));
-    return origin == Offset.zero ? onLerp : (t) => origin + onLerp(t);
-  }
-
-  static OnLerp<Offset> arcCircle(
-    Offset origin,
-    double radius,
-    Between<double> direction,
-  ) =>
-      FOnLerpSpline2D.arcOval(origin, direction, Between.of(radius));
-
-  static OnLerp<Offset> arcCircleSemi(Offset a, Offset b, bool clockwise) {
-    if (a == b) {
-      return _FOnLerp._constant(a);
-    }
-
-    final center = a.middleWith(b);
-    final radianBegin = center.directionTo(a);
-    final r = clockwise ? KRadian.angle_180 : -KRadian.angle_180;
-    final radius = (a - b).distance / 2;
-
-    return (t) => center + Offset.fromDirection(radianBegin + r * t, radius);
-  }
-
-  ///
-  /// bezier quadratic
-  ///
-  static OnLerp<Offset> bezierQuadratic(
-    Offset begin,
-    Offset end,
-    Offset controlPoint,
-  ) {
-    final vector1 = controlPoint - begin;
-    final vector2 = end - controlPoint;
-    return (t) => OffsetExtension.parallelOffsetOf(
-          begin + vector1 * t,
-          controlPoint + vector2 * t,
-          t,
-        );
-  }
-
-  static OnLerp<Offset> bezierQuadraticSymmetry(
-    Offset begin,
-    Offset end, {
-    double dPerpendicular = 5, // distance perpendicular
-  }) =>
-      bezierQuadratic(
-        begin,
-        end,
-        OffsetExtension.perpendicularOffsetUnitFromCenterOf(
-          begin,
-          end,
-          dPerpendicular,
-        ),
-      );
-
-  /// bezier cubic
-  static OnLerp<Offset> bezierCubic(
-    Offset begin,
-    Offset end, {
-    required Offset c1,
-    required Offset c2,
-  }) {
-    final vector1 = c1 - begin;
-    final vector2 = c2 - c1;
-    final vector3 = end - c2;
-    return (t) {
-      final middle = c1 + vector2 * t;
-      return OffsetExtension.parallelOffsetOf(
-        OffsetExtension.parallelOffsetOf(begin + vector1 * t, middle, t),
-        OffsetExtension.parallelOffsetOf(middle, c2 + vector3 * t, t),
-        t,
-      );
-    };
-  }
-
-  static OnLerp<Offset> bezierCubicSymmetry(
-    Offset begin,
-    Offset end, {
-    double dPerpendicular = 10,
-    double dParallel = 1,
-  }) {
-    final list = [begin, end].symmetryInsert(dPerpendicular, dParallel);
-    return bezierCubic(begin, end, c1: list[1], c2: list[2]);
-  }
-
-  ///
-  /// catmullRom
-  ///
-  static OnLerp<Offset> catmullRom(
-    List<Offset> controlPoints, {
-    double tension = 0.0,
-    Offset? startHandle,
-    Offset? endHandle,
-  }) =>
-      CatmullRomSpline.precompute(
-        controlPoints,
-        tension: tension,
-        startHandle: startHandle,
-        endHandle: endHandle,
-      ).transform;
-
-  static OnLerp<Offset> catmullRomSymmetry(
-    Offset begin,
-    Offset end, {
-    double dPerpendicular = 5,
-    double dParallel = 2,
-    double tension = 0.0,
-    Offset? startHandle,
-    Offset? endHandle,
-  }) =>
-      catmullRom(
-        [begin, end].symmetryInsert(dPerpendicular, dParallel),
-        tension: tension,
-        startHandle: startHandle,
-        endHandle: endHandle,
-      );
-}
-
-extension FOnAnimatePath on OnAnimatePath {
-  static OnAnimatePath<Offset> stadium(Offset o, double direction, double r) {
-    Offset topOf(Offset p) => p.direct(direction - KRadian.angle_90, r);
-    Offset bottomOf(Offset p) => p.direct(direction + KRadian.angle_90, r);
-    final oTop = topOf(o);
-    final oBottom = bottomOf(o);
-
-    final radius = r.toCircularRadius;
-    return (t, current) => (size) => Path()
-      ..arcFromStartToEnd(oBottom, oTop, radius: radius)
-      ..lineToPoint(topOf(current))
-      ..arcToPoint(bottomOf(current), radius: radius)
-      ..lineToPoint(oBottom);
-  }
-
-  static OnAnimatePath<Offset> lineStadium(Between<Offset> between, double w) =>
-      stadium(between.begin, between.direction, w);
-
-  static OnLerp<SizingPath> of<T>(
-    OnAnimatePath<T> onAnimate,
-    OnLerp<T> onLerp,
-  ) =>
-      (t) => onAnimate(t, onLerp(t));
-
-  static OnAnimatePath<ShapeBorder> shapeBorder({
-    bool outerPath = true,
-    TextDirection? textDirection,
-    SizingRect sizingRect = FSizingRect.full,
-  }) {
-    final shaping = outerPath
-        ? (s) => FSizingPath._shapeBorderOuter(s, sizingRect, textDirection)
-        : (s) => FSizingPath._shapeBorderInner(s, sizingRect, textDirection);
-    return (t, shape) => shaping(shape);
-  }
-}
-
-///
-///
-///
-///
-///
-/// private extensions
-///
-///
-///
-///
-///
-extension _FOnLerp on OnLerp {
-  static OnLerp<T> _constant<T>(T value) => (_) => value;
-
-  static OnLerp<T> _of<T>(T a, T b) => switch (a) {
-        Size _ => _size(a, b as Size),
-        Rect _ => _rect(a, b as Rect),
-        Color _ => _color(a, b as Color),
-        Vector3D _ => _vector(a, b as Vector3D),
-        EdgeInsets _ => _edgeInsets(a, b as EdgeInsets),
-        Decoration _ => _decoration(a, b as Decoration),
-        ShapeBorder _ => _shapeBorder(a, b as ShapeBorder),
-        RelativeRect _ => _relativeRect(a, b as RelativeRect),
-        AlignmentGeometry _ => _alignmentGeometry(a, b as AlignmentGeometry),
-        SizingPath _ => throw ArgumentError(
-            'using BetweenPath constructor instead of Between<SizingPath>',
-          ),
-        _ => Tween<T>(begin: a, end: b).transform,
-      } as OnLerp<T>;
-
-  static OnLerp<Size> _size(Size a, Size b) => (t) => Size.lerp(a, b, t)!;
-
-  static OnLerp<Rect> _rect(Rect a, Rect b) => (t) => Rect.lerp(a, b, t)!;
-
-  static OnLerp<Color> _color(Color a, Color b) => (t) => Color.lerp(a, b, t)!;
-
-  static OnLerp<Vector3D> _vector(Vector3D a, Vector3D b) =>
-      (t) => Vector3D.lerp(a, b, t);
-
-  static OnLerp<EdgeInsets> _edgeInsets(EdgeInsets a, EdgeInsets b) =>
-      (t) => EdgeInsets.lerp(a, b, t)!;
-
-  static OnLerp<RelativeRect> _relativeRect(RelativeRect a, RelativeRect b) =>
-      (t) => RelativeRect.lerp(a, b, t)!;
-
-  static OnLerp<AlignmentGeometry> _alignmentGeometry(
-    AlignmentGeometry a,
-    AlignmentGeometry b,
-  ) =>
-      (t) => AlignmentGeometry.lerp(a, b, t)!;
-
-  ///
-  ///
-  /// See Also
-  ///   * [FSizingPath.shapeBorder]
-  ///
-  ///
-  static OnLerp<ShapeBorder> _shapeBorder(ShapeBorder a, ShapeBorder b) =>
-      switch (a) {
-        BoxBorder _ => switch (b) {
-            BoxBorder _ => (t) => BoxBorder.lerp(a, b, t)!,
-            _ => throw UnimplementedError(),
-          },
-        InputBorder _ => switch (b) {
-            InputBorder _ => (t) => ShapeBorder.lerp(a, b, t)!,
-            _ => throw UnimplementedError(),
-          },
-        OutlinedBorder _ => switch (b) {
-            OutlinedBorder _ => (t) => OutlinedBorder.lerp(a, b, t)!,
-            _ => throw UnimplementedError(),
-          },
-        _ => throw UnimplementedError(),
-      };
-
-  static OnLerp<Decoration> _decoration(Decoration a, Decoration b) =>
-      switch (a) {
-        BoxDecoration _ => b is BoxDecoration && a.shape == b.shape
-            ? (t) => BoxDecoration.lerp(a, b, t)!
-            : throw UnimplementedError('BoxShape should not be interpolated'),
-        ShapeDecoration _ => switch (b) {
-            ShapeDecoration _ => a.shape == b.shape
-                ? (t) => ShapeDecoration.lerp(a, b, t)!
-                : switch (a.shape) {
-                    CircleBorder _ || RoundedRectangleBorder _ => switch (
-                          b.shape) {
-                        CircleBorder _ || RoundedRectangleBorder _ => (t) =>
-                            Decoration.lerp(a, b, t)!,
-                        _ => throw UnimplementedError(
-                            "'$a shouldn't be interpolated to $b'",
-                          ),
-                      },
-                    _ => throw UnimplementedError(
-                        "'$a shouldn't be interpolated to $b'",
-                      ),
-                  },
-            _ => throw UnimplementedError(),
-          },
-        _ => throw UnimplementedError(),
-      };
-}
-
-///
-///
-///
-/// instance methods:
-/// [getPerspective]
-/// [setPerspective], [setDistance]
-/// [copyPerspective], [identityPerspective]
-///
-/// [_translate], [_rotate], [_scaled]
-///
-/// static methods:
-/// [translating], [rotating], [scaling]
-/// [mapTranslating], [mapRotating], [mapScaling]
-/// [fixedTranslating], [fixedRotating], [fixedScaling]
-///
-///
-extension FOnAnimateMatrix4 on Matrix4 {
-  double getPerspective() => entry(3, 2);
-
-  void setPerspective(double perspective) => setEntry(3, 2, perspective);
-
-  void setDistance(double? distance) =>
-      setPerspective(distance == null ? 0 : 1 / distance);
-
-  void copyPerspective(Matrix4 matrix4) =>
-      setPerspective(matrix4.getPerspective());
-
-  Matrix4 get identityPerspective => Matrix4.identity()..copyPerspective(this);
-
-  void _translate(Coordinate coordinate) =>
-      translate(coordinate.dx, coordinate.dy, coordinate.dz);
-
-  void _rotate(Coordinate coordinate) => this
-    ..rotateX(coordinate.dx)
-    ..rotateY(coordinate.dy)
-    ..rotateZ(coordinate.dz);
-
-  Matrix4 _scaled(Coordinate coordinate) => scaled(
-        coordinate.dx,
-        coordinate.dy,
-        coordinate.dz,
-      );
-
-  ///
-  ///
-  /// statics
-  ///
-  ///
-  static Matrix4 translating(Matrix4 matrix4, Coordinate value) =>
-      matrix4.identityPerspective.._translate(value);
-
-  static Matrix4 rotating(Matrix4 matrix4, Coordinate value) =>
-      matrix4..setRotation((Matrix4.identity().._rotate(value)).getRotation());
-
-  static Matrix4 scaling(Matrix4 matrix4, Coordinate value) =>
-      matrix4._scaled(value);
-
-// with mapper
-  static OnAnimateMatrix4 mapTranslating(Mapper<Coordinate> mapper) =>
-      (matrix4, value) => matrix4
-        ..identityPerspective
-        .._translate(mapper(value));
-
-  static OnAnimateMatrix4 mapRotating(Mapper<Coordinate> mapper) =>
-      (matrix4, value) => matrix4
-        ..setRotation(
-            (Matrix4.identity().._rotate(mapper(value))).getRotation());
-
-  static OnAnimateMatrix4 mapScaling(Mapper<Coordinate> mapper) =>
-      (matrix4, value) => matrix4._scaled(mapper(value));
-
-  // with fixed value
-  static OnAnimateMatrix4 fixedTranslating(Coordinate fixed) =>
-      (matrix4, value) => matrix4
-        ..identityPerspective
-        .._translate(value + fixed);
-
-  static OnAnimateMatrix4 fixedRotating(Coordinate fixed) =>
-      (matrix4, value) => matrix4
-        ..setRotation(
-            (Matrix4.identity().._rotate(fixed + value)).getRotation());
-
-  static OnAnimateMatrix4 fixedScaling(Coordinate fixed) =>
-      (matrix4, value) => matrix4._scaled(value + fixed);
 }
 
 

@@ -44,13 +44,30 @@ class _MyHomeState extends State<MyHome> {
         onPressed: onPressed,
         child: const Icon(Icons.add),
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
       backgroundColor: Colors.white38,
       body: Center(
-        child: MationaniCutting(
-          ani: AniGeneral.initForwardAndUpdateForwardOrReverse(duration: KDurationFR.second1),
-          rotation: KRadian.angle_20,
-          distance: 2,
-          child: WSizedBox.squareColored(dimension: 100, color: Colors.yellow),
+        child: Mationani(
+          ani: AniUpdateIfAnimating.backOr(
+            duration: KDurationFR.second1,
+            onNotAnimating: Ani.consumeForwardOrReverse,
+          ),
+          mation: Mamion(
+            ability: MamionPainter.paintFrom(
+              BetweenPathPolygon.regularCubicOnEdge(
+                polygon: RRegularPolygonCubicOnEdge(
+                  6,
+                  radiusCircumscribedCircle: 50,
+                ),
+                cornerRadius: (polygon) => Between(
+                  polygon.stepCornerRadiusInscribedCircle,
+                  polygon.stepCornerRadiusArcCrossCenter(),
+                ),
+              ),
+              paintFrom: FPaintFrom.of(VPaintFill.blue),
+            ),
+            builder: WWidgetBuilder.none,
+          ),
         ),
       ),
     );

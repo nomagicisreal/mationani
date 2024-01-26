@@ -38,7 +38,6 @@
 part of mationani;
 // ignore_for_file: use_string_in_part_of_directives, constant_identifier_names
 
-
 abstract class RegularPolygon {
   static double radianCornerOf(int n) => (n - 2) * KRadian.angle_180 / n;
 
@@ -104,12 +103,12 @@ abstract class RegularPolygon {
 
 sealed class RRegularPolygon extends RegularPolygon {
   final double cornerRadius;
-  final Mapper<Map<Offset, List<Offset>>> cubicPointsMapper;
-  final Companion<Iterable<Offset>, Size> cornerAdjust;
+  final Mapper<Map<Offset, CubicOffset>> cubicPointsMapper;
+  final Companion<CubicOffset, Size> cornerAdjust;
 
-  Map<Offset, List<Offset>> get cubicPointsForEachCorners;
+  Map<Offset, CubicOffset> get cubicPointsForEachCorners;
 
-  Iterable<List<Offset>> get cubicPoints =>
+  Iterable<CubicOffset> get cubicPoints =>
       cubicPointsMapper(cubicPointsForEachCorners).values;
 
   const RRegularPolygon(
@@ -132,9 +131,7 @@ sealed class RRegularPolygon extends RegularPolygon {
 /// See Also:
 ///   * [KMapperCubicPointsPermutation]
 ///   * [FSizingPath.polygonCubic], [FSizingPath.polygonCubicFromSize]
-///   * [BetweenRRegularPolygon.cubicOnEdge]
-///
-/// TODO: create [CubicOffset] class with two [Cubic] as properties to replace [List]<[Offset]>
+///   * [BetweenPathPolygon.regularCubicOnEdge]
 ///
 ///
 class RRegularPolygonCubicOnEdge extends RRegularPolygon {
@@ -146,12 +143,19 @@ class RRegularPolygonCubicOnEdge extends RRegularPolygon {
     super.cornerRadius = 0,
 
     // [cornerPrevious, controlPointA, controlPointB, cornerNext]
-    super.cubicPointsMapper = KMapperCubicPointsPermutation.p0231,
-    super.cornerAdjust = IterableOffsetExtension.adjustCenterCompanion,
+    super.cubicPointsMapper = FMapperMapCubicOffset.aCdB,
+    super.cornerAdjust = CubicOffset.companionSizeAdjustCenter,
     required super.radiusCircumscribedCircle,
   });
 
-  Iterable<List<Offset>> cubicPointsOf(
+  @override
+  Map<Offset, CubicOffset> get cubicPointsForEachCorners =>
+      cubicPointsForEachCornersOf(
+        timesForEdgeUnitOf(cornerRadius),
+        timesForEdge,
+      );
+
+  Iterable<CubicOffset> cubicPointsOf(
     double cornerRadius,
     double timesForEdge,
   ) =>
@@ -160,60 +164,37 @@ class RRegularPolygonCubicOnEdge extends RRegularPolygon {
         timesForEdge,
       )).values;
 
-  @override
-  Map<Offset, List<Offset>> get cubicPointsForEachCorners =>
-      cubicPointsForEachCornersOf(
-        timesForEdgeUnitOf(cornerRadius),
-        timesForEdge,
-      );
-
-  double timesForEdgeUnitOf(double cornerRadius) =>
-      cornerRadius * math.tan(KRadian.angle_180 / n);
-
-  Map<Offset, List<Offset>> cubicPointsForEachCornersOf(
+  Map<Offset, CubicOffset> cubicPointsForEachCornersOf(
     double timesForEdgeUnit,
     double timesForEdge,
   ) =>
-      corners
-          .asMap()
+      corners.asMap().map((index, current) {
+        // offset from current corner to previous corner
+        final previous = OffsetExtension.parallelOffsetUnitOf(
+          current,
+          index == 0 ? corners.last : corners[index - 1],
+          timesForEdgeUnit,
+        );
 
-          // [cornerPrevious, cornerNext]
-          .map((index, current) => MapEntry(
-                current,
-                [
-                  // offset from current corner to previous corner
-                  OffsetExtension.parallelOffsetUnitOf(
-                    current,
-                    index == 0 ? corners.last : corners[index - 1],
-                    timesForEdgeUnit,
-                  ),
+        // offset from current corner to next corner
+        final next = OffsetExtension.parallelOffsetUnitOf(
+          current,
+          index == n - 1 ? corners.first : corners[index + 1],
+          timesForEdgeUnit,
+        );
+        return MapEntry(
+          current,
+          CubicOffset.fromPoints([
+            previous,
+            next,
+            OffsetExtension.parallelOffsetOf(previous, current, timesForEdge),
+            OffsetExtension.parallelOffsetOf(current, next, timesForEdge),
+          ]),
+        );
+      });
 
-                  // offset from current corner to next corner
-                  OffsetExtension.parallelOffsetUnitOf(
-                    current,
-                    index == n - 1 ? corners.first : corners[index + 1],
-                    timesForEdgeUnit,
-                  )
-                ],
-              ))
-
-          // [controlPointA, controlPointB,]
-          .map(
-            (current, list) => MapEntry(
-              current,
-              list
-                ..add(OffsetExtension.parallelOffsetOf(
-                  list[0],
-                  current,
-                  timesForEdge,
-                ))
-                ..add(OffsetExtension.parallelOffsetOf(
-                  current,
-                  list[1],
-                  timesForEdge,
-                )),
-            ),
-          );
+  double timesForEdgeUnitOf(double cornerRadius) =>
+      cornerRadius * math.tan(KRadian.angle_180 / n);
 
   ///
   ///

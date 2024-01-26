@@ -1,28 +1,28 @@
 ///
 ///
 /// this file contains:
+/// [Mation]
+///   [Mamion]
+///   [Manion]
+///
+///
 /// [Mationability]
-///   [Mamionability]
-///   [Manionability]
-///
-/// [Mamion]
-///     --[MamionSingle]
-///     |   [MamionTransition]
-///     |   * [_MamionSingleSizingPath]
-///     |   [MamionClipper]
-///     |   [MamionPainter]
-///     |
-///     --[MamionMulti]
-///     |   [MamionTransform]
-///     |   * [MamionTransformDelegate]
-///     |
-///
-/// [Manion]
-///     --[ManionChildren]
-///     --[ManionParentChildren]
-///
-///
-///
+///   --[Mamionability]
+///   |   --[MamionSingle]
+///   |   |   [MamionTransition]
+///   |   |   * [_MamionSingleSizingPath]
+///   |   |   [MamionClipper]
+///   |   |   [MamionPainter]
+///   |   |
+///   |   --[MamionMulti]
+///   |   |   [MamionTransform]
+///   |   |   * [MamionTransformDelegate]
+///   |   |
+///   |
+///   |
+///   --[Manionability]
+///       --[ManionChildren]
+///       --[ManionParentChildren]
 ///
 ///
 ///
@@ -465,30 +465,55 @@ class MamionPainter extends _MamionSingleSizingPath {
 ///
 ///
 
-//
+///
+/// [MamionMulti.appear]
+/// [MamionMulti.cover]
+/// [MamionMulti.penetrate]
+/// [MamionMulti.leave]
+/// [MamionMulti.shoot], [MamionMulti.enlarge]
+///
+/// [generateCover], [generateShoot]
+///
 class MamionMulti extends _MationMulti<Mamionability> {
   const MamionMulti(super.abilities);
 
-  MamionMulti.penetration({
+  MamionMulti.appear({
+    Alignment alignmentScale = Alignment.center,
+    required Between<double> fading,
+    required Between<double> scaling,
+  }) : this([
+          MamionTransition.fade(fading),
+          MamionTransition.scale(scaling, alignment: alignmentScale),
+        ]);
+
+  MamionMulti.cover({
+    required Between<double> fading,
+    required Between<Offset> sliding,
+  }) : this([
+          MamionTransition.fade(fading),
+          MamionTransition.slide(sliding),
+        ]);
+
+  MamionMulti.penetrate({
     double opacityShowing = 1.0,
     CurveFR? curveClip,
     Clip clipBehavior = Clip.hardEdge,
-    required Between<double> betweenOpacity,
-    required Between<Rect> betweenRect,
-    required SizingPathFrom<Rect> sizing,
+    required Between<double> fading,
+    required Between<Rect> recting,
+    required SizingPathFrom<Rect> sizingPathFrom,
   }) : this([
-          MamionTransition.fade(betweenOpacity),
+          MamionTransition.fade(fading),
           MamionClipper(
             BetweenPath<Rect>(
-              betweenRect,
-              onAnimate: (t, rect) => sizing(rect),
+              recting,
+              onAnimate: (t, rect) => sizingPathFrom(rect),
               curve: curveClip,
             ),
             clipBehavior: clipBehavior,
           ),
         ]);
 
-  MamionMulti.leaving({
+  MamionMulti.leave({
     Alignment alignment = Alignment.topLeft,
     required Between<double> rotation,
     required Between<Offset> sliding,
@@ -499,6 +524,71 @@ class MamionMulti extends _MationMulti<Mamionability> {
           ),
           MamionTransition.slide(sliding),
         ]);
+
+  MamionMulti.shoot({
+    Alignment alignmentScale = Alignment.topLeft,
+    required Between<Offset> sliding,
+    required Between<double> scaling,
+  }) : this([
+          MamionTransition.slide(sliding),
+          MamionTransition.scale(scaling, alignment: alignmentScale),
+        ]);
+
+  MamionMulti.enlarge({
+    Alignment alignmentScale = Alignment.topLeft,
+    required Between<double> scaling,
+    required Between<Offset> sliding,
+  }) : this([
+          MamionTransition.scale(scaling, alignment: alignmentScale),
+          MamionTransition.slide(sliding),
+        ]);
+
+  ///
+/// generators
+///
+
+  static MationMultiGenerator generateCover(
+      Generator<double> direction,
+      double distance, {
+        CurveFR? curve,
+        required int total,
+      }) {
+    final interval = 1 / total;
+    return (index) => MamionMulti.cover(
+      fading: FBetween.doubleZeroTo(1, curve: curve),
+      sliding: FBetween.offsetOfDirection(
+        direction(index),
+        0,
+        distance,
+        curve: curve.nullOrTranslate(
+              (value) => CurveFR.intervalFlip(value, interval * index, 1.0),
+        ),
+      ),
+    );
+  }
+
+  static MationMultiGenerator generateShoot(
+      Offset delta, {
+        Generator<double> distribution = FGenerator.toDouble,
+        CurveFR? curve,
+        required Alignment alignmentScale,
+        required int total,
+      }) {
+    final interval = 1 / total;
+    return (index) => MamionMulti.shoot(
+      alignmentScale: alignmentScale,
+      sliding: FBetween.offsetZeroTo(
+        delta * distribution(index),
+        curve: curve,
+      ),
+      scaling: FBetween.doubleOneFrom(
+        0.0,
+        curve: curve.nullOrTranslate(
+              (value) => CurveFR.intervalFlip(value, interval * index, 1.0),
+        ),
+      ),
+    );
+  }
 }
 
 ///
@@ -524,19 +614,30 @@ class MamionMulti extends _MationMulti<Mamionability> {
 ///
 
 ///
-/// [MamionTransform.distanced], [MamionTransform.list], [MamionTransform.listInOrder]
+/// [MamionTransform._], [MamionTransform.distanced]
 /// [MamionTransform._sort]
 ///
 class MamionTransform extends _MationMulti<MamionTransformDelegate> {
+  MamionTransform._(
+    Iterable<MamionTransformDelegate> delegates, {
+    Matrix4? host,
+    List<OnAnimateMatrix4> order = MamionTransformDelegate.orderTRS,
+  })  : assert(order.length == 3 && order.everyIsDifferent),
+        super(_sort(
+          delegates.map((d) => d..link(host ?? Matrix4.identity())),
+          order,
+        ));
+
   MamionTransform({
+    Matrix4? host,
     Between<Coordinate>? translateBetween,
     Between<Coordinate>? rotateBetween,
     Between<Coordinate>? scaleBetween,
     AlignmentGeometry? translateAlignment,
     AlignmentGeometry? rotateAlignment,
     AlignmentGeometry? scaleAlignment,
-    Matrix4? host,
-  }) : super([
+    List<OnAnimateMatrix4> order = MamionTransformDelegate.orderTRS,
+  }) : this._([
           if (translateBetween != null)
             MamionTransformDelegate.translation(
               translateBetween,
@@ -576,32 +677,12 @@ class MamionTransform extends _MationMulti<MamionTransformDelegate> {
           scaleAlignment: scaleAlignment,
         );
 
-  MamionTransform.list(
-    Iterable<MamionTransformDelegate> delegates, {
-    Matrix4? host,
-  }) : super(delegates.fold<List<MamionTransformDelegate>>(
-          [],
-          (list, base) => list
-            ..add(MamionTransformDelegate._(
-              base.between,
-              onAnimate: base.onAnimate,
-              alignment: base.alignment,
-              host: host ?? Matrix4.identity(),
-            )),
-        ));
-
-  MamionTransform.listInOrder(
-    Iterable<MamionTransformDelegate> delegates, {
-    List<OnAnimateMatrix4> order = MamionTransformDelegate.orderTRS,
-    Matrix4? host,
-  }) : this.list(_sort(delegates, order), host: host);
-
   MamionTransform alignAll({
     AlignmentGeometry? translation,
     AlignmentGeometry? rotation,
     AlignmentGeometry? scaling,
   }) =>
-      MamionTransform.list(ables.map((base) {
+      MamionTransform._(ables.map((base) {
         final before = base.alignment;
         final onAnimate = base.onAnimate;
         return base.align(switch (onAnimate) {

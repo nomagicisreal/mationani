@@ -12,27 +12,23 @@
 /// [AnimationControllerInitializer]
 /// [AnimationControllerDecider], [AnimationControllerDeciderTernary], ...
 ///
-/// [AniDecider]
+/// [OnLerp], [OnAnimate], [OnAnimatePath], [OnAnimateMatrix4]
+///
 /// [MationBuilder], [MationMultiGenerator], [MationSequencer],
 ///
 /// [FollowerInitializer]
 /// [FabExpandableSetupInitializer]
 ///
-///
 /// global extensions:
 /// [BetweenOffsetExtension], [BetweenCoordinateRadianExtension]
-/// [FMationsGenerator]
 /// [FBetween]
+/// [FOnAnimateMatrix4]
 ///
 ///
 /// private typedef, extensions:
 /// [_BetweenAnimation]
 /// [_MationAnimating]
 /// [_AnimationControllerExtension]
-/// [_IterableMamionTransformBase], [IterableWidgetBuilderExtension]
-///
-///
-///
 ///
 ///
 ///
@@ -160,12 +156,12 @@ class Clipping extends CustomClipper<Path> {
 ///
 extension WPainting on CustomPaint {
   static CustomPaint drawRRegularPolygon(
-    RRegularPolygon polygon,
-    PaintFrom draw, {
+    RRegularPolygon polygon, {
+    required PaintFrom pathFrom,
     Widget? child,
   }) =>
       CustomPaint(
-        painter: Painting.rRegularPolygon(draw, polygon),
+        painter: Painting.rRegularPolygon(pathFrom, polygon),
         child: child,
       );
 }
@@ -241,11 +237,6 @@ typedef AnimationBuilder<T> = Widget Function(
   Widget child,
 );
 
-typedef AnimationStatusController = void Function(
-  AnimationStatus status,
-  AnimationController controller,
-);
-
 typedef AnimationControllerDecider = Decider<AnimationController, bool>;
 typedef AnimationControllerDeciderTernary = Decider<AnimationController, bool?>;
 
@@ -258,8 +249,16 @@ typedef AnimationControllerInitializer = AnimationController Function(
 typedef AnimatedStatefulWidgetUpdater<W extends StatefulWidget> = void Function(
   AnimationController controller,
   W oldWidget,
-  W newWidget,
+  W widget,
 );
+
+///
+/// on (the type that may process in every tick)
+///
+typedef OnLerp<T> = T Function(double t);
+typedef OnAnimate<T, S> = S Function(double t, T value);
+typedef OnAnimatePath<T> = SizingPath Function(double t, T value);
+typedef OnAnimateMatrix4 = Companion<Matrix4, Coordinate>;
 
 ///
 ///
@@ -281,13 +280,6 @@ typedef MationSequencer<T> = Translator<int, Mamionability> Function(
 
 ///
 ///
-/// ani
-///
-///
-typedef AniDecider<T> = AniGeneral Function(T toggle);
-
-///
-///
 ///
 ///
 ///
@@ -298,7 +290,6 @@ typedef FollowerInitializer
 );
 
 typedef FabExpandableSetupInitializer = FabExpandableSetup Function({
-  required DurationFR duration,
   required BuildContext context,
   required Rect openIconRect,
   required Alignment openIconAlignment,
@@ -310,31 +301,31 @@ extension BetweenOffsetExtension on Between<Offset> {
 }
 
 extension BetweenCoordinateRadianExtension on Between<Coordinate> {
-  static Between<Coordinate> toX360From(Coordinate from) =>
+  static Between<Coordinate> x360From(Coordinate from) =>
       Between<Coordinate>(from, KRadianCoordinate.angleX_360);
 
-  static Between<Coordinate> toY360From(Coordinate from) =>
+  static Between<Coordinate> y360From(Coordinate from) =>
       Between<Coordinate>(from, KRadianCoordinate.angleY_360);
 
-  static Between<Coordinate> toZ360From(Coordinate from) =>
+  static Between<Coordinate> z360From(Coordinate from) =>
       Between<Coordinate>(from, KRadianCoordinate.angleZ_360);
 
-  static Between<Coordinate> toX180From(Coordinate from) =>
+  static Between<Coordinate> x180From(Coordinate from) =>
       Between<Coordinate>(from, KRadianCoordinate.angleX_180);
 
-  static Between<Coordinate> toY180From(Coordinate from) =>
+  static Between<Coordinate> y180From(Coordinate from) =>
       Between<Coordinate>(from, KRadianCoordinate.angleY_180);
 
-  static Between<Coordinate> toZ180From(Coordinate from) =>
+  static Between<Coordinate> z180From(Coordinate from) =>
       Between<Coordinate>(from, KRadianCoordinate.angleZ_180);
 
-  static Between<Coordinate> toX90From(Coordinate from) =>
+  static Between<Coordinate> x90From(Coordinate from) =>
       Between<Coordinate>(from, KRadianCoordinate.angleX_90);
 
-  static Between<Coordinate> toY90From(Coordinate from) =>
+  static Between<Coordinate> y90From(Coordinate from) =>
       Between<Coordinate>(from, KRadianCoordinate.angleY_90);
 
-  static Between<Coordinate> toZ90From(Coordinate from) =>
+  static Between<Coordinate> z90From(Coordinate from) =>
       Between<Coordinate>(from, KRadianCoordinate.angleZ_90);
 
   ///
@@ -346,50 +337,6 @@ extension BetweenCoordinateRadianExtension on Between<Coordinate> {
         curve: curve,
         onLerp: onLerp,
       );
-}
-
-///
-///
-///
-/// mation
-///
-///
-///
-///
-
-extension FMationsGenerator on MationMultiGenerator {
-  static MationMultiGenerator fadeInRadiationStyle1(
-    Generator<double> direction,
-    double distance, {
-    CurveFR? curve,
-  }) =>
-      (index) => MamionMulti([
-            MamionTransition.fadeIn(curve: curve),
-            MamionTransition.slide(
-              FBetween.offsetOfDirection(
-                direction(index),
-                0,
-                distance,
-                curve: curve.nullOrTranslate(
-                  (value) => CurveFR.intervalFlip(value, 0.2 * index, 1.0),
-                ),
-              ),
-            ),
-          ]);
-
-  static MationMultiGenerator lineAndScale(Offset delta, {CurveFR? curve}) =>
-      (index) => MamionMulti([
-            MamionTransition.slide(FBetween.offsetZeroTo(
-              delta * (index + 1).toDouble(),
-              curve: curve,
-            )),
-            MamionTransition.scale(FBetween.doubleOneFrom(
-              0.0,
-              curve: curve.nullOrTranslate(
-                (value) => CurveFR.intervalFlip(value, 0.2 * index, 1.0),
-              ),
-            )),
-          ]);
 }
 
 extension FBetween on Between {
@@ -541,6 +488,89 @@ extension FBetween on Between {
 }
 
 ///
+/// instance methods:
+/// [getPerspective]
+/// [setPerspective], [setDistance]
+/// [copyPerspective], [identityPerspective]
+///
+/// [_translate], [_rotate], [_scaled]
+///
+/// static methods:
+/// [translating], [rotating], [scaling]
+/// [mapTranslating], [mapRotating], [mapScaling]
+/// [fixedTranslating], [fixedRotating], [fixedScaling]
+///
+extension FOnAnimateMatrix4 on Matrix4 {
+  double getPerspective() => entry(3, 2);
+
+  void setPerspective(double perspective) => setEntry(3, 2, perspective);
+
+  void setDistance(double? distance) =>
+      setPerspective(distance == null ? 0 : 1 / distance);
+
+  void copyPerspective(Matrix4 matrix4) =>
+      setPerspective(matrix4.getPerspective());
+
+  Matrix4 get identityPerspective => Matrix4.identity()..copyPerspective(this);
+
+  void _translate(Coordinate coordinate) =>
+      translate(coordinate.dx, coordinate.dy, coordinate.dz);
+
+  void _rotate(Coordinate coordinate) => this
+    ..rotateX(coordinate.dx)
+    ..rotateY(coordinate.dy)
+    ..rotateZ(coordinate.dz);
+
+  Matrix4 _scaled(Coordinate coordinate) => scaled(
+    coordinate.dx,
+    coordinate.dy,
+    coordinate.dz,
+  );
+
+  ///
+  ///
+  /// statics
+  ///
+  ///
+  static Matrix4 translating(Matrix4 matrix4, Coordinate value) =>
+      matrix4.identityPerspective.._translate(value);
+
+  static Matrix4 rotating(Matrix4 matrix4, Coordinate value) =>
+      matrix4..setRotation((Matrix4.identity().._rotate(value)).getRotation());
+
+  static Matrix4 scaling(Matrix4 matrix4, Coordinate value) =>
+      matrix4._scaled(value);
+
+// with mapper
+  static OnAnimateMatrix4 mapTranslating(Mapper<Coordinate> mapper) =>
+          (matrix4, value) => matrix4
+        ..identityPerspective
+        .._translate(mapper(value));
+
+  static OnAnimateMatrix4 mapRotating(Mapper<Coordinate> mapper) =>
+          (matrix4, value) => matrix4
+        ..setRotation(
+            (Matrix4.identity().._rotate(mapper(value))).getRotation());
+
+  static OnAnimateMatrix4 mapScaling(Mapper<Coordinate> mapper) =>
+          (matrix4, value) => matrix4._scaled(mapper(value));
+
+  // with fixed value
+  static OnAnimateMatrix4 fixedTranslating(Coordinate fixed) =>
+          (matrix4, value) => matrix4
+        ..identityPerspective
+        .._translate(value + fixed);
+
+  static OnAnimateMatrix4 fixedRotating(Coordinate fixed) =>
+          (matrix4, value) => matrix4
+        ..setRotation(
+            (Matrix4.identity().._rotate(fixed + value)).getRotation());
+
+  static OnAnimateMatrix4 fixedScaling(Coordinate fixed) =>
+          (matrix4, value) => matrix4._scaled(value + fixed);
+}
+
+///
 ///
 ///
 ///
@@ -585,10 +615,4 @@ extension _AnimationControllerExtension on AnimationController {
   void resetForward({double? from}) => this
     ..reset()
     ..forward(from: from);
-
-  void addStatusListenerIfNotNull(AnimationStatusController? controller) {
-    if (controller != null) {
-      addStatusListener((status) => controller(status, this));
-    }
-  }
 }
