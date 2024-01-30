@@ -9,6 +9,11 @@ void main(List<String> args) {
   runApp(const MyApp());
 }
 
+Widget yellow100(BuildContext context) => WSizedBox.squareColored(
+      dimension: 100,
+      color: Colors.yellow,
+    );
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -46,27 +51,23 @@ class _MyHomeState extends State<MyHome> {
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
       backgroundColor: Colors.white38,
-      body: Center(
+      body: SizedBox.expand(
         child: Mationani(
           ani: AniUpdateIfAnimating.backOr(
-            duration: KDurationFR.second1,
+            duration: KDurationFR.second5,
             onNotAnimating: Ani.consumeForwardOrReverse,
           ),
           mation: Mamion(
-            ability: MamionPainter.paintFrom(
-              BetweenPathPolygon.regularCubicOnEdge(
-                polygon: RRegularPolygonCubicOnEdge(
-                  6,
-                  radiusCircumscribedCircle: 50,
-                ),
-                cornerRadius: (polygon) => Between(
-                  polygon.stepCornerRadiusInscribedCircle,
-                  polygon.stepCornerRadiusArcCrossCenter(),
-                ),
-              ),
-              paintFrom: FPaintFrom.of(VPaintFill.blue),
+            ability: MamionMulti.slideAndScale(
+              scaleEnd: 2,
+              position: KOffset.square_1 * 0.5,
+              interval: 0.7,
             ),
-            builder: WWidgetBuilder.none,
+            builder: (context) => GridPaper(
+              interval: 100,
+              divisions: 2,
+              subdivisions: 1,
+            ),
           ),
         ),
       ),

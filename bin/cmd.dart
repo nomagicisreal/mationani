@@ -1,9 +1,7 @@
 
 void main() {
 
-  final Iterable iterable = [];
-  final Iterable<String> iterableString = [];
-  print(iterable is Iterable<String>);
+  print(0 / 10);
 
   // Tween().animate(parent)
 }

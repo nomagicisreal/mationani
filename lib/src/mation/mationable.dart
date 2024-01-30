@@ -149,7 +149,7 @@ sealed class _MationAnimatable implements _Mationable {
 
   Object animate(Animation<double> parent);
 
-  static _MationAnimating animating(Animation<double> animation) =>
+  static _AnimatingMationable animating(Animation<double> animation) =>
       (able) => switch (able) {
             _MationAnimatable() => switch (able) {
                 _MationAnimatableSingle() => [able.animate(animation)],
@@ -188,10 +188,10 @@ sealed class _MationPlanable implements _Mationable {
 
 // animatable single
 mixin _MationAnimatableSingle<T> implements _MationAnimatable {
-  Between<T> get between;
+  MationableValue<T> get value;
 
   @override
-  Animation animate(Animation<double> animation) => between.animate(animation);
+  Animation animate(Animation<double> animation) => value.animate(animation);
 }
 
 // animatable iterable
@@ -260,11 +260,11 @@ mixin _MationPlanableMulti<M extends _Mationable>
 abstract class _MationableBetween<T>
     with _MationAnimatableSingle<T>, _MationPlanableSingle {
   @override
-  final Between<T> between;
+  final MationableValue<T> value;
   @override
   final AnimationBuilder plan;
 
-  const _MationableBetween(this.between, this.plan);
+  const _MationableBetween(this.value, this.plan);
 }
 
 ///
@@ -309,16 +309,10 @@ abstract class _MationMulti<M extends _Mationable>
 
 //
 abstract class _ManionChildren<M extends Mamionability>
-    with _MationAnimatableMulti<M>, _MationPlanableMulti<M>
-    implements _MationableIterable<M>, Manionability<M> {
-  @override
-  final Iterable<M> ables;
-  final Iterable<WidgetBuilder> _children;
+    implements _Mationable, Manionability<M> {
+  final Iterable<Mamion<M>> children;
 
-  _ManionChildren({
-    required Iterable<Mamion<M>> children,
-  })  : ables = children.map((e) => e.ability),
-        _children = children.map((e) => e.builder);
+  _ManionChildren({required this.children});
 
   @override
   WidgetParentBuilder planForParent(
@@ -328,24 +322,11 @@ abstract class _ManionChildren<M extends Mamionability>
       parent;
 
   @override
-  List<WidgetBuilder> planForChildren(
-    Animation<double> animation,
-  ) {
-    final animations2D = [...animate(animation)];
-    final plans2D = [...plan];
-    return _children.foldWithIndex(
-      [],
-      (i, list, child) => list
-        ..add(animations2D[i].foldWith(
-          plans2D[i],
-          child,
-          (build, animation, plan) => (context) => plan(
-                animation,
-                build(context),
-              ),
-        )),
-    );
-  }
+  List<WidgetBuilder> planForChildren(Animation<double> animation) =>
+      children.foldWithIndex(
+        [],
+        (i, list, mamion) => list..add(mamion.planning(animation)),
+      );
 }
 
 abstract class _ManionParentChildren<M extends Mamionability>
@@ -369,5 +350,3 @@ abstract class _ManionParentChildren<M extends Mamionability>
         )(context);
   }
 }
-
-

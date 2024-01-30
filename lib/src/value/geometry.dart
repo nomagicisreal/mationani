@@ -73,7 +73,7 @@ abstract class RegularPolygon {
         4 => radiusCircumscribedCircle * DoubleExtension.sqrt1_2,
         6 => radiusCircumscribedCircle * DoubleExtension.sqrt3 / 2,
         _ => radiusCircumscribedCircle *
-            math.sin(FRadian.radianOf(FRadian.angleOf(radianCorner) / 2)),
+            math.sin(FRadian.radianFromAngle(FRadian.angleOf(radianCorner) / 2)),
       };
 
   /// properties
@@ -148,6 +148,22 @@ class RRegularPolygonCubicOnEdge extends RRegularPolygon {
     required super.radiusCircumscribedCircle,
   });
 
+  RRegularPolygonCubicOnEdge.from(
+    RRegularPolygonCubicOnEdge polygon, {
+    double timesForEdge = 0,
+    Translator<RRegularPolygonCubicOnEdge, double>? cornerRadius,
+    Mapper<Map<Offset, CubicOffset>> cubicPointsMapper = FMapperMapCubicOffset.aCdB,
+    Companion<CubicOffset, Size> cornerAdjust =
+        CubicOffset.companionSizeAdjustCenter,
+  }) : this(
+          polygon.n,
+          timesForEdge: timesForEdge,
+          cornerRadius: cornerRadius?.call(polygon) ?? 0,
+          cubicPointsMapper: cubicPointsMapper,
+          cornerAdjust: cornerAdjust,
+          radiusCircumscribedCircle: polygon.radiusCircumscribedCircle,
+        );
+
   @override
   Map<Offset, CubicOffset> get cubicPointsForEachCorners =>
       cubicPointsForEachCornersOf(
@@ -210,7 +226,7 @@ class RRegularPolygonCubicOnEdge extends RRegularPolygon {
         double.infinity,
       ];
 
-  List<double> get stepsOfEdgeTimes => [
+  static List<double> get stepsOfEdgeTimes => [
         double.negativeInfinity,
         0,
         1,
@@ -251,7 +267,7 @@ class RRegularPolygonCubicOnEdge extends RRegularPolygon {
   ///   [lengthSide] = |[timesForEdgeUnit] * borderVectorUnit| = R * tan(c)
   ///   R = [lengthSide] / tan(c)
   ///
-  double stepCornerRadiusFragmentFitCorner({double inset = 0}) =>
+  double stepCornerRadiusFragmentFitCorner([double inset = 0]) =>
       (lengthSide - inset) / math.tan(radianCornerCenterSide);
 
   ///
@@ -267,7 +283,7 @@ class RRegularPolygonCubicOnEdge extends RRegularPolygon {
   /// it seems that triangle, square are not satisfy the inequality above,
   /// and P(0.5 - cornerOffset) is too complex to compute. there is two approximate value for triangle and square.
   ///
-  double stepCornerRadiusArcCrossCenter({double inset = 0}) => switch (n) {
+  double stepCornerRadiusArcCrossCenter([double inset = 0]) => switch (n) {
         3 => radiusCircumscribedCircle * 1.2 - inset,
         4 => radiusCircumscribedCircle * 2.6 - inset,
         _ => ((radiusCircumscribedCircle - inset) *

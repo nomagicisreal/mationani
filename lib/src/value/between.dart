@@ -8,7 +8,12 @@
 ///   |   [BetweenPathVector3D]
 ///   |   * [_BetweenPathConcurrent]
 ///   |   [BetweenPathPolygon]
-///   ...
+///   |
+///
+///
+/// [Amplitude]
+///
+///
 ///
 ///
 ///
@@ -30,172 +35,138 @@
 ///
 ///
 ///
-///
-///
-///
-///
-///
-///
 part of mationani;
 // ignore_for_file: use_string_in_part_of_directives
 
 ///
-/// [Between] is my implementation for [Tween.animate],
-/// which aims to have an easier way to enable beautiful animation for [_MationAnimatable] in [Mationani]
 ///
-/// [Between.constant]
-/// [Between.of]
-/// [Between.sequenceFromGenerator], ...
 ///
-/// [begin], [end], [onLerp], [curve],
-/// [transform], [evaluate], [animate], [toString]
+/// [MationableValue]
 ///
-/// [reverse]
-/// [follow], [followPlus], ...
 ///
-class Between<T> extends Animatable<T> {
-  ///
-  /// constructors
-  ///
-  Between(this.begin, this.end, {OnLerp<T>? onLerp, this.curve})
-      : onLerp = onLerp ?? _of(begin, end);
+///
 
-  const Between.constant(this.begin, this.end, this.onLerp, this.curve);
+///
+///
+///
+/// [Between]
+///
+///
+///
+
+///
+/// [begin], [end],
+/// [Between.constant], [Between.of], [Between.sequence], [Between.sequenceFromGenerator], ...
+/// [reverse], [follow], [followOperate], ..., [toString]
+///
+class Between<T> extends MationableValue<T> {
+  final T begin;
+  final T end;
+
+  Between(this.begin, this.end, {super.curve})
+      : super(onLerp: _drive(begin, end));
+
+  const Between.constant(
+    this.begin,
+    this.end, {
+    required super.onLerp,
+    required super.curve,
+  });
 
   Between.of(T value)
       : begin = value,
         end = value,
-        curve = null,
-        onLerp = _constant(value);
+        super(onLerp: _of(value));
 
   Between.sequence({
     required List<T> steps,
-    this.curve,
+    super.curve,
   })  : begin = steps.first,
         end = steps.last,
-        onLerp = BetweenInterval._linking(
-          totalStep: steps.length,
-          step: (i) => steps[i],
-          interval: (i) => const BetweenInterval(1),
+        super(
+          onLerp: BetweenInterval._linking(
+            totalStep: steps.length,
+            step: (i) => steps[i],
+            interval: (i) => const BetweenInterval(1),
+          ),
         );
 
   Between.sequenceFromGenerator({
     required int totalStep,
     required Generator<T> step,
     required Generator<BetweenInterval> interval,
-    this.curve,
+    super.curve,
     Sequencer<Between<T>, T, OnLerp<T>>? sequencer,
   })  : begin = step(0),
         end = step(totalStep - 1),
-        onLerp = BetweenInterval._linking(
-          totalStep: totalStep,
-          step: step,
-          interval: interval,
-          sequencer: sequencer,
+        super(
+          onLerp: BetweenInterval._linking(
+            totalStep: totalStep,
+            step: step,
+            interval: interval,
+            sequencer: sequencer,
+          ),
         );
 
   Between.outAndBack({
     required this.begin,
     required T target,
-    this.curve = KCurveFR.linear,
+    super.curve = KCurveFR.linear,
     double ratio = 1.0,
     Curve curveOut = Curves.fastOutSlowIn,
     Curve curveBack = Curves.fastOutSlowIn,
     Sequencer<Between<T>, T, OnLerp<T>>? sequencer,
   })  : end = begin,
-        onLerp = BetweenInterval._linking(
-          totalStep: 3,
-          step: (i) => i == 1 ? target : begin,
-          interval: (i) => i == 0
-              ? BetweenInterval(ratio, curve: curveOut)
-              : BetweenInterval(1 / ratio, curve: curveBack),
-          sequencer: sequencer,
+        super(
+          onLerp: BetweenInterval._linking(
+            totalStep: 3,
+            step: (i) => i == 1 ? target : begin,
+            interval: (i) => i == 0
+                ? BetweenInterval(ratio, curve: curveOut)
+                : BetweenInterval(1 / ratio, curve: curveBack),
+            sequencer: sequencer,
+          ),
         );
-
-  final T begin;
-  final T end;
-  final OnLerp<T> onLerp;
-  final CurveFR? curve;
-
-  @override
-  T transform(double t) => onLerp(t);
-
-  @override
-  T evaluate(Animation<double> animation) => transform(animation.value);
-
-  @override
-  Animation<T> animate(Animation<double> parent) => _BetweenAnimation(
-        CurvedAnimation(
-          parent: parent,
-          curve: curve?.forward ?? Curves.fastOutSlowIn,
-          reverseCurve: curve?.reverse ?? Curves.fastOutSlowIn,
-        ),
-        this,
-      );
 
   @override
   String toString() => 'Between($begin, $end, $curve)';
 
   ///
   /// properties
-  /// - [reverse]
-  /// - [follow]
-  /// - [followPlus]
-  /// - [followMinus]
-  /// - [followMultiply]
-  /// - [followDivide]
+  /// [reverse]
+  /// [follow], [followPlus], [followMinus], [followMultiply], [followDivide]
   ///
   ///
 
-  Between<T> get reverse => Between(
+  Between<T> get reverse => Between.constant(
         end,
         begin,
         onLerp: onLerp,
         curve: curve,
       );
 
-  Between<T> follow(T next) => Between(
+  Between<T> follow(T next) => Between.constant(
         end,
         next,
         onLerp: onLerp,
         curve: curve,
       );
 
-  Between<T> followPlus(T next) => Between(
+  Between<T> followOperate(Operator operator, T next) => Between.constant(
         end,
-        Operator.plus.operationOf(end, next),
-        onLerp: onLerp,
-        curve: curve,
-      );
-
-  Between<T> followMinus(T next) => Between(
-        end,
-        Operator.minus.operationOf(end, next),
-        onLerp: onLerp,
-        curve: curve,
-      );
-
-  Between<T> followMultiply(T next) => Between(
-        end,
-        Operator.multiply.operationOf(end, next),
-        onLerp: onLerp,
-        curve: curve,
-      );
-
-  Between<T> followDivide(T next) => Between(
-        end,
-        Operator.divide.operationOf(end, next),
+        operator.operationOf(end, next),
         onLerp: onLerp,
         curve: curve,
       );
 
   ///
   ///
-  /// lerp
+  /// [_of]
+  /// [_drive]
   ///
   ///
 
-  static OnLerp<T> _constant<T>(T value) => (_) => value;
+  static OnLerp<T> _of<T>(T value) => (_) => value;
 
   ///
   ///
@@ -204,12 +175,18 @@ class Between<T> extends Animatable<T> {
   ///   * [FSizingPath.shapeBorder]
   ///
   ///
-  static OnLerp<T> _of<T>(T a, T b) => switch (a) {
+  static OnLerp<T> _drive<T>(T a, T b) => switch (a) {
         Size _ => (t) => Size.lerp(a, b as Size, t)!,
         Rect _ => (t) => Rect.lerp(a, b as Rect, t)!,
         Color _ => (t) => Color.lerp(a, b as Color, t)!,
         Vector3D _ => (t) => Vector3D.lerp(a, b as Vector3D, t),
         EdgeInsets _ => (t) => EdgeInsets.lerp(a, b as EdgeInsets?, t)!,
+        RelativeRect _ => (t) => RelativeRect.lerp(a, b as RelativeRect?, t)!,
+        AlignmentGeometry _ => (t) =>
+            AlignmentGeometry.lerp(a, b as AlignmentGeometry?, t)!,
+        SizingPath _ => throw ArgumentError(
+            'Use BetweenPath instead of Between<SizingPath>',
+          ),
         Decoration _ => switch (a) {
             BoxDecoration _ => b is BoxDecoration && a.shape == b.shape
                 ? (t) => BoxDecoration.lerp(a, b, t)!
@@ -250,12 +227,6 @@ class Between<T> extends Animatable<T> {
               },
             _ => throw UnimplementedError(),
           },
-        RelativeRect _ => (t) => RelativeRect.lerp(a, b as RelativeRect?, t)!,
-        AlignmentGeometry _ => (t) =>
-            AlignmentGeometry.lerp(a, b as AlignmentGeometry?, t)!,
-        SizingPath _ => throw ArgumentError(
-            'using BetweenPath constructor instead of Between<SizingPath>',
-          ),
         _ => Tween<T>(begin: a, end: b).transform,
       } as OnLerp<T>;
 }
@@ -272,9 +243,9 @@ class Between<T> extends Animatable<T> {
 ///
 class BetweenSpline2D extends Between<Offset> {
   BetweenSpline2D({
-    required OnLerp<Offset> super.onLerp,
+    required super.onLerp,
     super.curve,
-  }) : super(onLerp(0), onLerp(1));
+  }) : super.constant(onLerp(0), onLerp(1));
 
   static OnLerp<Offset> lerpArcOval(
     Offset origin,
@@ -296,7 +267,7 @@ class BetweenSpline2D extends Between<Offset> {
 
   static OnLerp<Offset> lerpArcCircleSemi(Offset a, Offset b, bool clockwise) {
     if (a == b) {
-      return Between._constant(a);
+      return Between._of(a);
     }
 
     final center = a.middleWith(b);
@@ -413,9 +384,9 @@ class BetweenPath<T> extends Between<SizingPath> {
     super.begin,
     super.end, {
     required this.onAnimate,
-    super.onLerp,
+    required super.onLerp,
     super.curve,
-  });
+  }) : super.constant();
 
   ///
   /// because [end] is called before [onLerp]. no matter [end] is set to
@@ -426,7 +397,7 @@ class BetweenPath<T> extends Between<SizingPath> {
     Between<T> between, {
     required this.onAnimate,
     super.curve,
-  }) : super(
+  }) : super.constant(
           onAnimate(0, between.begin),
           onAnimate(0, between.begin),
           onLerp: animateOf(onAnimate, between.onLerp),
@@ -487,6 +458,8 @@ class BetweenPathOffset extends BetweenPath<Offset> {
   ///
   /// constructor, factories
   ///
+
+  // 'width' means stoke width
   BetweenPathOffset.line(
     super.between,
     double width, {
@@ -495,8 +468,9 @@ class BetweenPathOffset extends BetweenPath<Offset> {
   })  : assert(strokeCap == StrokeCap.round),
         super(onAnimate: animateStadiumLine(between, width));
 
+  // 'width' means stoke width
   factory BetweenPathOffset.linePoly(
-    double r, {
+    double width, {
     required List<Offset> nodes,
     CurveFR? curve,
   }) {
@@ -507,9 +481,9 @@ class BetweenPathOffset extends BetweenPath<Offset> {
     int i = 0;
     double bound = intervals[i];
     OnAnimatePath<Offset> lining(Offset a, Offset b) =>
-        animateStadium(a, a.directionTo(b), r);
+        animateStadium(a, a.directionTo(b), width);
     OnAnimatePath<Offset> drawing = lining(nodes[0], nodes[1]);
-    SizingPath draw = FSizingPath.circle(nodes[0], r);
+    SizingPath draw = FSizingPath.circle(nodes[0], width);
 
     return BetweenPathOffset._(
       between,
@@ -615,14 +589,62 @@ class BetweenPathPolygon extends _BetweenPathConcurrent<double> {
         );
 }
 
+enum AmplitudeStyle {
+  sin,
+  cos,
+  tan;
+}
+
+//
+class Amplitude<T> extends MationableValue<T> {
+  final T from;
+  final T value;
+  final int times;
+  final AmplitudeStyle style;
+
+  const Amplitude.constant(
+    this.from,
+    this.value,
+    this.times, {
+    required this.style,
+    required super.onLerp,
+    super.curve,
+  });
+
+  Amplitude(
+    this.from,
+    this.value,
+    this.times, {
+    required this.style,
+    super.curve,
+  }) : super(onLerp: () {
+          final transform = Between(from, value).transform;
+          final curved = switch (style) {
+            AmplitudeStyle.sin => Curving.sinPeriodOf(times),
+            AmplitudeStyle.cos ||
+            AmplitudeStyle.tan =>
+              throw UnimplementedError(),
+          }
+              .transformInternal;
+
+          return (t) => transform(curved(t));
+        }());
+}
+
 ///
 ///
 ///
+/// [BetweenInterval], [BetweenConcurrent]
 ///
+///
+///
+
 ///
 /// See Also:
 ///   [AniSequenceInterval], which is similar
 ///
+
+//
 class BetweenInterval {
   final double weight;
   final Curve curve;
@@ -631,7 +653,7 @@ class BetweenInterval {
 
   OnLerp<T> lerp<T>(T a, T b) {
     final curving = curve.transform;
-    final onLerp = Between._of<T>(a, b);
+    final onLerp = Between._drive<T>(a, b);
     return (t) => onLerp(curving(t));
   }
 
@@ -665,10 +687,11 @@ class BetweenInterval {
     T next,
     OnLerp<T> onLerp,
   ) =>
-      (_) => Between(
+      (_) => Between.constant(
             previous,
             next,
             onLerp: onLerp,
+            curve: null,
           );
 }
 

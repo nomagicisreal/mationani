@@ -20,16 +20,16 @@
 /// [FabExpandableSetupInitializer]
 ///
 /// global extensions:
-/// [BetweenOffsetExtension], [BetweenCoordinateRadianExtension]
+/// [MationableValueDoubleExtension]
+/// [BetweenOffsetExtension], [BetweenCoordinateExtension], [BetweenCoordinateRadianExtension]
 /// [FBetween]
 /// [FOnAnimateMatrix4]
 ///
 ///
 /// private typedef, extensions:
-/// [_BetweenAnimation]
-/// [_MationAnimating]
+/// [MationableValue], [_AnimationValue]
+/// [_AnimatingMationable]
 /// [_AnimationControllerExtension]
-///
 ///
 ///
 ///
@@ -140,11 +140,10 @@ class Clipping extends CustomClipper<Path> {
 
   factory Clipping.rRegularPolygon(
     RRegularPolygon polygon, {
-    Companion<Iterable<Offset>, Size> adjust =
-        IterableOffsetExtension.adjustCenterCompanion,
+    Companion<CubicOffset, Size> adjust = CubicOffset.companionSizeAdjustCenter,
   }) =>
       Clipping.reclipNever(
-        FSizingPath.polygonCubic(polygon.cubicPoints),
+        FSizingPath.polygonCubic(polygon.cubicPoints, adjust: adjust),
       );
 }
 
@@ -167,13 +166,153 @@ extension WPainting on CustomPaint {
 }
 
 ///
-/// [rRectColored]
 ///
-/// [pathReClipNever]
-/// [pathRectFromZeroToSize]
-/// [pathRRegularPolygonDecoratedBox]
+/// [WClipping._shape]
+///   [WClipping.shapeCircle]
+///   [WClipping.shapeOval]
+///   [WClipping.shapeStar]
+///   [WClipping.shapeStadium]
+///   [WClipping.shapeBeveledRectangle]
+///   [WClipping.shapeRoundedRectangle]
+///   [WClipping.shapeContinuousRectangle]
+///
+/// [WClipping.rRectColored]
+///
+/// [WClipping.pathReClipNever]
+/// [WClipping.pathRectFromZeroToSize]
+/// [WClipping.pathPolygonRRegular]
+/// [WClipping.pathPolygonRRegularDecoratedBox]
+///
+///
+/// there is no [BorderSide] when using [ShapeBorderClipper], See Also the comment above [FBorderSide]
+///
 ///
 extension WClipping on ClipPath {
+  static Widget _shape({
+    required Key? key,
+    required ShapeBorder shape,
+    required Clip clipBehavior,
+    required Widget? child,
+  }) =>
+      ClipPath.shape(
+        key: key,
+        shape: shape,
+        clipBehavior: clipBehavior,
+        child: child,
+      );
+
+  static Widget shapeCircle({
+    Key? key,
+    Clip clipBehavior = Clip.antiAlias,
+    Widget? child,
+    double eccentricity = 0.0,
+  }) =>
+      _shape(
+        key: key,
+        shape: CircleBorder(side: BorderSide.none, eccentricity: eccentricity),
+        clipBehavior: clipBehavior,
+        child: child,
+      );
+
+  static Widget shapeOval({
+    Key? key,
+    Clip clipBehavior = Clip.antiAlias,
+    Widget? child,
+    double eccentricity = 1.0,
+  }) =>
+      _shape(
+        key: key,
+        shape: OvalBorder(side: BorderSide.none, eccentricity: eccentricity),
+        clipBehavior: clipBehavior,
+        child: child,
+      );
+
+  static Widget shapeStar({
+    Key? key,
+    Clip clipBehavior = Clip.antiAlias,
+    Widget? child,
+    double points = 5,
+    double innerRadiusRatio = 0.4,
+    double pointRounding = 0,
+    double valleyRounding = 0,
+    double rotation = 0,
+    double squash = 0,
+  }) =>
+      _shape(
+        key: key,
+        shape: StarBorder(
+          side: BorderSide.none,
+          points: points,
+          innerRadiusRatio: innerRadiusRatio,
+          pointRounding: pointRounding,
+          valleyRounding: valleyRounding,
+          rotation: rotation,
+          squash: squash,
+        ),
+        clipBehavior: clipBehavior,
+        child: child,
+      );
+
+  static Widget shapeStadium({
+    Key? key,
+    Clip clipBehavior = Clip.antiAlias,
+    Widget? child,
+  }) =>
+      _shape(
+        key: key,
+        shape: const StadiumBorder(side: BorderSide.none),
+        clipBehavior: clipBehavior,
+        child: child,
+      );
+
+  static Widget shapeBeveledRectangle({
+    Key? key,
+    Clip clipBehavior = Clip.antiAlias,
+    Widget? child,
+    required BorderRadius borderRadius,
+  }) =>
+      _shape(
+        key: key,
+        shape: BeveledRectangleBorder(
+          side: BorderSide.none,
+          borderRadius: borderRadius,
+        ),
+        clipBehavior: clipBehavior,
+        child: child,
+      );
+
+  static Widget shapeRoundedRectangle({
+    Key? key,
+    Clip clipBehavior = Clip.antiAlias,
+    Widget? child,
+    required BorderRadius borderRadius,
+  }) =>
+      _shape(
+        key: key,
+        shape: RoundedRectangleBorder(
+          side: BorderSide.none,
+          borderRadius: borderRadius,
+        ),
+        clipBehavior: clipBehavior,
+        child: child,
+      );
+
+  static Widget shapeContinuousRectangle({
+    Key? key,
+    Clip clipBehavior = Clip.antiAlias,
+    Widget? child,
+    required BorderRadius borderRadius,
+  }) =>
+      _shape(
+        key: key,
+        shape: ContinuousRectangleBorder(
+          side: BorderSide.none,
+          borderRadius: borderRadius,
+        ),
+        clipBehavior: clipBehavior,
+        child: child,
+      );
+
   static ClipRRect rRectColored({
     required BorderRadius borderRadius,
     required Color color,
@@ -192,16 +331,20 @@ extension WClipping on ClipPath {
       );
 
   ///
-  /// path with [Clipping]
+  ///
+  ///
+  /// with [Clipping]
+  ///
+  ///
   ///
   static ClipPath pathReClipNever({
     Clip clipBehavior = Clip.antiAlias,
-    required SizingPath pathFromSize,
+    required SizingPath sizingPath,
     required Widget child,
   }) =>
       ClipPath(
         clipBehavior: clipBehavior,
-        clipper: Clipping.reclipNever(pathFromSize),
+        clipper: Clipping.reclipNever(sizingPath),
         child: child,
       );
 
@@ -216,7 +359,23 @@ extension WClipping on ClipPath {
         child: child,
       );
 
-  static ClipPath pathRRegularPolygonDecoratedBox(
+  static ClipPath pathPolygonRRegular(
+    RRegularPolygon polygon, {
+    Key? key,
+    Clip clipBehavior = Clip.antiAlias,
+    Widget? child,
+    Companion<CubicOffset, Size> adjust = CubicOffset.companionSizeAdjustCenter,
+  }) =>
+      ClipPath(
+        key: key,
+        clipBehavior: clipBehavior,
+        clipper: Clipping.reclipNever(
+          FSizingPath.polygonCubic(polygon.cubicPoints, adjust: adjust),
+        ),
+        child: child,
+      );
+
+  static ClipPath pathPolygonRRegularDecoratedBox(
     Decoration decoration,
     RRegularPolygon polygon, {
     DecorationPosition position = DecorationPosition.background,
@@ -296,47 +455,67 @@ typedef FabExpandableSetupInitializer = FabExpandableSetup Function({
   required List<IconAction> icons,
 });
 
+extension MationableValueDoubleExtension on MationableValue<double> {
+  static MationableValue<double> toRadianFrom(MationableValue<double> round) =>
+      switch (round) {
+        Between<double>() => Between(
+            FRadian.radianFromRound(round.begin),
+            FRadian.radianFromRound(round.end),
+            curve: round.curve,
+          ),
+        Amplitude<double>() => Amplitude(
+            FRadian.radianFromRound(round.from),
+            FRadian.radianFromRound(round.value),
+            round.times,
+            style: round.style,
+            curve: round.curve,
+          ),
+      };
+}
+
 extension BetweenOffsetExtension on Between<Offset> {
   double get direction => begin.directionTo(end);
 }
 
-extension BetweenCoordinateRadianExtension on Between<Coordinate> {
-  static Between<Coordinate> x360From(Coordinate from) =>
-      Between<Coordinate>(from, KRadianCoordinate.angleX_360);
-
-  static Between<Coordinate> y360From(Coordinate from) =>
-      Between<Coordinate>(from, KRadianCoordinate.angleY_360);
-
-  static Between<Coordinate> z360From(Coordinate from) =>
-      Between<Coordinate>(from, KRadianCoordinate.angleZ_360);
-
-  static Between<Coordinate> x180From(Coordinate from) =>
-      Between<Coordinate>(from, KRadianCoordinate.angleX_180);
-
-  static Between<Coordinate> y180From(Coordinate from) =>
-      Between<Coordinate>(from, KRadianCoordinate.angleY_180);
-
-  static Between<Coordinate> z180From(Coordinate from) =>
-      Between<Coordinate>(from, KRadianCoordinate.angleZ_180);
-
-  static Between<Coordinate> x90From(Coordinate from) =>
-      Between<Coordinate>(from, KRadianCoordinate.angleX_90);
-
-  static Between<Coordinate> y90From(Coordinate from) =>
-      Between<Coordinate>(from, KRadianCoordinate.angleY_90);
-
-  static Between<Coordinate> z90From(Coordinate from) =>
-      Between<Coordinate>(from, KRadianCoordinate.angleZ_90);
-
+extension BetweenCoordinateExtension on Between<Coordinate> {
   ///
   /// see the comment above [Coordinate.transferToTransformOf]
   ///
-  Between<Coordinate> get transferToTransform => Between(
+  Between<Coordinate> get transferToTransform => Between.constant(
         Coordinate.transferToTransformOf(begin),
         Coordinate.transferToTransformOf(end),
         curve: curve,
         onLerp: onLerp,
       );
+}
+
+extension BetweenCoordinateRadianExtension on Between<CoordinateRadian> {
+  static Between<CoordinateRadian> x360From(CoordinateRadian from) =>
+      Between<CoordinateRadian>(from, CoordinateRadian.angleX_360);
+
+  static Between<CoordinateRadian> y360From(CoordinateRadian from) =>
+      Between(from, CoordinateRadian.angleY_360);
+
+  static Between<CoordinateRadian> z360From(CoordinateRadian from) =>
+      Between(from, CoordinateRadian.angleZ_360);
+
+  static Between<CoordinateRadian> x180From(CoordinateRadian from) =>
+      Between(from, CoordinateRadian.angleX_180);
+
+  static Between<CoordinateRadian> y180From(CoordinateRadian from) =>
+      Between(from, CoordinateRadian.angleY_180);
+
+  static Between<CoordinateRadian> z180From(CoordinateRadian from) =>
+      Between(from, CoordinateRadian.angleZ_180);
+
+  static Between<CoordinateRadian> x90From(CoordinateRadian from) =>
+      Between(from, CoordinateRadian.angleX_90);
+
+  static Between<CoordinateRadian> y90From(CoordinateRadian from) =>
+      Between(from, CoordinateRadian.angleY_90);
+
+  static Between<CoordinateRadian> z90From(CoordinateRadian from) =>
+      Between(from, CoordinateRadian.angleZ_90);
 }
 
 extension FBetween on Between {
@@ -487,6 +666,54 @@ extension FBetween on Between {
       );
 }
 
+extension FAmplitude on Amplitude {
+  ///
+  /// [doubleFromZero], [doubleFromOne]
+  ///
+  static Amplitude<double> doubleFromZero(
+    double value,
+    int times, {
+    AmplitudeStyle style = AmplitudeStyle.sin,
+    CurveFR? curve,
+  }) =>
+      Amplitude(0, value, times, style: style);
+
+  static Amplitude<double> doubleFromOne(
+    double value,
+    int times, {
+    AmplitudeStyle style = AmplitudeStyle.sin,
+    CurveFR? curve,
+  }) =>
+      Amplitude(1, value, times, style: style);
+
+  ///
+  /// [offsetFromZero], [coordinateFromZero]
+  ///
+  static Amplitude<Offset> offsetFromZero(
+    Offset value,
+    int times, {
+    AmplitudeStyle style = AmplitudeStyle.sin,
+    CurveFR? curve,
+  }) =>
+      Amplitude(Offset.zero, value, times, style: style);
+
+  static Amplitude<Coordinate> coordinateFromZero(
+    Coordinate value,
+    int times, {
+    AmplitudeStyle style = AmplitudeStyle.sin,
+    CurveFR? curve,
+  }) =>
+      Amplitude(Coordinate.zero, value, times, style: style);
+
+  static Amplitude<CoordinateRadian> coordinateRadianFromZero(
+    CoordinateRadian value,
+    int times, {
+    AmplitudeStyle style = AmplitudeStyle.sin,
+    CurveFR? curve,
+  }) =>
+      Amplitude(CoordinateRadian.zero, value, times, style: style);
+}
+
 ///
 /// instance methods:
 /// [getPerspective]
@@ -522,10 +749,10 @@ extension FOnAnimateMatrix4 on Matrix4 {
     ..rotateZ(coordinate.dz);
 
   Matrix4 _scaled(Coordinate coordinate) => scaled(
-    coordinate.dx,
-    coordinate.dy,
-    coordinate.dz,
-  );
+        coordinate.dx,
+        coordinate.dy,
+        coordinate.dz,
+      );
 
   ///
   ///
@@ -543,31 +770,31 @@ extension FOnAnimateMatrix4 on Matrix4 {
 
 // with mapper
   static OnAnimateMatrix4 mapTranslating(Mapper<Coordinate> mapper) =>
-          (matrix4, value) => matrix4
+      (matrix4, value) => matrix4
         ..identityPerspective
         .._translate(mapper(value));
 
   static OnAnimateMatrix4 mapRotating(Mapper<Coordinate> mapper) =>
-          (matrix4, value) => matrix4
+      (matrix4, value) => matrix4
         ..setRotation(
             (Matrix4.identity().._rotate(mapper(value))).getRotation());
 
   static OnAnimateMatrix4 mapScaling(Mapper<Coordinate> mapper) =>
-          (matrix4, value) => matrix4._scaled(mapper(value));
+      (matrix4, value) => matrix4._scaled(mapper(value));
 
   // with fixed value
   static OnAnimateMatrix4 fixedTranslating(Coordinate fixed) =>
-          (matrix4, value) => matrix4
+      (matrix4, value) => matrix4
         ..identityPerspective
         .._translate(value + fixed);
 
   static OnAnimateMatrix4 fixedRotating(Coordinate fixed) =>
-          (matrix4, value) => matrix4
+      (matrix4, value) => matrix4
         ..setRotation(
             (Matrix4.identity().._rotate(fixed + value)).getRotation());
 
   static OnAnimateMatrix4 fixedScaling(Coordinate fixed) =>
-          (matrix4, value) => matrix4._scaled(value + fixed);
+      (matrix4, value) => matrix4._scaled(value + fixed);
 }
 
 ///
@@ -588,26 +815,56 @@ extension FOnAnimateMatrix4 on Matrix4 {
 ///
 ///
 
-class _BetweenAnimation<T> extends Animation<T>
+///
+/// [onLerp], [curve],
+/// [transform], [evaluate], [animate],
+///
+sealed class MationableValue<T> extends Animatable<T> {
+  final OnLerp<T> onLerp;
+  final CurveFR? curve;
+
+  const MationableValue({
+    required this.onLerp,
+    this.curve,
+  });
+
+  @override
+  T transform(double t) => onLerp(t);
+
+  @override
+  T evaluate(Animation<double> animation) => transform(animation.value);
+
+  @override
+  Animation<T> animate(Animation<double> parent) => _AnimationValue(
+        CurvedAnimation(
+          parent: parent,
+          curve: curve?.forward ?? Curves.fastOutSlowIn,
+          reverseCurve: curve?.reverse ?? Curves.fastOutSlowIn,
+        ),
+        this,
+      );
+}
+
+class _AnimationValue<T> extends Animation<T>
     with AnimationWithParentMixin<double> {
-  _BetweenAnimation(this.parent, this.between);
+  _AnimationValue(this.parent, this.animatable);
 
   @override
   final Animation<double> parent;
 
-  final Between<T> between;
+  final MationableValue<T> animatable;
 
   @override
-  T get value => between.evaluate(parent);
+  T get value => animatable.evaluate(parent);
 
   @override
-  String toString() => '$parent\u27A9$between\u27A9$value';
+  String toString() => '$parent\u27A9$animatable\u27A9$value';
 
   @override
-  String toStringDetails() => '${super.toStringDetails()} $between';
+  String toStringDetails() => '${super.toStringDetails()} $animatable';
 }
 
-typedef _MationAnimating = Iterable<Animation> Function(_Mationable able);
+typedef _AnimatingMationable = Iterable<Animation> Function(_Mationable able);
 
 extension _AnimationControllerExtension on AnimationController {
   void forwardReset({double? from}) => forward(from: from).then((_) => reset());

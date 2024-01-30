@@ -4,7 +4,6 @@
 ///
 /// [Mationani]
 ///   [MationaniArrow]
-///   [MationaniSin]
 ///   [MationaniCutting]
 ///   ...
 ///
@@ -19,6 +18,7 @@
 ///   * [FabExpandableSetup]
 ///     * [FFabExpandableInitializer]
 ///     * [FFabExpandableSetupLine]
+///
 ///
 ///
 ///
@@ -169,111 +169,6 @@ class MationaniArrow extends StatelessWidget {
       ),
     );
   }
-}
-
-///
-/// [MationaniSin.shaker]
-/// [MationaniSin.flicker]
-/// [MationaniSin.slider]
-///
-///
-
-class MationaniSin extends StatelessWidget {
-  const MationaniSin._({
-    super.key,
-    required this.duration,
-    required this.initializer,
-    required this.updateConsumer,
-    required this.mation,
-    required this.builder,
-  });
-
-  factory MationaniSin.shaker({
-    required DurationFR duration,
-    required int times,
-    required double amplitudeRadian,
-    required Consumer<AnimationController> updateConsumer,
-    required Widget child,
-    Key? key,
-    Alignment alignment = Alignment.center,
-    AnimationControllerInitializer initializer = Ani.initialize,
-  }) =>
-      MationaniSin._(
-        key: key,
-        duration: duration ~/ 2,
-        initializer: initializer,
-        updateConsumer: updateConsumer,
-        mation: MamionTransition.rotate(
-          Between(
-            0,
-            amplitudeRadian / KRadian.angle_360,
-            curve: CurveFR.symmetry(Curving.sinPeriodOf(times)),
-          ),
-          alignment: alignment,
-        ),
-        builder: (context) => child,
-      );
-
-  factory MationaniSin.flicker({
-    required DurationFR duration,
-    required int times,
-    required double amplitudeOpacity,
-    required Consumer<AnimationController> updateConsumer,
-    required Widget child,
-    Key? key,
-    AnimationControllerInitializer initializer = Ani.initialize,
-  }) =>
-      MationaniSin._(
-        key: key,
-        duration: duration ~/ 2,
-        initializer: initializer,
-        updateConsumer: updateConsumer,
-        mation: MamionTransition.fade(Between(
-          1.0,
-          amplitudeOpacity,
-          curve: CurveFR.symmetry(Curving.sinPeriodOf(times)),
-        )),
-        builder: (context) => child,
-      );
-
-  factory MationaniSin.slider({
-    required DurationFR duration,
-    required int times,
-    required Offset amplitudePosition,
-    required Consumer<AnimationController> updateConsumer,
-    required Widget child,
-    Key? key,
-    AnimationControllerInitializer initializer = Ani.initialize,
-  }) =>
-      MationaniSin._(
-        key: key,
-        duration: duration,
-        initializer: initializer,
-        updateConsumer: updateConsumer,
-        mation: MamionTransition.slide(Between(
-          Offset.zero,
-          amplitudePosition,
-          curve: CurveFR.symmetry(Curving.sinPeriodOf(times)),
-        )),
-        builder: (context) => child,
-      );
-
-  final DurationFR duration;
-  final AnimationControllerInitializer initializer;
-  final Consumer<AnimationController> updateConsumer;
-  final Mamionability mation;
-  final WidgetBuilder builder;
-
-  @override
-  Widget build(BuildContext context) => Mationani.mamion(
-        ani: AniUpdateIfNotAnimating(
-          duration: duration,
-          initializer: initializer,
-          consumer: updateConsumer,
-        ),
-        ability: mation,
-        builder: builder,
-      );
 }
 
 class MationaniCutting extends StatelessWidget {
@@ -763,7 +658,6 @@ class _FabExpandableElements extends StatelessWidget {
 ///
 ///
 /// [positioned], [alignment], [mationsGenerator], [icons], ...
-/// [_maxIconRadiusOf]
 ///
 ///
 class FabExpandableSetup {
@@ -779,14 +673,6 @@ class FabExpandableSetup {
     required this.icons,
   });
 
-  static double _maxIconRadiusOf(BuildContext context, List<IconAction> icons) {
-    final size = context.themeIcon.size ?? 24.0;
-    return icons.reduceToNum(
-      reducer: math.max,
-      translator: (i) => i.icon.size ?? size,
-    );
-  }
-
   factory FabExpandableSetup.radiationOnOpenIcon({
     required BuildContext context,
     required Rect openIconRect,
@@ -799,7 +685,7 @@ class FabExpandableSetup {
       FabExpandableSetup._(
         positioned: RectExtension.fromCircle(
           openIconRect.center,
-          _maxIconRadiusOf(context, icons) * (1 + 2 * distance),
+          icons.maxRadiusBy(context) * (1 + 2 * distance),
         ),
         alignment: Alignment.center,
         mationsGenerator: MamionMulti.generateCover(
@@ -826,7 +712,7 @@ class FabExpandableSetup {
       positioned: FExtruding2D.directByDimension(
         rect: openIconRect,
         direction: direction,
-        dimension: _maxIconRadiusOf(context, icons) * 2,
+        dimension: icons.maxRadiusBy(context) * 2,
       )(d * total),
       alignment: alignment,
       mationsGenerator: MamionMulti.generateShoot(

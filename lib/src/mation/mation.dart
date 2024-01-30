@@ -235,7 +235,7 @@ abstract interface class Manionability<M extends Mamionability>
 
 //
 class MamionSingle<T> extends _MationableBetween<T> implements Mamionability {
-  const MamionSingle(super.between, super.plan);
+  const MamionSingle(super.value, super.plan);
 
   @override
   WidgetBuilder planFor(Animation<double> animation, WidgetBuilder builder) {
@@ -250,7 +250,8 @@ class MamionSingle<T> extends _MationableBetween<T> implements Mamionability {
 /// this is a class that implement traditional transition like [SlideTransition],
 /// [FadeTransition], [DecoratedBoxTransition]..., transcribe those traditional animation to have mationability
 ///
-/// [MamionTransition.rotate], [MamionTransition.scale], [MamionTransition.size], ...
+/// [MamionTransition.rotate], [MamionTransition.rotateInRadian]
+/// [MamionTransition.scale], [MamionTransition.size], ...
 /// [MamionTransition.relativePositioned], ...
 /// [MamionTransition.positioned], ..., [MamionTransition.slide], ...
 /// [MamionTransition.decoration], ...
@@ -260,10 +261,10 @@ class MamionSingle<T> extends _MationableBetween<T> implements Mamionability {
 ///
 class MamionTransition extends MamionSingle {
   MamionTransition.rotate(
-    Between<double> between, {
+    MationableValue<double> value, {
     Alignment alignment = Alignment.topLeft,
   }) : super(
-          between,
+          value,
           (animation, child) => RotationTransition(
             turns: animation as Animation<double>,
             alignment: alignment,
@@ -271,11 +272,19 @@ class MamionTransition extends MamionSingle {
           ),
         );
 
+  MamionTransition.rotateInRadian(
+    MationableValue<double> value, {
+    Alignment alignment = Alignment.topLeft,
+  }) : this.rotate(
+          MationableValueDoubleExtension.toRadianFrom(value),
+          alignment: alignment,
+        );
+
   MamionTransition.scale(
-    Between<double> between, {
+    MationableValue<double> value, {
     Alignment alignment = Alignment.topLeft,
   }) : super(
-          between,
+          value,
           (animation, child) => ScaleTransition(
             scale: animation as Animation<double>,
             alignment: alignment,
@@ -284,11 +293,11 @@ class MamionTransition extends MamionSingle {
         );
 
   MamionTransition.size(
-    Between<double> between, {
+    MationableValue<double> value, {
     Axis axis = Axis.vertical,
     double axisAlignment = 0.0,
   }) : super(
-          between,
+          value,
           (animation, child) => SizeTransition(
             sizeFactor: animation as Animation<double>,
             axis: axis,
@@ -298,10 +307,10 @@ class MamionTransition extends MamionSingle {
         );
 
   MamionTransition.relativePositioned(
-    Between<double> between, {
+    MationableValue<double> value, {
     required Size size,
   }) : super(
-          between,
+          value,
           (animation, child) => RelativePositionedTransition(
             rect: animation as Animation<Rect>,
             size: size,
@@ -309,9 +318,9 @@ class MamionTransition extends MamionSingle {
           ),
         );
 
-  MamionTransition.positioned(Between<RelativeRect> between)
+  MamionTransition.positioned(MationableValue<RelativeRect> value)
       : super(
-          between,
+          value,
           (animation, child) => PositionedTransition(
             rect: animation as Animation<RelativeRect>,
             child: child,
@@ -319,11 +328,11 @@ class MamionTransition extends MamionSingle {
         );
 
   MamionTransition.slide(
-    Between<Offset> between, {
+    MationableValue<Offset> value, {
     bool transformHitTests = true,
     TextDirection? textDirection,
   }) : super(
-          between,
+          value,
           (animation, child) => SlideTransition(
             position: animation as Animation<Offset>,
             transformHitTests: transformHitTests,
@@ -332,18 +341,18 @@ class MamionTransition extends MamionSingle {
           ),
         );
 
-  MamionTransition.decoration(Between<Decoration> between)
+  MamionTransition.decoration(MationableValue<Decoration> value)
       : super(
-          between,
+          value,
           (animation, child) => DecoratedBoxTransition(
             decoration: animation as Animation<Decoration>,
             child: child,
           ),
         );
 
-  MamionTransition.fade(Between<double> between)
+  MamionTransition.fade(MationableValue<double> value)
       : super(
-          between,
+          value,
           (animation, child) => FadeTransition(
             opacity: animation as Animation<double>,
             child: child,
@@ -359,27 +368,27 @@ class MamionTransition extends MamionSingle {
   MamionTransition.fadeOut({CurveFR? curve})
       : this.fade(FBetween.doubleZeroFrom(1, curve: curve));
 
-  MamionTransition.silverFade(Between<double> between)
+  MamionTransition.silverFade(MationableValue<double> value)
       : super(
-          between,
+          value,
           (animation, child) => SliverFadeTransition(
             opacity: animation as Animation<double>,
             sliver: child,
           ),
         );
 
-  MamionTransition.align(Between<AlignmentGeometry> between)
+  MamionTransition.align(MationableValue<AlignmentGeometry> value)
       : super(
-          between,
+          value,
           (animation, child) => AlignTransition(
             alignment: animation as Animation<AlignmentGeometry>,
             child: child,
           ),
         );
 
-  MamionTransition.defaultTextStyle(Between<TextStyle> between)
+  MamionTransition.defaultTextStyle(MationableValue<TextStyle> value)
       : super(
-          between,
+          value,
           (animation, child) => DefaultTextStyleTransition(
             style: animation as Animation<TextStyle>,
             child: child,
@@ -398,9 +407,9 @@ class MamionTransition extends MamionSingle {
 //
 class _MamionSingleSizingPath extends MamionSingle<SizingPath> {
   const _MamionSingleSizingPath(
-    BetweenPath between, {
+    BetweenPath value, {
     AnimationBuilder builder = WWidgetBuilder.noneAnimation,
-  }) : super(between, builder);
+  }) : super(value, builder);
 }
 
 //
@@ -415,7 +424,7 @@ class MamionClipper extends _MamionSingleSizingPath {
       );
 
   const MamionClipper(
-    super.between, {
+    super.value, {
     this.clipBehavior = Clip.antiAlias,
     super.builder,
   });
@@ -439,7 +448,7 @@ class MamionPainter extends _MamionSingleSizingPath {
       );
 
   const MamionPainter(
-    super.between, {
+    super.value, {
     this.isComplex = false,
     this.size = Size.zero,
     required this.foreground,
@@ -448,7 +457,7 @@ class MamionPainter extends _MamionSingleSizingPath {
   });
 
   MamionPainter.paintFrom(
-    super.between, {
+    super.value, {
     required PaintFrom paintFrom,
     super.builder,
   })  : isComplex = false,
@@ -471,6 +480,8 @@ class MamionPainter extends _MamionSingleSizingPath {
 /// [MamionMulti.penetrate]
 /// [MamionMulti.leave]
 /// [MamionMulti.shoot], [MamionMulti.enlarge]
+///
+/// [MamionMulti.slideAndScale]
 ///
 /// [generateCover], [generateShoot]
 ///
@@ -518,10 +529,7 @@ class MamionMulti extends _MationMulti<Mamionability> {
     required Between<double> rotation,
     required Between<Offset> sliding,
   }) : this([
-          MamionTransition.rotate(
-            rotation,
-            alignment: alignment,
-          ),
+          MamionTransition.rotate(rotation, alignment: alignment),
           MamionTransition.slide(sliding),
         ]);
 
@@ -544,50 +552,72 @@ class MamionMulti extends _MationMulti<Mamionability> {
         ]);
 
   ///
-/// generators
-///
+  /// factories
+  ///
+  factory MamionMulti.slideAndScale({
+    required double scaleEnd,
+    required Offset position,
+    required double interval,
+    CurveFR curveScale = KCurveFR.fastOutSlowIn,
+    CurveFR curveSlide = KCurveFR.fastOutSlowIn,
+  }) =>
+      MamionMulti.shoot(
+        alignmentScale: Alignment.center,
+        scaling: FBetween.doubleOneTo(
+          scaleEnd,
+          curve: CurveFR.intervalFlip(curveScale, interval, 1),
+        ),
+        sliding: FBetween.offsetZeroTo(
+          -position,
+          curve: CurveFR.intervalFlip(curveSlide, 0, interval),
+        ),
+      );
+
+  ///
+  /// generators
+  ///
 
   static MationMultiGenerator generateCover(
-      Generator<double> direction,
-      double distance, {
-        CurveFR? curve,
-        required int total,
-      }) {
+    Generator<double> direction,
+    double distance, {
+    CurveFR? curve,
+    required int total,
+  }) {
     final interval = 1 / total;
     return (index) => MamionMulti.cover(
-      fading: FBetween.doubleZeroTo(1, curve: curve),
-      sliding: FBetween.offsetOfDirection(
-        direction(index),
-        0,
-        distance,
-        curve: curve.nullOrTranslate(
+          fading: FBetween.doubleZeroTo(1, curve: curve),
+          sliding: FBetween.offsetOfDirection(
+            direction(index),
+            0,
+            distance,
+            curve: curve.nullOrTranslate(
               (value) => CurveFR.intervalFlip(value, interval * index, 1.0),
-        ),
-      ),
-    );
+            ),
+          ),
+        );
   }
 
   static MationMultiGenerator generateShoot(
-      Offset delta, {
-        Generator<double> distribution = FGenerator.toDouble,
-        CurveFR? curve,
-        required Alignment alignmentScale,
-        required int total,
-      }) {
+    Offset delta, {
+    Generator<double> distribution = FGenerator.toDouble,
+    CurveFR? curve,
+    required Alignment alignmentScale,
+    required int total,
+  }) {
     final interval = 1 / total;
     return (index) => MamionMulti.shoot(
-      alignmentScale: alignmentScale,
-      sliding: FBetween.offsetZeroTo(
-        delta * distribution(index),
-        curve: curve,
-      ),
-      scaling: FBetween.doubleOneFrom(
-        0.0,
-        curve: curve.nullOrTranslate(
+          alignmentScale: alignmentScale,
+          sliding: FBetween.offsetZeroTo(
+            delta * distribution(index),
+            curve: curve,
+          ),
+          scaling: FBetween.doubleOneFrom(
+            0.0,
+            curve: curve.nullOrTranslate(
               (value) => CurveFR.intervalFlip(value, interval * index, 1.0),
-        ),
-      ),
-    );
+            ),
+          ),
+        );
   }
 }
 
@@ -759,12 +789,12 @@ class MamionTransformDelegate extends _MationableBetween<Coordinate> {
   /// constructors
   ///
   MamionTransformDelegate._(
-    Between<Coordinate> between, {
+    MationableValue<Coordinate> value, {
     required this.alignment,
     required this.host,
     required this.onAnimate,
   }) : super(
-            between,
+            value,
             (animation, child) => Transform(
                   transform: onAnimate(host, animation.value),
                   alignment: alignment,
@@ -772,33 +802,33 @@ class MamionTransformDelegate extends _MationableBetween<Coordinate> {
                 ));
 
   MamionTransformDelegate.translation(
-    Between<Coordinate> between, {
+    MationableValue<Coordinate> value, {
     AlignmentGeometry? alignment,
     Matrix4? host,
   }) : this._(
-          between,
+          value,
           alignment: alignment,
           host: host ?? Matrix4.identity(),
           onAnimate: FOnAnimateMatrix4.translating,
         );
 
   MamionTransformDelegate.rotation(
-    Between<Coordinate> between, {
+    MationableValue<Coordinate> value, {
     AlignmentGeometry? alignment,
     Matrix4? host,
   }) : this._(
-          between,
+          value,
           alignment: alignment,
           host: host ?? Matrix4.identity(),
           onAnimate: FOnAnimateMatrix4.rotating,
         );
 
   MamionTransformDelegate.scale(
-    Between<Coordinate> between, {
+    MationableValue<Coordinate> value, {
     AlignmentGeometry? alignment,
     Matrix4? host,
   }) : this._(
-          between,
+          value,
           alignment: alignment,
           host: host ?? Matrix4.identity(),
           onAnimate: FOnAnimateMatrix4.scaling,
@@ -814,7 +844,7 @@ class MamionTransformDelegate extends _MationableBetween<Coordinate> {
 
   MamionTransformDelegate align(AlignmentGeometry? alignment) =>
       MamionTransformDelegate._(
-        between,
+        value,
         onAnimate: onAnimate,
         alignment: alignment,
         host: host,
