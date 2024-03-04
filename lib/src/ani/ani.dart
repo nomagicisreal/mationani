@@ -20,9 +20,9 @@
 ///
 ///
 ///
-///
-///
-///
+/// typedefs:
+/// [AnimationControllerInitializer]
+/// [AnimatedStatefulWidgetUpdater]
 ///
 ///
 ///
@@ -419,7 +419,7 @@ class AniUpdateIfNotAnimating extends Ani {
     bool? trigger, {
     required Duration duration,
   }) : super.initForwardAndUpdateIfNotAnimating(
-          duration: duration.toDurationFR,
+          duration: DurationFR.constant(duration),
           consumer: Ani.decideForwardOrReverse(trigger),
         );
 
@@ -463,7 +463,7 @@ class AniUpdateIfNotAnimating extends Ani {
     super.initializer,
     required Duration duration,
   }) : super._updateIfNotAnimating(
-          duration: duration.toDurationFR,
+          duration: DurationFR.constant(duration),
           consumer: Ani.decideForwardOrReverse(trigger),
         );
 }
@@ -561,7 +561,7 @@ class AniSequence {
 class AniSequenceStep {
   final List<double> values;
   final List<Offset> offsets;
-  final List<Coordinate> coordinates;
+  final List<Space3> coordinates;
 
   const AniSequenceStep({
     this.values = const [],
@@ -611,7 +611,7 @@ enum AniSequenceStyle {
 
   MationSequencer get sequencer => switch (this) {
         transformTRS => (previous, next, interval) {
-            final curve = interval.curves[0].toCurveFR;
+            final curve = CurveFR.of(interval.curves[0]);
             return AniSequenceStyle._sequence(
               previous: previous,
               next: next,
@@ -638,7 +638,7 @@ enum AniSequenceStyle {
             );
           },
         transitionRotateSlideBezierCubic => (previous, next, interval) {
-            final curve = interval.curves[0].toCurveFR;
+            final curve = CurveFR.of(interval.curves[0]);
             final controlPoints = interval.offsets;
             return AniSequenceStyle._sequence(
               previous: previous,
@@ -663,3 +663,21 @@ enum AniSequenceStyle {
           },
       };
 }
+
+///
+///
+/// typedefs:
+///
+///
+
+typedef AnimationControllerInitializer = AnimationController Function(
+    TickerProvider tickerProvider,
+    Duration forward,
+    Duration reverse,
+    );
+
+typedef AnimatedStatefulWidgetUpdater<W extends StatefulWidget> = void Function(
+    AnimationController controller,
+    W oldWidget,
+    W widget,
+    );

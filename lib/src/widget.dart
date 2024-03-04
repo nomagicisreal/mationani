@@ -12,13 +12,14 @@
 /// * [OverlayInsertion]
 ///   * [OverlayInsertionFading]
 ///   [Leader]
+///   * [FollowerInitializer]
 ///
 /// [FabExpandable]
+/// * [FabExpandableSetupInitializer]
+/// * [AnimationControllerDecider]
 ///   * [_FabExpandableElements]
 ///   * [FabExpandableSetup]
 ///     * [FFabExpandableInitializer]
-///     * [FFabExpandableSetupLine]
-///
 ///
 ///
 ///
@@ -156,11 +157,11 @@ class MationaniArrow extends StatelessWidget {
             ability: MamionTransition.slide(
               FBetween.offsetZeroTo(
                 KOffset.square_1 / 2,
-                curve: CurveFR.symmetry(Curving.sinPeriodOf(2)),
+                curve: CurveFR.of(Curving.sinPeriodOf(2)),
               ),
             ),
             ani: AniUpdateIfNotAnimating(
-              duration: KDurationFR.second1,
+              duration: DurationFR.second1,
               initializer: Ani.initializeRepeat,
             ),
             builder: builder,
@@ -175,7 +176,7 @@ class MationaniCutting extends StatelessWidget {
   const MationaniCutting({
     super.key,
     this.pieces = 2,
-    this.direction = Direction.radian2D_bottomRight,
+    this.direction = Direction2D.radian_bottomRight,
     this.curveFadeOut,
     this.curve,
     Ani? aniFadeOut,
@@ -183,7 +184,7 @@ class MationaniCutting extends StatelessWidget {
     required this.rotation,
     required this.distance,
     required this.child,
-  }) : assert(pieces == 2 && direction == Direction.radian2D_bottomRight);
+  }) : assert(pieces == 2 && direction == Direction2D.radian_bottomRight);
 
   final int pieces;
   final double direction;
@@ -207,13 +208,13 @@ class MationaniCutting extends StatelessWidget {
               ability: MamionMulti.leave(
                 alignment: Alignment.bottomRight,
                 rotation: FBetween.doubleZeroTo(
-                  (index == 0 ? -rotation : rotation) / KRadian.angle_360,
+                  (index == 0 ? -rotation : rotation) / Radian.angle_360,
                   curve: curve,
                 ),
                 sliding: FBetween.offsetZeroTo(
                   index == 0
-                      ? Direction.offset_bottomLeft * distance
-                      : Direction.offset_topRight * distance,
+                      ? KOffset.bottomLeft * distance
+                      : KOffset.topRight * distance,
                   curve: curve,
                 ),
               ),
@@ -444,6 +445,17 @@ class OverlayInsertionFading<T extends Widget> extends OverlayInsertion<T> {
       );
 }
 
+///
+///
+/// leader
+///
+///
+
+typedef FollowerInitializer
+    = Supporter<OverlayInsertionFading<CompositedTransformFollower>> Function(
+  LayerLink link,
+);
+
 class Leader extends StatelessWidget {
   const Leader({
     super.key,
@@ -496,6 +508,15 @@ class Leader extends StatelessWidget {
 ///
 ///
 
+typedef FabExpandableSetupInitializer = FabExpandableSetup Function({
+  required BuildContext context,
+  required Rect openIconRect,
+  required Alignment openIconAlignment,
+  required List<IconAction> icons,
+});
+
+typedef AnimationControllerDecider = Decider<AnimationController, bool>;
+
 //
 class FabExpandable extends StatefulWidget {
   const FabExpandable({
@@ -504,8 +525,8 @@ class FabExpandable extends StatefulWidget {
     this.initialOpen = false,
     this.openIcon = WIconMaterial.create,
     this.closeIcon = WIconMaterial.close,
-    this.duration = KDurationFR.milli300,
-    this.curve = KCurveFR.easeInOut,
+    this.duration = DurationFR.milli300,
+    this.curve = CurveFR.easeInOut,
     this.alignment = Alignment.bottomRight,
     required this.elements,
   });
@@ -680,7 +701,7 @@ class FabExpandableSetup {
     required List<IconAction> icons,
     double distance = 2,
     double maxElementsIconSize = 24,
-    CurveFR curve = KCurveFR.fastOutSlowIn,
+    CurveFR curve = CurveFR.fastOutSlowIn,
   }) =>
       FabExpandableSetup._(
         positioned: RectExtension.fromCircle(
@@ -703,11 +724,11 @@ class FabExpandableSetup {
     required Direction2DIn8 direction,
     required List<IconAction> icons,
     double distance = 1.2,
-    CurveFR curve = KCurveFR.ease,
+    CurveFR curve = CurveFR.ease,
   }) {
     final total = icons.length;
     final d = distance * direction.scaleOnGrid;
-    final alignment = direction.flipped.toAlignment;
+    final alignment = AlignmentExtension.fromDirection(direction.flipped);
     return FabExpandableSetup._(
       positioned: FExtruding2D.directByDimension(
         rect: openIconRect,
@@ -716,7 +737,7 @@ class FabExpandableSetup {
       )(d * total),
       alignment: alignment,
       mationsGenerator: MamionMulti.generateShoot(
-        direction.toOffset * d,
+        OffsetExtension.fromDirection(direction) * d,
         curve: curve,
         total: total,
         alignmentScale: alignment,

@@ -3,9 +3,9 @@
 .dart_tool/
 .idea/
 android/
+build/
 ios/
 linux/
 macos/
 web/
 windows/
-build/

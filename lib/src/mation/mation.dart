@@ -25,11 +25,11 @@
 ///       --[ManionParentChildren]
 ///
 ///
-///
-///
-///
-///
-///
+/// typedefs:
+/// [AnimationBuilder]
+/// [MationBuilder]
+/// [MationMultiGenerator]
+/// [MationSequencer]
 ///
 ///
 ///
@@ -261,7 +261,7 @@ class MamionSingle<T> extends _MationableBetween<T> implements Mamionability {
 ///
 class MamionTransition extends MamionSingle {
   MamionTransition.rotate(
-    MationableValue<double> value, {
+    Mationvalue<double> value, {
     Alignment alignment = Alignment.topLeft,
   }) : super(
           value,
@@ -273,7 +273,7 @@ class MamionTransition extends MamionSingle {
         );
 
   MamionTransition.rotateInRadian(
-    MationableValue<double> value, {
+    Mationvalue<double> value, {
     Alignment alignment = Alignment.topLeft,
   }) : this.rotate(
           MationableValueDoubleExtension.toRadianFrom(value),
@@ -281,7 +281,7 @@ class MamionTransition extends MamionSingle {
         );
 
   MamionTransition.scale(
-    MationableValue<double> value, {
+    Mationvalue<double> value, {
     Alignment alignment = Alignment.topLeft,
   }) : super(
           value,
@@ -293,7 +293,7 @@ class MamionTransition extends MamionSingle {
         );
 
   MamionTransition.size(
-    MationableValue<double> value, {
+    Mationvalue<double> value, {
     Axis axis = Axis.vertical,
     double axisAlignment = 0.0,
   }) : super(
@@ -307,7 +307,7 @@ class MamionTransition extends MamionSingle {
         );
 
   MamionTransition.relativePositioned(
-    MationableValue<double> value, {
+    Mationvalue<double> value, {
     required Size size,
   }) : super(
           value,
@@ -318,7 +318,7 @@ class MamionTransition extends MamionSingle {
           ),
         );
 
-  MamionTransition.positioned(MationableValue<RelativeRect> value)
+  MamionTransition.positioned(Mationvalue<RelativeRect> value)
       : super(
           value,
           (animation, child) => PositionedTransition(
@@ -328,7 +328,7 @@ class MamionTransition extends MamionSingle {
         );
 
   MamionTransition.slide(
-    MationableValue<Offset> value, {
+    Mationvalue<Offset> value, {
     bool transformHitTests = true,
     TextDirection? textDirection,
   }) : super(
@@ -341,7 +341,7 @@ class MamionTransition extends MamionSingle {
           ),
         );
 
-  MamionTransition.decoration(MationableValue<Decoration> value)
+  MamionTransition.decoration(Mationvalue<Decoration> value)
       : super(
           value,
           (animation, child) => DecoratedBoxTransition(
@@ -350,7 +350,7 @@ class MamionTransition extends MamionSingle {
           ),
         );
 
-  MamionTransition.fade(MationableValue<double> value)
+  MamionTransition.fade(Mationvalue<double> value)
       : super(
           value,
           (animation, child) => FadeTransition(
@@ -368,7 +368,7 @@ class MamionTransition extends MamionSingle {
   MamionTransition.fadeOut({CurveFR? curve})
       : this.fade(FBetween.doubleZeroFrom(1, curve: curve));
 
-  MamionTransition.silverFade(MationableValue<double> value)
+  MamionTransition.silverFade(Mationvalue<double> value)
       : super(
           value,
           (animation, child) => SliverFadeTransition(
@@ -377,7 +377,7 @@ class MamionTransition extends MamionSingle {
           ),
         );
 
-  MamionTransition.align(MationableValue<AlignmentGeometry> value)
+  MamionTransition.align(Mationvalue<AlignmentGeometry> value)
       : super(
           value,
           (animation, child) => AlignTransition(
@@ -386,7 +386,7 @@ class MamionTransition extends MamionSingle {
           ),
         );
 
-  MamionTransition.defaultTextStyle(MationableValue<TextStyle> value)
+  MamionTransition.defaultTextStyle(Mationvalue<TextStyle> value)
       : super(
           value,
           (animation, child) => DefaultTextStyleTransition(
@@ -558,18 +558,18 @@ class MamionMulti extends _MationMulti<Mamionability> {
     required double scaleEnd,
     required Offset position,
     required double interval,
-    CurveFR curveScale = KCurveFR.fastOutSlowIn,
-    CurveFR curveSlide = KCurveFR.fastOutSlowIn,
+    CurveFR curveScale = CurveFR.linear,
+    CurveFR curveSlide = CurveFR.linear,
   }) =>
       MamionMulti.shoot(
         alignmentScale: Alignment.center,
         scaling: FBetween.doubleOneTo(
           scaleEnd,
-          curve: CurveFR.intervalFlip(curveScale, interval, 1),
+          curve: curveScale.interval(interval, 1),
         ),
         sliding: FBetween.offsetZeroTo(
           -position,
-          curve: CurveFR.intervalFlip(curveSlide, 0, interval),
+          curve: curveSlide.interval(0, interval),
         ),
       );
 
@@ -591,7 +591,7 @@ class MamionMulti extends _MationMulti<Mamionability> {
             0,
             distance,
             curve: curve.nullOrTranslate(
-              (value) => CurveFR.intervalFlip(value, interval * index, 1.0),
+              (value) => value.interval(interval * index, 1.0),
             ),
           ),
         );
@@ -614,7 +614,7 @@ class MamionMulti extends _MationMulti<Mamionability> {
           scaling: FBetween.doubleOneFrom(
             0.0,
             curve: curve.nullOrTranslate(
-              (value) => CurveFR.intervalFlip(value, interval * index, 1.0),
+              (value) => value.interval(interval * index, 1.0),
             ),
           ),
         );
@@ -640,7 +640,7 @@ class MamionMulti extends _MationMulti<Mamionability> {
 ///
 /// See Also:
 ///   * [Direction], [Direction3DIn6]
-///   * [Coordinate.transferToTransformOf], [Coordinate.fromDirection]
+///   * [Space3.transferToTransformOf], [Space3.fromDirection]
 ///
 
 ///
@@ -660,9 +660,9 @@ class MamionTransform extends _MationMulti<MamionTransformDelegate> {
 
   MamionTransform({
     Matrix4? host,
-    Between<Coordinate>? translateBetween,
-    Between<Coordinate>? rotateBetween,
-    Between<Coordinate>? scaleBetween,
+    Between<Space3>? translateBetween,
+    Between<Space3>? rotateBetween,
+    Between<Space3>? scaleBetween,
     AlignmentGeometry? translateAlignment,
     AlignmentGeometry? rotateAlignment,
     AlignmentGeometry? scaleAlignment,
@@ -690,9 +690,9 @@ class MamionTransform extends _MationMulti<MamionTransformDelegate> {
 
   MamionTransform.distanced({
     required double distanceToObserver,
-    Between<Coordinate>? translateBetween,
-    Between<Coordinate>? rotateBetween,
-    Between<Coordinate>? scaleBetween,
+    Between<Space3>? translateBetween,
+    Between<Space3>? rotateBetween,
+    Between<Space3>? scaleBetween,
     AlignmentGeometry? translateAlignment,
     AlignmentGeometry? rotateAlignment,
     AlignmentGeometry? scaleAlignment,
@@ -746,7 +746,7 @@ class MamionTransform extends _MationMulti<MamionTransformDelegate> {
 /// [MamionTransformDelegate.scale]
 /// [link], [isSameTypeWith], [align]
 ///
-class MamionTransformDelegate extends _MationableBetween<Coordinate> {
+class MamionTransformDelegate extends _MationableBetween<Space3> {
   final OnAnimateMatrix4 onAnimate;
   final AlignmentGeometry? alignment;
   Matrix4 host;
@@ -789,7 +789,7 @@ class MamionTransformDelegate extends _MationableBetween<Coordinate> {
   /// constructors
   ///
   MamionTransformDelegate._(
-    MationableValue<Coordinate> value, {
+    Mationvalue<Space3> value, {
     required this.alignment,
     required this.host,
     required this.onAnimate,
@@ -802,7 +802,7 @@ class MamionTransformDelegate extends _MationableBetween<Coordinate> {
                 ));
 
   MamionTransformDelegate.translation(
-    MationableValue<Coordinate> value, {
+    Mationvalue<Space3> value, {
     AlignmentGeometry? alignment,
     Matrix4? host,
   }) : this._(
@@ -813,7 +813,7 @@ class MamionTransformDelegate extends _MationableBetween<Coordinate> {
         );
 
   MamionTransformDelegate.rotation(
-    MationableValue<Coordinate> value, {
+    Mationvalue<Space3> value, {
     AlignmentGeometry? alignment,
     Matrix4? host,
   }) : this._(
@@ -824,7 +824,7 @@ class MamionTransformDelegate extends _MationableBetween<Coordinate> {
         );
 
   MamionTransformDelegate.scale(
-    MationableValue<Coordinate> value, {
+    Mationvalue<Space3> value, {
     AlignmentGeometry? alignment,
     Matrix4? host,
   }) : this._(
@@ -863,3 +863,26 @@ class ManionParentChildren<M extends Mamionability>
     required super.children,
   });
 }
+
+///
+///
+/// typedefs
+///
+///
+typedef AnimationBuilder<T> = Widget Function(
+  Animation<T> animation,
+  Widget child,
+);
+
+typedef MationBuilder<M extends Mamionability> = Widget Function(
+  BuildContext context,
+  M mation,
+);
+
+typedef MationMultiGenerator = Generator<MamionMulti>;
+
+typedef MationSequencer<T> = Translator<int, Mamionability> Function(
+  AniSequenceStep previos,
+  AniSequenceStep next,
+  AniSequenceInterval interval,
+);

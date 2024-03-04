@@ -1,6 +1,5 @@
-import 'dart:developer';
-import 'dart:math' hide log;
 
+import 'package:damath/damath.dart';
 import 'package:dastore/dastore.dart';
 import 'package:flutter/material.dart';
 import 'package:mationani/mationani.dart';
@@ -45,16 +44,16 @@ class _MyHomeState extends State<MyHome> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.black45,
       floatingActionButton: FloatingActionButton(
         onPressed: onPressed,
         child: const Icon(Icons.add),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
-      backgroundColor: Colors.white38,
       body: SizedBox.expand(
         child: Mationani(
           ani: AniUpdateIfAnimating.backOr(
-            duration: KDurationFR.second5,
+            duration: DurationFR.second3,
             onNotAnimating: Ani.consumeForwardOrReverse,
           ),
           mation: Mamion(
@@ -62,11 +61,14 @@ class _MyHomeState extends State<MyHome> {
               scaleEnd: 2,
               position: KOffset.square_1 * 0.5,
               interval: 0.7,
+              curveSlide: CurveFR.fastOutSlowIn,
+              curveScale: CurveFR.fastOutSlowIn,
             ),
             builder: (context) => GridPaper(
               interval: 100,
               divisions: 2,
               subdivisions: 1,
+              color: Colors.white54,
             ),
           ),
         ),

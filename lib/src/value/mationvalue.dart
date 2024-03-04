@@ -1,6 +1,10 @@
 ///
 ///
 /// this file contains:
+///
+/// [_Mationvalue]
+/// [Mationvalue]
+///
 /// [Between]
 ///   --[BetweenSpline2D]
 ///   --[BetweenPath]
@@ -41,10 +45,63 @@ part of mationani;
 ///
 ///
 ///
-/// [MationableValue]
+/// [_Mationvalue], [Mationvalue]
 ///
 ///
 ///
+
+//
+class _Mationvalue<T> extends Animation<T>
+    with AnimationWithParentMixin<double> {
+  _Mationvalue(this.parent, this.animatable);
+
+  @override
+  final Animation<double> parent;
+
+  final Mationvalue<T> animatable;
+
+  @override
+  T get value => animatable.evaluate(parent);
+
+  @override
+  String toString() => '$parent\u27A9$animatable\u27A9$value';
+
+  @override
+  String toStringDetails() => '${super.toStringDetails()} $animatable';
+}
+
+///
+///
+///
+/// [onLerp], [curve],
+/// [transform], [evaluate], [animate],
+///
+sealed class Mationvalue<T> extends Animatable<T> {
+  final OnLerp<T> onLerp;
+  final CurveFR? curve;
+
+  const Mationvalue({
+    required this.onLerp,
+    this.curve,
+  });
+
+  @override
+  T transform(double t) => onLerp(t);
+
+  @override
+  T evaluate(Animation<double> animation) => transform(animation.value);
+
+  @override
+  Animation<T> animate(Animation<double> parent) => _Mationvalue(
+        CurvedAnimation(
+          parent: parent,
+          curve: curve?.forward ?? Curves.fastOutSlowIn,
+          reverseCurve: curve?.reverse ?? Curves.fastOutSlowIn,
+        ),
+        this,
+      );
+}
+
 
 ///
 ///
@@ -59,12 +116,12 @@ part of mationani;
 /// [Between.constant], [Between.of], [Between.sequence], [Between.sequenceFromGenerator], ...
 /// [reverse], [follow], [followOperate], ..., [toString]
 ///
-class Between<T> extends MationableValue<T> {
+class Between<T> extends Mationvalue<T> {
   final T begin;
   final T end;
 
   Between(this.begin, this.end, {super.curve})
-      : super(onLerp: _drive(begin, end));
+      : super(onLerp: FOnLerp.from(begin, end));
 
   const Between.constant(
     this.begin,
@@ -76,7 +133,7 @@ class Between<T> extends MationableValue<T> {
   Between.of(T value)
       : begin = value,
         end = value,
-        super(onLerp: _of(value));
+        super(onLerp: FOnLerp.of(value));
 
   Between.sequence({
     required List<T> steps,
@@ -111,7 +168,7 @@ class Between<T> extends MationableValue<T> {
   Between.outAndBack({
     required this.begin,
     required T target,
-    super.curve = KCurveFR.linear,
+    super.curve = CurveFR.linear,
     double ratio = 1.0,
     Curve curveOut = Curves.fastOutSlowIn,
     Curve curveBack = Curves.fastOutSlowIn,
@@ -158,77 +215,6 @@ class Between<T> extends MationableValue<T> {
         onLerp: onLerp,
         curve: curve,
       );
-
-  ///
-  ///
-  /// [_of]
-  /// [_drive]
-  ///
-  ///
-
-  static OnLerp<T> _of<T>(T value) => (_) => value;
-
-  ///
-  ///
-  /// See Also
-  ///   * [Decoration]
-  ///   * [FSizingPath.shapeBorder]
-  ///
-  ///
-  static OnLerp<T> _drive<T>(T a, T b) => switch (a) {
-        Size _ => (t) => Size.lerp(a, b as Size, t)!,
-        Rect _ => (t) => Rect.lerp(a, b as Rect, t)!,
-        Color _ => (t) => Color.lerp(a, b as Color, t)!,
-        Vector3D _ => (t) => Vector3D.lerp(a, b as Vector3D, t),
-        EdgeInsets _ => (t) => EdgeInsets.lerp(a, b as EdgeInsets?, t)!,
-        RelativeRect _ => (t) => RelativeRect.lerp(a, b as RelativeRect?, t)!,
-        AlignmentGeometry _ => (t) =>
-            AlignmentGeometry.lerp(a, b as AlignmentGeometry?, t)!,
-        SizingPath _ => throw ArgumentError(
-            'Use BetweenPath instead of Between<SizingPath>',
-          ),
-        Decoration _ => switch (a) {
-            BoxDecoration _ => b is BoxDecoration && a.shape == b.shape
-                ? (t) => BoxDecoration.lerp(a, b, t)!
-                : throw UnimplementedError(
-                    'BoxShape should not be interpolated'),
-            ShapeDecoration _ => switch (b) {
-                ShapeDecoration _ => a.shape == b.shape
-                    ? (t) => ShapeDecoration.lerp(a, b, t)!
-                    : switch (a.shape) {
-                        CircleBorder _ || RoundedRectangleBorder _ => switch (
-                              b.shape) {
-                            CircleBorder _ || RoundedRectangleBorder _ => (t) =>
-                                Decoration.lerp(a, b, t)!,
-                            _ => throw UnimplementedError(
-                                "'$a shouldn't be interpolated to $b'",
-                              ),
-                          },
-                        _ => throw UnimplementedError(
-                            "'$a shouldn't be interpolated to $b'",
-                          ),
-                      },
-                _ => throw UnimplementedError(),
-              },
-            _ => throw UnimplementedError(),
-          },
-        ShapeBorder _ => switch (a) {
-            BoxBorder _ => switch (b) {
-                BoxBorder _ => (t) => BoxBorder.lerp(a, b, t)!,
-                _ => throw UnimplementedError(),
-              },
-            InputBorder _ => switch (b) {
-                InputBorder _ => (t) => ShapeBorder.lerp(a, b, t)!,
-                _ => throw UnimplementedError(),
-              },
-            OutlinedBorder _ => switch (b) {
-                OutlinedBorder _ => (t) => OutlinedBorder.lerp(a, b, t)!,
-                _ => throw UnimplementedError(),
-              },
-            _ => throw UnimplementedError(),
-          },
-        _ => Tween<T>(begin: a, end: b).transform,
-      } as OnLerp<T>;
 }
 
 ///
@@ -267,12 +253,12 @@ class BetweenSpline2D extends Between<Offset> {
 
   static OnLerp<Offset> lerpArcCircleSemi(Offset a, Offset b, bool clockwise) {
     if (a == b) {
-      return Between._of(a);
+      return FOnLerp.of(a);
     }
 
     final center = a.middleWith(b);
     final radianBegin = center.directionTo(a);
-    final r = clockwise ? KRadian.angle_180 : -KRadian.angle_180;
+    final r = clockwise ? Radian.angle_180 : -Radian.angle_180;
     final radius = (a - b).distance / 2;
 
     return (t) => center + Offset.fromDirection(radianBegin + r * t, radius);
@@ -415,8 +401,8 @@ class BetweenPath<T> extends Between<SizingPath> {
     SizingRect sizingRect = FSizingRect.full,
   }) {
     final shaping = outerPath
-        ? (s) => FSizingPath._shapeBorderOuter(s, sizingRect, textDirection)
-        : (s) => FSizingPath._shapeBorderInner(s, sizingRect, textDirection);
+        ? (s) => FSizingPath.shapeBorderOuter(s, sizingRect, textDirection)
+        : (s) => FSizingPath.shapeBorderInner(s, sizingRect, textDirection);
     return (t, shape) => shaping(shape);
   }
 }
@@ -438,8 +424,8 @@ class BetweenPathOffset extends BetweenPath<Offset> {
 
   static OnAnimatePath<Offset> animateStadium(
       Offset o, double direction, double r) {
-    Offset topOf(Offset p) => p.direct(direction - KRadian.angle_90, r);
-    Offset bottomOf(Offset p) => p.direct(direction + KRadian.angle_90, r);
+    Offset topOf(Offset p) => p.direct(direction - Radian.angle_90, r);
+    Offset bottomOf(Offset p) => p.direct(direction + Radian.angle_90, r);
     final oTop = topOf(o);
     final oBottom = bottomOf(o);
 
@@ -535,8 +521,8 @@ class BetweenPathVector3D extends BetweenPath<Vector3D> {
 //   required Companion<Vector3D, int> planetGenerator,
 // }) : this(
 //         Between<Vector3D>(
-//           Vector3D(Coordinate.zero, radiusOrbit.begin),
-//           Vector3D(KRadianCoordinate.angleZ_360, radiusOrbit.end),
+//           Vector3D(Space3.zero, radiusOrbit.begin),
+//           Vector3D(KRadianSpace3.angleZ_360, radiusOrbit.end),
 //         ),
 //         onAnimate: (t, vector) => FSizingPath.combineAll(
 //           Iterable.generate(
@@ -544,7 +530,7 @@ class BetweenPathVector3D extends BetweenPath<Vector3D> {
 //             (i) => (size) => Path()
 //               ..addOval(
 //                 Rect.fromCircle(
-//                   center: planetGenerator(vector, i).toCoordinate,
+//                   center: planetGenerator(vector, i).toSpace3,
 //                   radius: initialCircleRadius * (i + 1) * circleRadiusFactor,
 //                 ),
 //               ),
@@ -596,7 +582,7 @@ enum AmplitudeStyle {
 }
 
 //
-class Amplitude<T> extends MationableValue<T> {
+class Amplitude<T> extends Mationvalue<T> {
   final T from;
   final T value;
   final int times;
@@ -653,7 +639,7 @@ class BetweenInterval {
 
   OnLerp<T> lerp<T>(T a, T b) {
     final curving = curve.transform;
-    final onLerp = Between._drive<T>(a, b);
+    final onLerp = FOnLerp.from<T>(a, b);
     return (t) => onLerp(curving(t));
   }
 

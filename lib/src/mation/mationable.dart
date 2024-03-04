@@ -14,8 +14,8 @@
 ///   [_MationPlanableIterable]
 ///   [_MationPlanableMulti]
 ///
-/// [_MationableBetween]
 ///
+/// [_MationableBetween]
 ///
 /// [_MationMulti]
 /// [_ManionChildren]
@@ -76,7 +76,7 @@ abstract interface class _MationableIterable<M extends _Mationable>
 
   static int lengthFlatted(_Mationable ables) => switch (ables) {
         _MationableIterable() => ables.ables.reduceToNum(
-            reducer: FReducerNum.intAdding,
+            reducer: FReducer.intAdd,
             translator: lengthFlatted,
           ),
         _Mationable() => 1,
@@ -149,7 +149,9 @@ sealed class _MationAnimatable implements _Mationable {
 
   Object animate(Animation<double> parent);
 
-  static _AnimatingMationable animating(Animation<double> animation) =>
+  static Iterable<Animation> Function(_Mationable able) animating(
+    Animation<double> animation,
+  ) =>
       (able) => switch (able) {
             _MationAnimatable() => switch (able) {
                 _MationAnimatableSingle() => [able.animate(animation)],
@@ -188,7 +190,7 @@ sealed class _MationPlanable implements _Mationable {
 
 // animatable single
 mixin _MationAnimatableSingle<T> implements _MationAnimatable {
-  MationableValue<T> get value;
+  Mationvalue<T> get value;
 
   @override
   Animation animate(Animation<double> animation) => value.animate(animation);
@@ -260,7 +262,7 @@ mixin _MationPlanableMulti<M extends _Mationable>
 abstract class _MationableBetween<T>
     with _MationAnimatableSingle<T>, _MationPlanableSingle {
   @override
-  final MationableValue<T> value;
+  final Mationvalue<T> value;
   @override
   final AnimationBuilder plan;
 
