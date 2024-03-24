@@ -5,8 +5,8 @@
 /// [MationableValueDoubleExtension]
 ///
 /// [BetweenOffsetExtension]
-/// [BetweenSpace3Extension]
-/// [BetweenSpace3RadianExtension]
+/// [BetweenPoint3Extension]
+/// [BetweenRadian3Extension]
 /// [FBetween]
 ///
 ///
@@ -43,13 +43,13 @@ extension MationableValueDoubleExtension on Mationvalue<double> {
   static Mationvalue<double> toRadianFrom(Mationvalue<double> round) =>
       switch (round) {
         Between<double>() => Between(
-            Radian.radianFromRound(round.begin),
-            Radian.radianFromRound(round.end),
+            RotationUnit.radianFromRound(round.begin),
+            RotationUnit.radianFromRound(round.end),
             curve: round.curve,
           ),
         Amplitude<double>() => Amplitude(
-            Radian.radianFromRound(round.from),
-            Radian.radianFromRound(round.value),
+            RotationUnit.radianFromRound(round.from),
+            RotationUnit.radianFromRound(round.value),
             round.times,
             style: round.style,
             curve: round.curve,
@@ -58,48 +58,36 @@ extension MationableValueDoubleExtension on Mationvalue<double> {
 }
 
 extension BetweenOffsetExtension on Between<Offset> {
-  double get direction => begin.directionTo(end);
+  double get direction => end.direction - begin.direction;
 }
 
-extension BetweenSpace3Extension on Between<Space3> {
-  ///
-  /// see the comment above [Space3.transferToTransformOf]
-  ///
-  Between<Space3> get transferToTransform => Between.constant(
-        Space3.transferToTransformOf(begin),
-        Space3.transferToTransformOf(end),
-        curve: curve,
-        onLerp: onLerp,
-      );
-}
+extension BetweenPoint3Extension on Between<Point3> {
+  static Between<Point3> x360From(Point3 from) =>
+      Between(from, Point3.ofX(Radian.angle_360));
 
-extension BetweenSpace3RadianExtension on Between<Space3Radian> {
-  static Between<Space3Radian> x360From(Space3Radian from) =>
-      Between<Space3Radian>(from, Space3Radian.angleX_360);
+  static Between<Point3> y360From(Point3 from) =>
+      Between(from, Point3.ofY(Radian.angle_360));
 
-  static Between<Space3Radian> y360From(Space3Radian from) =>
-      Between(from, Space3Radian.angleY_360);
+  static Between<Point3> z360From(Point3 from) =>
+      Between(from, Point3.ofZ(Radian.angle_360));
 
-  static Between<Space3Radian> z360From(Space3Radian from) =>
-      Between(from, Space3Radian.angleZ_360);
+  static Between<Point3> x180From(Point3 from) =>
+      Between(from, Point3.ofX(Radian.angle_180));
 
-  static Between<Space3Radian> x180From(Space3Radian from) =>
-      Between(from, Space3Radian.angleX_180);
+  static Between<Point3> y180From(Point3 from) =>
+      Between(from, Point3.ofY(Radian.angle_180));
 
-  static Between<Space3Radian> y180From(Space3Radian from) =>
-      Between(from, Space3Radian.angleY_180);
+  static Between<Point3> z180From(Point3 from) =>
+      Between(from, Point3.ofZ(Radian.angle_180));
 
-  static Between<Space3Radian> z180From(Space3Radian from) =>
-      Between(from, Space3Radian.angleZ_180);
+  static Between<Point3> x90From(Point3 from) =>
+      Between(from, Point3.ofX(Radian.angle_90));
 
-  static Between<Space3Radian> x90From(Space3Radian from) =>
-      Between(from, Space3Radian.angleX_90);
+  static Between<Point3> y90From(Point3 from) =>
+      Between(from, Point3.ofY(Radian.angle_90));
 
-  static Between<Space3Radian> y90From(Space3Radian from) =>
-      Between(from, Space3Radian.angleY_90);
-
-  static Between<Space3Radian> z90From(Space3Radian from) =>
-      Between(from, Space3Radian.angleZ_90);
+  static Between<Point3> z90From(Point3 from) =>
+      Between(from, Point3.ofZ(Radian.angle_90));
 }
 
 extension FBetween on Between {
@@ -201,51 +189,51 @@ extension FBetween on Between {
   /// [coordinateZeroBeginOrEnd], [coordinateOneBeginOrEnd]
   ///
   ///
-  static Between<Space3> get coordinateKZero => Between.of(Space3.zero);
+  static Between<Point3> get coordinateKZero => Between.of(Point3.zero);
 
-  static Between<Space3> coordinateZeroFrom(
-    Space3 begin, {
+  static Between<Point3> coordinateZeroFrom(
+    Point3 begin, {
     CurveFR? curve,
   }) =>
-      Between<Space3>(begin, Space3.zero, curve: curve);
+      Between<Point3>(begin, Point3.zero, curve: curve);
 
-  static Between<Space3> coordinateZeroTo(
-    Space3 end, {
+  static Between<Point3> coordinateZeroTo(
+    Point3 end, {
     CurveFR? curve,
   }) =>
-      Between<Space3>(Space3.zero, end, curve: curve);
+      Between<Point3>(Point3.zero, end, curve: curve);
 
-  static Between<Space3> coordinateOneFrom(
-    Space3 begin, {
+  static Between<Point3> coordinateOneFrom(
+    Point3 begin, {
     CurveFR? curve,
   }) =>
-      Between<Space3>(begin, Space3.cube_1, curve: curve);
+      Between<Point3>(begin, Point3.one, curve: curve);
 
-  static Between<Space3> coordinateOneTo(
-    Space3 end, {
+  static Between<Point3> coordinateOneTo(
+    Point3 end, {
     CurveFR? curve,
   }) =>
-      Between<Space3>(Space3.cube_1, end, curve: curve);
+      Between<Point3>(Point3.one, end, curve: curve);
 
-  static Between<Space3> coordinateZeroBeginOrEnd(
-    Space3 another, {
+  static Between<Point3> coordinateZeroBeginOrEnd(
+    Point3 another, {
     CurveFR? curve,
     required bool isEndZero,
   }) =>
-      Between<Space3>(
-        isEndZero ? another : Space3.zero,
-        isEndZero ? Space3.zero : another,
+      Between<Point3>(
+        isEndZero ? another : Point3.zero,
+        isEndZero ? Point3.zero : another,
         curve: curve,
       );
 
-  static Between<Space3> coordinateOneBeginOrEnd(
-    Space3 another,
+  static Between<Point3> coordinateOneBeginOrEnd(
+    Point3 another,
     CurveFR? curve, {
     required bool isEndOne,
   }) =>
-      Between<Space3>(
-        isEndOne ? another : Space3.one,
-        isEndOne ? Space3.one : another,
+      Between<Point3>(
+        isEndOne ? another : Point3.one,
+        isEndOne ? Point3.one : another,
         curve: curve,
       );
 }
@@ -281,19 +269,19 @@ extension FAmplitude on Amplitude {
   }) =>
       Amplitude(Offset.zero, value, times, style: style);
 
-  static Amplitude<Space3> coordinateFromZero(
-    Space3 value,
+  static Amplitude<Point3> coordinateFromZero(
+    Point3 value,
     int times, {
     AmplitudeStyle style = AmplitudeStyle.sin,
     CurveFR? curve,
   }) =>
-      Amplitude(Space3.zero, value, times, style: style);
+      Amplitude(Point3.zero, value, times, style: style);
 
-  static Amplitude<Space3Radian> coordinateRadianFromZero(
-    Space3Radian value,
+  static Amplitude<Radian3> coordinateRadianFromZero(
+    Radian3 value,
     int times, {
     AmplitudeStyle style = AmplitudeStyle.sin,
     CurveFR? curve,
   }) =>
-      Amplitude(Space3Radian.zero, value, times, style: style);
+      Amplitude(Radian3.zero, value, times, style: style);
 }

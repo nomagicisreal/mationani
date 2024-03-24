@@ -75,9 +75,9 @@ abstract interface class _MationableIterable<M extends _Mationable>
       ables.every((m) => m is! _MationableIterable);
 
   static int lengthFlatted(_Mationable ables) => switch (ables) {
-        _MationableIterable() => ables.ables.reduceToNum(
-            reducer: FReducer.intAdd,
-            translator: lengthFlatted,
+        _MationableIterable() => ables.ables.iterator.reduceTo(
+            lengthFlatted,
+            FReducer.intAdd,
           ),
         _Mationable() => 1,
       };
@@ -156,7 +156,8 @@ sealed class _MationAnimatable implements _Mationable {
             _MationAnimatable() => switch (able) {
                 _MationAnimatableSingle() => [able.animate(animation)],
                 _MationAnimatableIterable() => able.animate(animation),
-                _MationAnimatableMulti() => able.animate(animation).flat(),
+                _MationAnimatableMulti() =>
+                  able.animate(animation).iterator.foldNested(),
               },
             _Mationable() => throw UnimplementedError(able.toString()),
           };
@@ -173,7 +174,7 @@ sealed class _MationPlanable implements _Mationable {
         _MationPlanable() => switch (able) {
             _MationPlanableSingle() => [able.plan],
             _MationPlanableIterable() => able.plan,
-            _MationPlanableMulti() => able.plan.flat(),
+            _MationPlanableMulti() => able.plan.iterator.foldNested(),
           },
         _Mationable() => throw UnimplementedError(able.toString()),
       };
@@ -325,9 +326,9 @@ abstract class _ManionChildren<M extends Mamionability>
 
   @override
   List<WidgetBuilder> planForChildren(Animation<double> animation) =>
-      children.foldWithIndex(
+      children.iterator.fold(
         [],
-        (i, list, mamion) => list..add(mamion.planning(animation)),
+        (list, mamion) => list..add(mamion.planning(animation)),
       );
 }
 

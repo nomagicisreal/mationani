@@ -590,16 +590,14 @@ class MamionMulti extends _MationMulti<Mamionability> {
             direction(index),
             0,
             distance,
-            curve: curve.nullOrTranslate(
-              (value) => value.interval(interval * index, 1.0),
-            ),
+            curve: curve.nullOrMap((c) => c.interval(interval * index, 1.0)),
           ),
         );
   }
 
   static MationMultiGenerator generateShoot(
     Offset delta, {
-    Generator<double> distribution = FGenerator.toDouble,
+    Generator<double> distribution = FGenerator.ofDouble,
     CurveFR? curve,
     required Alignment alignmentScale,
     required int total,
@@ -613,9 +611,7 @@ class MamionMulti extends _MationMulti<Mamionability> {
           ),
           scaling: FBetween.doubleOneFrom(
             0.0,
-            curve: curve.nullOrTranslate(
-              (value) => value.interval(interval * index, 1.0),
-            ),
+            curve: curve.nullOrMap((c) => c.interval(interval * index, 1.0)),
           ),
         );
   }
@@ -640,7 +636,7 @@ class MamionMulti extends _MationMulti<Mamionability> {
 ///
 /// See Also:
 ///   * [Direction], [Direction3DIn6]
-///   * [Space3.transferToTransformOf], [Space3.fromDirection]
+///   * [Point3.transferToTransformOf], [Point3.fromDirection]
 ///
 
 ///
@@ -652,7 +648,7 @@ class MamionTransform extends _MationMulti<MamionTransformDelegate> {
     Iterable<MamionTransformDelegate> delegates, {
     Matrix4? host,
     List<OnAnimateMatrix4> order = MamionTransformDelegate.orderTRS,
-  })  : assert(order.length == 3 && order.everyIsDifferent),
+  })  : assert(order.length == 3 && !order.iterator.anyEqual),
         super(_sort(
           delegates.map((d) => d..link(host ?? Matrix4.identity())),
           order,
@@ -660,9 +656,9 @@ class MamionTransform extends _MationMulti<MamionTransformDelegate> {
 
   MamionTransform({
     Matrix4? host,
-    Between<Space3>? translateBetween,
-    Between<Space3>? rotateBetween,
-    Between<Space3>? scaleBetween,
+    Between<Point3>? translateBetween,
+    Between<Point3>? rotateBetween,
+    Between<Point3>? scaleBetween,
     AlignmentGeometry? translateAlignment,
     AlignmentGeometry? rotateAlignment,
     AlignmentGeometry? scaleAlignment,
@@ -690,9 +686,9 @@ class MamionTransform extends _MationMulti<MamionTransformDelegate> {
 
   MamionTransform.distanced({
     required double distanceToObserver,
-    Between<Space3>? translateBetween,
-    Between<Space3>? rotateBetween,
-    Between<Space3>? scaleBetween,
+    Between<Point3>? translateBetween,
+    Between<Point3>? rotateBetween,
+    Between<Point3>? scaleBetween,
     AlignmentGeometry? translateAlignment,
     AlignmentGeometry? rotateAlignment,
     AlignmentGeometry? scaleAlignment,
@@ -746,7 +742,7 @@ class MamionTransform extends _MationMulti<MamionTransformDelegate> {
 /// [MamionTransformDelegate.scale]
 /// [link], [isSameTypeWith], [align]
 ///
-class MamionTransformDelegate extends _MationableBetween<Space3> {
+class MamionTransformDelegate extends _MationableBetween<Point3> {
   final OnAnimateMatrix4 onAnimate;
   final AlignmentGeometry? alignment;
   Matrix4 host;
@@ -789,7 +785,7 @@ class MamionTransformDelegate extends _MationableBetween<Space3> {
   /// constructors
   ///
   MamionTransformDelegate._(
-    Mationvalue<Space3> value, {
+    Mationvalue<Point3> value, {
     required this.alignment,
     required this.host,
     required this.onAnimate,
@@ -802,7 +798,7 @@ class MamionTransformDelegate extends _MationableBetween<Space3> {
                 ));
 
   MamionTransformDelegate.translation(
-    Mationvalue<Space3> value, {
+    Mationvalue<Point3> value, {
     AlignmentGeometry? alignment,
     Matrix4? host,
   }) : this._(
@@ -813,7 +809,7 @@ class MamionTransformDelegate extends _MationableBetween<Space3> {
         );
 
   MamionTransformDelegate.rotation(
-    Mationvalue<Space3> value, {
+    Mationvalue<Point3> value, {
     AlignmentGeometry? alignment,
     Matrix4? host,
   }) : this._(
@@ -824,7 +820,7 @@ class MamionTransformDelegate extends _MationableBetween<Space3> {
         );
 
   MamionTransformDelegate.scale(
-    Mationvalue<Space3> value, {
+    Mationvalue<Point3> value, {
     AlignmentGeometry? alignment,
     Matrix4? host,
   }) : this._(
@@ -881,8 +877,5 @@ typedef MationBuilder<M extends Mamionability> = Widget Function(
 
 typedef MationMultiGenerator = Generator<MamionMulti>;
 
-typedef MationSequencer<T> = Translator<int, Mamionability> Function(
-  AniSequenceStep previos,
-  AniSequenceStep next,
-  AniSequenceInterval interval,
-);
+typedef MationSequencer<T>
+    = Sequencer<AniSequenceStep, AniSequenceInterval, Mamionability>;

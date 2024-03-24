@@ -74,7 +74,7 @@ class Mationani extends StatefulWidget {
   /// if [step] % 2 == 0, there is forward animation,
   /// if [step] % 2 == 1, there is reverse animation,
   ///
-  /// see [AniSequenceStyle.sequence] for [motivations] creation
+  /// see [AniSequenceStyle.sequence] for [abilities] creation
   ///
   factory Mationani.mamionSequence(
     int? step, {
@@ -91,7 +91,7 @@ class Mationani extends StatefulWidget {
         duration: sequence.durations[i],
         initializer: initializer,
       ),
-      ability: sequence.motivations[i],
+      ability: sequence.abilities[i],
       builder: builder,
     );
   }
@@ -176,7 +176,7 @@ class MationaniCutting extends StatelessWidget {
   const MationaniCutting({
     super.key,
     this.pieces = 2,
-    this.direction = Direction2D.radian_bottomRight,
+    this.direction = Radian.bottomRight,
     this.curveFadeOut,
     this.curve,
     Ani? aniFadeOut,
@@ -184,7 +184,7 @@ class MationaniCutting extends StatelessWidget {
     required this.rotation,
     required this.distance,
     required this.child,
-  }) : assert(pieces == 2 && direction == Direction2D.radian_bottomRight);
+  }) : assert(pieces == 2 && direction == Radian.bottomRight);
 
   final int pieces;
   final double direction;
@@ -388,7 +388,7 @@ mixin OverlayMixin {
 }
 
 class OverlayInsertion<T extends Widget> {
-  final Translator<BuildContext, T> builder;
+  final Mapper<BuildContext, T> builder;
   final bool opaque;
   final bool maintainState;
   final OverlayEntry? below;
@@ -619,13 +619,17 @@ class _FabExpandableState extends State<FabExpandable>
 
   Widget get _closeButton => SizedBoxCenter.fromSize(
         size: KSize.square_56,
-        child: MaterialInkWellPadding(
+        child: Material(
           shape: FBorderOutlined.circle(side: BorderSide.none),
           clipBehavior: Clip.antiAlias,
           elevation: 4,
-          onTap: _toggle,
-          padding: KEdgeInsets.all_1 * 8,
-          child: widget.closeIcon,
+          child: InkWell(
+            onTap: _toggle,
+            child: Padding(
+              padding: KEdgeInsets.all_1 * 8,
+              child: widget.closeIcon,
+            ),
+          ),
         ),
       );
 }
@@ -653,20 +657,22 @@ class _FabExpandableElements extends StatelessWidget {
         child: Stack(
           alignment: setup.alignment,
           children: icons.build(
-            (index, icon, action) => Mationani.mamion(
+            (icon, action, index) => Mationani.mamion(
               ani: AniUpdateIfAnimating.backOr(
                 initializer: Ani.initializeForward,
                 duration: duration,
                 onNotAnimating: updateWhen(open),
               ),
               ability: setup.mationsGenerator(index),
-              builder: (context) => MaterialIconButton(
-                shape: FBorderOutlined.continuousRectangle(
-                  side: FBorderSide.solidCenter(),
-                  borderRadius: KBorderRadius.allCircular_10 * 2,
+              builder: (context) => Material(
+                  shape: FBorderOutlined.continuousRectangle(
+                    side: FBorderSide.solidCenter(),
+                    borderRadius: KBorderRadius.allCircular_10 * 2,
+                  ),
+                child: IconButton(
+                  onPressed: action,
+                  icon: icon,
                 ),
-                onPressed: action,
-                child: icon,
               ),
             ),
           ),
@@ -706,7 +712,7 @@ class FabExpandableSetup {
       FabExpandableSetup._(
         positioned: RectExtension.fromCircle(
           openIconRect.center,
-          icons.maxRadiusBy(context) * (1 + 2 * distance),
+          icons.maxRadiusFrom(context) * (1 + 2 * distance),
         ),
         alignment: Alignment.center,
         mationsGenerator: MamionMulti.generateCover(
@@ -733,11 +739,11 @@ class FabExpandableSetup {
       positioned: FExtruding2D.directByDimension(
         rect: openIconRect,
         direction: direction,
-        dimension: icons.maxRadiusBy(context) * 2,
+        dimension: icons.maxRadiusFrom(context) * 2,
       )(d * total),
       alignment: alignment,
       mationsGenerator: MamionMulti.generateShoot(
-        OffsetExtension.fromDirection(direction) * d,
+        OffsetExtension.unitFromDirection(direction) * d,
         curve: curve,
         total: total,
         alignmentScale: alignment,

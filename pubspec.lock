@@ -89,30 +89,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.3"
-  cupertino_icons:
-    dependency: transitive
-    description:
-      name: cupertino_icons
-      sha256: d57953e10f9f8327ce64a508a355f0b1ec902193f66288e8cb5070e7c47eeb2d
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.6"
   damath:
     dependency: "direct main"
     description:
       name: damath
-      sha256: d4c216bd0a2d483ed88ee8d51eb54f5313603f9518ffb210e127b227fa1804e2
+      sha256: "065e73e1f4afe7c5379c416b0681554efc93f2a87a879317e2a68a1de05d5e33"
       url: "https://pub.dev"
     source: hosted
-    version: "0.0.11"
-  dastore:
-    dependency: "direct main"
-    description:
-      name: dastore
-      sha256: d62553b0a22dc2516f7dc2ae4638717bda4a3aef8bdd6239f9b1e3d67ae116f1
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.0.17"
+    version: "0.0.19"
   fake_async:
     dependency: transitive
     description:

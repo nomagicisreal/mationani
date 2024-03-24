@@ -1,8 +1,7 @@
 
-import 'package:damath/damath.dart';
-import 'package:dastore/dastore.dart';
+import 'package:damath/api.dart';
 import 'package:flutter/material.dart';
-import 'package:mationani/mationani.dart';
+import 'package:mationani/api.dart';
 
 void main(List<String> args) {
   runApp(const MyApp());

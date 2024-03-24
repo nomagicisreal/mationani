@@ -521,14 +521,17 @@ class AniUpdateIfAnimating extends Ani {
 ///     while [AniSequence] is an easy way to have animation during widget creation
 ///     [Between.sequence] focus more on how [Animation.value] or other generic animation.value been lerp.
 ///
+///   * [BetweenInterval._link],
+///     which is similar to the factory of [AniSequence]
+///
 
 ///
 ///
 class AniSequence {
-  final List<Mamionability> motivations;
+  final List<Mamionability> abilities;
   final List<Duration> durations;
 
-  const AniSequence._(this.motivations, this.durations);
+  const AniSequence._(this.abilities, this.durations);
 
   factory AniSequence({
     required int totalStep,
@@ -543,13 +546,12 @@ class AniSequence {
       return i;
     }
 
+    var i = -1;
     return AniSequence._(
-      ListExtension.linking<Mamionability, AniSequenceStep,
-          AniSequenceInterval>(
-        totalStep: totalStep,
-        step: step,
-        interval: intervalGenerator,
-        sequencer: style.sequencer,
+      step.linkToListTill(
+        totalStep,
+        intervalGenerator,
+        (previous, next, interval) => style.sequencer(previous, next, interval)(++i),
       ),
       durations,
     );
@@ -561,7 +563,7 @@ class AniSequence {
 class AniSequenceStep {
   final List<double> values;
   final List<Offset> offsets;
-  final List<Space3> coordinates;
+  final List<Point3> coordinates;
 
   const AniSequenceStep({
     this.values = const [],
@@ -598,7 +600,7 @@ enum AniSequenceStyle {
   ///
   static bool _forwardOrReverse(int i) => i % 2 == 0;
 
-  static Translator<int, Mamionability> _sequence({
+  static Mapper<int, Mamionability> _sequence({
     Predicator<int> predicator = _forwardOrReverse,
     required AniSequenceStep previous,
     required AniSequenceStep next,
@@ -671,13 +673,13 @@ enum AniSequenceStyle {
 ///
 
 typedef AnimationControllerInitializer = AnimationController Function(
-    TickerProvider tickerProvider,
-    Duration forward,
-    Duration reverse,
-    );
+  TickerProvider tickerProvider,
+  Duration forward,
+  Duration reverse,
+);
 
 typedef AnimatedStatefulWidgetUpdater<W extends StatefulWidget> = void Function(
-    AnimationController controller,
-    W oldWidget,
-    W widget,
-    );
+  AnimationController controller,
+  W oldWidget,
+  W widget,
+);
