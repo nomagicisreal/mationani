@@ -132,7 +132,7 @@ class Between<T> extends Mationvalue<T> {
   Between.of(T value)
       : begin = value,
         end = value,
-        super(onLerp: FLerper.of(value));
+        super(onLerp: DoubleExtension.lerperOf(value));
 
   Between.sequence({
     required List<T> steps,
@@ -207,13 +207,6 @@ class Between<T> extends Mationvalue<T> {
         onLerp: onLerp,
         curve: curve,
       );
-
-  Between<T> followOperate(Operator operator, T next) => Between.constant(
-        end,
-        operator.operationOf(end, next),
-        onLerp: onLerp,
-        curve: curve,
-      );
 }
 
 ///
@@ -252,7 +245,7 @@ class BetweenSpline2D extends Between<Offset> {
 
   static Lerper<Offset> lerpArcCircleSemi(Offset a, Offset b, bool clockwise) {
     if (a == b) {
-      return FLerper.of(a);
+      return DoubleExtension.lerperOf(a);
     }
 
     final center = a.middleTo(b);
@@ -557,7 +550,7 @@ class BetweenPathPolygon extends _BetweenPathConcurrent<double> {
               scale ?? FBetween.doubleKOne,
             ],
             onAnimate: (t, values) => FSizingPath.polygonCubic(
-              polygon.cubicPointsOf(values[0], values[1]),
+              polygon.cubicPointsFrom(values[0], values[1]),
               scale: values[2],
               adjust: polygon.cornerAdjust,
             ),
@@ -631,7 +624,7 @@ class BetweenInterval {
 
   Lerper<T> lerp<T>(T a, T b) {
     final curving = curve.transform;
-    final onLerp = FLerper.from<T>(a, b);
+    final onLerp = lerperFrom<T>(a, b);
     return (t) => onLerp(curving(t));
   }
 

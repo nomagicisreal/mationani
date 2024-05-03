@@ -43,13 +43,13 @@ extension MationableValueDoubleExtension on Mationvalue<double> {
   static Mationvalue<double> toRadianFrom(Mationvalue<double> round) =>
       switch (round) {
         Between<double>() => Between(
-            RotationUnit.radianFromRound(round.begin),
-            RotationUnit.radianFromRound(round.end),
+            Radian.fromRound(round.begin),
+            Radian.fromRound(round.end),
             curve: round.curve,
           ),
         Amplitude<double>() => Amplitude(
-            RotationUnit.radianFromRound(round.from),
-            RotationUnit.radianFromRound(round.value),
+            Radian.fromRound(round.from),
+            Radian.fromRound(round.value),
             round.times,
             style: round.style,
             curve: round.curve,

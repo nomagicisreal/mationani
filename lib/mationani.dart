@@ -1,7 +1,7 @@
 library mationani;
 
 import 'dart:async';
-import 'package:damath/api.dart';
+import 'package:damath/damath.dart';
 import 'package:flutter/material.dart';
 
 part 'src/ani/ani.dart';

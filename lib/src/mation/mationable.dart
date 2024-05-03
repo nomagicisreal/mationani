@@ -75,9 +75,9 @@ abstract interface class _MationableIterable<M extends _Mationable>
       ables.every((m) => m is! _MationableIterable);
 
   static int lengthFlatted(_Mationable ables) => switch (ables) {
-        _MationableIterable() => ables.ables.iterator.reduceTo(
+        _MationableIterable() => ables.ables.iterator.induct(
             lengthFlatted,
-            FReducer.intAdd,
+            IntExtension.reducePlus,
           ),
         _Mationable() => 1,
       };

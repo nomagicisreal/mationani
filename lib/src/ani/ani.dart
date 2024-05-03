@@ -1,6 +1,7 @@
 ///
 /// this file contains:
 ///
+/// [DurationFR]
 /// [Ani]
 ///   [AniUpdateIfNotAnimating]
 ///   [AniUpdateIfAnimating]
@@ -37,6 +38,75 @@
 ///
 part of mationani;
 // ignore_for_file: use_string_in_part_of_directives
+
+///
+///
+class DurationFR {
+  final Duration forward;
+  final Duration reverse;
+
+  const DurationFR(this.forward, this.reverse);
+
+  const DurationFR.constant(Duration duration)
+      : forward = duration,
+        reverse = duration;
+
+  ///
+  ///
+  /// constants
+  ///
+  ///
+  static const DurationFR zero = DurationFR.constant(Duration.zero);
+  static const milli100 = DurationFR.constant(KCore.durationMilli100);
+  static const milli300 = DurationFR.constant(KCore.durationMilli300);
+  static const milli500 = DurationFR.constant(KCore.durationMilli500);
+  static const milli800 = DurationFR.constant(KCore.durationMilli800);
+  static const second1 = DurationFR.constant(KCore.durationSecond1);
+  static const second2 = DurationFR.constant(KCore.durationSecond2);
+  static const second3 = DurationFR.constant(KCore.durationSecond3);
+  static const second4 = DurationFR.constant(KCore.durationSecond4);
+  static const second5 = DurationFR.constant(KCore.durationSecond5);
+  static const second6 = DurationFR.constant(KCore.durationSecond6);
+  static const second7 = DurationFR.constant(KCore.durationSecond7);
+  static const second8 = DurationFR.constant(KCore.durationSecond8);
+  static const second9 = DurationFR.constant(KCore.durationSecond9);
+  static const second10 = DurationFR.constant(KCore.durationSecond10);
+  static const min1 = DurationFR.constant(KCore.durationMin1);
+
+  ///
+  ///
+  /// implementation for [Object]
+  ///
+  ///
+  @override
+  int get hashCode => Object.hash(forward, reverse);
+
+  @override
+  bool operator ==(covariant DurationFR other) => hashCode == other.hashCode;
+
+  @override
+  String toString() => 'DurationFR(f: $forward, r:$reverse)';
+
+  ///
+  ///
+  ///
+  ///
+  DurationFR operator +(DurationFR other) =>
+      DurationFR(forward + other.forward, reverse + other.reverse);
+
+  DurationFR operator -(DurationFR other) =>
+      DurationFR(forward - other.forward, reverse - other.reverse);
+
+  DurationFR operator &(Duration value) =>
+      DurationFR(forward + value, reverse + value);
+
+  DurationFR operator ^(Duration value) =>
+      DurationFR(forward - value, reverse - value);
+
+  DurationFR operator ~/(int value) =>
+      DurationFR(forward ~/ value, reverse ~/ value);
+
+}
 
 ///
 ///
@@ -563,12 +633,12 @@ class AniSequence {
 class AniSequenceStep {
   final List<double> values;
   final List<Offset> offsets;
-  final List<Point3> coordinates;
+  final List<Point3> points3;
 
   const AniSequenceStep({
     this.values = const [],
     this.offsets = const [],
-    this.coordinates = const [],
+    this.points3 = const [],
   });
 }
 
@@ -604,7 +674,7 @@ enum AniSequenceStyle {
     Predicator<int> predicator = _forwardOrReverse,
     required AniSequenceStep previous,
     required AniSequenceStep next,
-    required Combiner<AniSequenceStep, Mamionability> combine,
+    required Fusionor<AniSequenceStep, Mamionability> combine,
   }) =>
       (i) => combine(
             predicator(i) ? previous : next,
@@ -618,8 +688,8 @@ enum AniSequenceStyle {
               previous: previous,
               next: next,
               combine: (begin, end) {
-                final a = begin.coordinates;
-                final b = end.coordinates;
+                final a = begin.points3;
+                final b = end.points3;
                 return MamionTransform._(
                   [
                     MamionTransformDelegate.translation(

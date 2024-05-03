@@ -1,16 +1,11 @@
 
-import 'package:damath/api.dart';
+import 'package:damath/damath.dart';
 import 'package:flutter/material.dart';
-import 'package:mationani/api.dart';
+import 'package:mationani/mationani.dart';
 
 void main(List<String> args) {
   runApp(const MyApp());
 }
-
-Widget yellow100(BuildContext context) => WSizedBox.squareColored(
-      dimension: 100,
-      color: Colors.yellow,
-    );
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});

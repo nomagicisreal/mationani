@@ -648,7 +648,7 @@ class MamionTransform extends _MationMulti<MamionTransformDelegate> {
     Iterable<MamionTransformDelegate> delegates, {
     Matrix4? host,
     List<OnAnimateMatrix4> order = MamionTransformDelegate.orderTRS,
-  })  : assert(order.length == 3 && !order.iterator.anyEqual),
+  })  : assert(order.length == 3 && !order.iterator.existEqual),
         super(_sort(
           delegates.map((d) => d..link(host ?? Matrix4.identity())),
           order,

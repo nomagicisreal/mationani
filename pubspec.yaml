@@ -10,7 +10,7 @@ dependencies:
   flutter:
     sdk: flutter
 
-  damath: ^0.0.19
+  damath: ^0.0.21
 
 dev_dependencies:
   flutter_test:
