@@ -44,7 +44,7 @@ class _DemoState extends State<Demo> with SingleTickerProviderStateMixin {
   //     vsync: this,
   //     duration: KMath.durationSecond1,
   //   );
-  //   _animation = Tween(begin: Offset.zero, end: KOffset.bottomRight * 3)
+  //   _animation = Tween(begin: Offset.zero, end: KGeometry.offset_bottomRight * 3)
   //       .animate(_controller);
   //   super.initState();
   // }
@@ -93,7 +93,7 @@ class _DemoState extends State<Demo> with SingleTickerProviderStateMixin {
       //   position: _animation,
       //   child: ColoredBox(
       //     color: KColor.blueB1,
-      //     child: SizedBox.fromSize(size: KSize.square_40),
+      //     child: SizedBox.fromSize(size: KGeometry.size_square_40),
       //   ),
       // ),
 
@@ -103,11 +103,11 @@ class _DemoState extends State<Demo> with SingleTickerProviderStateMixin {
       //   ),
       //   mation: Mamion(
       //     ability: MamionTransition.slide(
-      //       Between(Offset.zero, KOffset.bottomRight * 3),
+      //       Between(Offset.zero, KGeometry.offset_bottomRight * 3),
       //     ),
       //     builder: (context) => ColoredBox(
       //       color: KColor.blueB1,
-      //       child: SizedBox.fromSize(size: KSize.square_40),
+      //       child: SizedBox.fromSize(size: KGeometry.size_square_40),
       //     ),
       //   ),
       // ),

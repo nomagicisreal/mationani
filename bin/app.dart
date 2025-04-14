@@ -1,5 +1,5 @@
-
 import 'package:damath/damath.dart';
+import 'package:datter/datter.dart';
 import 'package:flutter/material.dart';
 import 'package:mationani/mationani.dart';
 
@@ -26,47 +26,71 @@ class MyHome extends StatefulWidget {
   State<MyHome> createState() => _MyHomeState();
 }
 
-class _MyHomeState extends State<MyHome> {
+class _MyHomeState extends State<MyHome>
+    with OverlayStateMixinUpdateToRemove<MyHome> {
   bool toggle = false;
+  int count = 0;
 
-  void onPressed({bool update = true}) => update
-      ? setState(() {
-          toggle = !toggle;
-        })
-      : toggle = !toggle;
+  void _onPressed({bool update = true}) {
+    count++;
+    print('$count, ${overlays.isEmpty}');
+    if (overlays.isEmpty) {
+      overlayInsert(
+        builder: (context, callToRemove) => Mationani.mamion(
+          ani: Ani.initForwardAndWaitUpdateReverseTo(
+            count % 2 == 0,
+            dismissedCall: () {
+              context.showSnackBarMessage(count.toString());
+              callToRemove();
+            },
+            duration: DurationFR.second1,
+          ),
+          ability: MamionTransition.fadeIn(),
+          builder: (context) => Mationani.mamion(
+            ani: Ani.updateForwardOrReverse(
+              initializer: Ani.initializeForward,
+              duration: DurationFR.milli100 * 4,
+            ),
+            ability: MamionMulti.slideToAndScale(
+              scaleEnd: 2,
+              destination: KGeometry.offset_bottomRight * 0.1,
+            ),
+            builder: (context) => Center(
+              child: WSizedBox.squareColored(
+                dimension: 100,
+                color: Colors.red.shade100,
+              ),
+            ),
+          ),
+        ),
+      );
+      return;
+    }
+    overlays.first.markNeedsBuild();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black45,
-      floatingActionButton: FloatingActionButton(
-        onPressed: onPressed,
-        child: const Icon(Icons.add),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
       body: SizedBox.expand(
-        child: Mationani(
-          ani: AniUpdateIfAnimating.backOr(
-            duration: DurationFR.second3,
-            onNotAnimating: Ani.consumeForwardOrReverse,
-          ),
-          mation: Mamion(
-            ability: MamionMulti.slideAndScale(
-              scaleEnd: 2,
-              position: KOffset.square_1 * 0.5,
-              interval: 0.7,
-              curveSlide: CurveFR.fastOutSlowIn,
-              curveScale: CurveFR.fastOutSlowIn,
-            ),
-            builder: (context) => GridPaper(
-              interval: 100,
-              divisions: 2,
-              subdivisions: 1,
-              color: Colors.white54,
-            ),
-          ),
+        child: GridPaper(
+          interval: 100,
+          divisions: 2,
+          subdivisions: 1,
+          color: Colors.white54,
         ),
       ),
+      floatingActionButton: FabExpandable(
+        durationOpen: KCore.durationMilli500,
+        elementsAlign: Alignment.topCenter,
+        elements: [
+          IconAction(WIconMaterial.add, () {}),
+          IconAction(WIconMaterial.password, () {}),
+          IconAction(WIconMaterial.email, _onPressed),
+        ],
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerTop,
     );
   }
 }

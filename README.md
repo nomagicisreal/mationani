@@ -1,7 +1,7 @@
 see mationani in [Pub.dev](https://pub.dev/packages/mationani) and [Github](https://github.com/nomagicisreal/mationani)
 
 To prevent scattered instances of `AnimationController`, `Animation`, `Tween` in multiple widgets;
-there is a stateful widget called `Mationani` empower us to have an easy way to create beautiful animation (in my acquisition).
+there is a stateful widget called `Mationani` empower us to have an easy way to create animation.
 With `Matoinani`, we can only create widgets in a build.
 
 before,
@@ -29,12 +29,7 @@ class _SampleSlideState extends State<SampleSlide> with SingleTickerProviderStat
   Widget build(BuildContext context) {
     return SlideTransition(
       position: animation,
-      child: Center(
-        child: SizedBox.square(
-          dimension: 100,
-          child: ColoredBox(color: Colors.blue),
-        ),
-      ),
+      child: CircularProgressIndicator(),
     );
   }
 }
@@ -48,17 +43,12 @@ class SampleSlide extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Mationani(
-      mation: MationTransition.slide(Between(Offset.zero, Offset(1, 1))),
+      mation: MamionTransition.slide(Between(Offset.zero, Offset(1, 1))),
       ani: Ani(
         duration: DurationFR(Duration(seconds: 1), Duration.zero),
         initializer: Ani.initializeForward,
       ),
-      child: Center(
-        child: SizedBox.square(
-          dimension: 100,
-          child: ColoredBox(color: Colors.blue),
-        ),
-      ),
+      child: CircularProgressIndicator(),
     );
   }
 }

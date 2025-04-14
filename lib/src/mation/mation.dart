@@ -1,65 +1,132 @@
+part of '../../mationani.dart';
+
 ///
 ///
-/// this file contains:
+/// [Ani] and [Mation] helps us to create animation for [Mationani].
+/// [Ani] implement how [AnimationController] can be used in [_MationaniState].
+/// while [Mation] implement how [Animation] can be triggered by [Ani] in [_MationaniState].
+///   1. [Mationability] plan for build
+///       |--[Mamionability.planFor]
+///       \--[Manionability.planForParent], [Manionability.planForChildren]
+///   2. mation planning widget builder
+///     - [Mamion.planning]
+///     - [Manion.planning]
+///   3. TODO: explain mation ani flow
+///
+
+///
 /// [Mation]
-///   [Mamion]
-///   [Manion]
-///
+///   --[Mamion] (responsible for animation(s) on a child widget ([SizedBox], [Container], ...))
+///   --[Manion] (responsible for animation(s) on a parent widget with children ([Stack], [Column], ...))
 ///
 /// [Mationability]
 ///   --[Mamionability]
-///   |   --[MamionSingle]
-///   |   |   [MamionTransition]
-///   |   |   * [_MamionSingleSizingPath]
-///   |   |   [MamionClipper]
-///   |   |   [MamionPainter]
-///   |   |
-///   |   --[MamionMulti]
-///   |   |   [MamionTransform]
-///   |   |   * [MamionTransformDelegate]
-///   |   |
-///   |
-///   |
 ///   --[Manionability]
-///       --[ManionChildren]
-///       --[ManionParentChildren]
 ///
+/// [_Mationable], [_MationableIterable]
+///
+/// [_MationAnimatable]
+///   [_MationAnimatableSingle], [_MationAnimatableIterable], [_MationAnimatableNest]
+///
+/// [_MationPlanable]
+///   [_MationPlanableSingle], [_MationPlanableIterable], [_MationPlanableNest]
+///
+/// [_MamionSingle], [_MamionMulti] (trigger 1 child by 1|multi animation)
+/// [_ManionChildren], [_ManionChildrenParent] (trigger children by [Mamion] for each child)
 ///
 /// typedefs:
+/// [OnAnimate], [OnAnimatePath], [OnAnimateMatrix4]
 /// [AnimationBuilder]
 /// [MationBuilder]
 /// [MationMultiGenerator]
 /// [MationSequencer]
 ///
+
 ///
+/// All the class that implements [Mationability] calls 'have mationability'
+/// similar to [Mation], [Mamion], [Manion],
 ///
+/// [Mamionability] requires subclasses to implement [Mamionability.planFor].
+/// [Manionability] requires subclasses to implement [Manionability.planForParent], [Manionability.planForChildren]
+/// the implementation will be invoked by [Mation.planning].
 ///
+
 ///
-part of mationani;
-// ignore_for_file: use_string_in_part_of_directives
+/// All the class that implements [_Mationable] called 'mationable'
+///
+/// Why not directly implements [Mamionability] ? instead of using [_Mationable] ?
+///   When a visual effect isn't unique enough, to prevent ambiguous, it's better not to be [Mamion.ability].
+///   For example, [MationTransformDelegate] is an implementation for [Transform] animation,
+///   which has no [Mamionability] but is [_Mationable], and in [MationTransformDelegate],
+///   [MationTransformDelegate.rotation] is similar to [MamionTransition.rotate].
+///   if both of [MationTransformDelegate] and [MamionTransition] have [Mamionability],
+///   we will hesitate to assign [Mamion.ability] because there are two similar way to do that.
+///   [_Mationable] aims to prevent duplicate visual effect, provide more diversity on animation.
+///
 
 ///
 ///
+/// there are two core functionality on animation practice for mationable object:
+///   1. animate (the function translating [Animation]<[double]> to useful value. Similar to [Tween.animate])
+///   2. plan (the function or getter that returns a [WidgetBuilder])
+/// [_MationAnimatable], [_MationPlanable] require subclass to care about them.
+///
+/// Why not writing abstraction all in [_Mationable] ? Why [_MationAnimatable] and [_MationPlanable] ?
+///   Because there are kinds of 'animate' or 'plan', there are several combination for them to each other.
+///   For example, it's possible for an [Animation] that is returned by an 'animate' function
+///   couple with [AnimationBuilder] or [Iterable]<[AnimatedBuilder]> that is returned by a 'plan' function;
+///   providing that there are two abstract function ('animate', 'plan') must be defined in superclass or interface,
+///   and both of them have unspecified return type, generic type or [Object] type,
+///   we must overwrite both of them to have clear type for concrete implementation; we can achieve that by
+///     1. Having 1 level inheritance by the subclasses that directly inherit to 'animate' and 'plan' with:
+///       - overwrite 'animate' to return [Animation], overwrite 'plan' to return [AnimatedBuilder]
+///       - overwrite 'animate' to return [Animation], overwrite 'plan' to return [Iterable]<[AnimatedBuilder]>
+///       - overwrite 'animate' to return [Iterable]<[Animation]>, overwrite 'plan' to return [AnimatedBuilder]
+///       - ...
+///     2. Having 2 level inheritance:
+///       - the first level subclasses inherit one of 'animate' or 'plan'
+///       - the second level subclasses inherit another. (it's hard to name the second level due to the diversity.)
+///     3. Makes the interface holding 'animate' and 'plan' to return generic, and let them return generic type.
+///     4. Separate 'animate' and 'plan' into two sealed class.
+///   the option 4 seems to work efficiently for now,
+///   because the dart mixin provides high flexibility for diverse implementation with the keyword 'with'.
+///
+/// Why not declaring the generic type for [Animation] and [AnimationBuilder] ?
+///   because 'dynamic generic' is not the subtype of 'typed generic', [Iterable] can't cast to [Iterable]<[String]>,
+///   there is an error when 'dynamic generic' passed to 'typed generic' even if it is okay to do that. for example,
+///     - [MamionTransition.rotate] required [double] as animation value
+///     - [MamionTransition.slide] required [Offset] as animation value
+///   after initializing [MamionTransition.rotate] and [MamionTransition.slide] for [MamionMulti],
+///   [MamionTransition.animate] and [MamionTransition.plan] called by [MamionMulti.animate] and [MamionMulti.plan]
+///   respectively as dynamic [Animation] and dynamic [AnimatedBuilder].
+///   it's okay to finish animations without error,
+///   but typed return type for [MamionTransition.animate] or [MamionTransition.plan] cause error.
+///   With the same methodology, it's better to defining [Animation] and [AnimatedBuilder] as dynamic.
+///   Type safety must be checked before initializing the concrete instance, like [MamionTransition] does.
+///
+///
+///
+
+///
+/// Normally, flutter animation requires correct animation value put into correct consumer widget, for example:
+///   - [ScaleTransition] requires animated double value, [Tween]<[double]>
+///   - [FadeTransition] requires animated double value, [Tween]<[double]>, and must between 0.0 to 1.0
+///   - [SlideTransition] requires animated offset value, [Tween]<[Offset]>
+///   - [Transform] requires animated [Matrix4]
+/// With [Mationability] as an ancestor interface,
+/// there are many implementations for specific animation type,
+/// including flutter built-in animation (transition, transform) or even clipping, painting, ...
+///
+/// In short,
+/// the development of [Mationability] focus on implementing exist animation or future animation in flutter,
+/// and explore the capability of animation type, not limited to the built-in flutter animation widget.
+///
+///
+
 ///
 /// [Mation], [Mamion], [Manion]
 ///
-///
-///
-
-///
-///
-/// [Mation] is a class that helps creating animation for [Mationani].
-/// its name comes from the trailing of 'animation' word.
-///
-/// it has function [planning] that enforce subclass to implement,
-/// which will be called at [Ani.building] to enable animations.
-/// [Mamion] is a subclass of [Mation] that holds only a child.
-/// [Manion] is a subclass of [Mation] that holds a parent that can have many child.
-///
-///
-
-//
-abstract class Mation<M extends Mationability> {
+sealed class Mation<M extends Mationability> {
   final M ability;
 
   const Mation({required this.ability});
@@ -70,7 +137,6 @@ abstract class Mation<M extends Mationability> {
   WidgetBuilder planning(Animation<double> animation);
 }
 
-//
 class Mamion<M extends Mamionability> extends Mation<M> {
   final WidgetBuilder builder;
 
@@ -78,20 +144,6 @@ class Mamion<M extends Mamionability> extends Mation<M> {
     required super.ability,
     required this.builder,
   });
-
-  Mamion.clipped({
-    Clip clipBehavior = Clip.antiAlias,
-    required SizingPath sizingPath,
-    required M ability,
-    required WidgetBuilder builder,
-  }) : this(
-          ability: ability,
-          builder: (context) => ClipPath(
-            clipper: Clipping.reclipNever(sizingPath),
-            clipBehavior: clipBehavior,
-            child: builder(context),
-          ),
-        );
 
   @override
   WidgetBuilder planning(Animation<double> animation) {
@@ -107,114 +159,29 @@ class Mamion<M extends Mamionability> extends Mation<M> {
   }
 }
 
-///
-/// [Manion.stack]
-/// [Manion.flex], [Manion.flexRow], [Manion.flexColumn]
-///
 class Manion<M extends Manionability> extends Mation<M> {
-  final WidgetParentBuilder parent;
+  final WidgetParentBuilder builder;
 
   const Manion({
-    required this.parent,
     required super.ability,
+    required this.builder,
   });
 
-  Manion.stack({
-    Key? key,
-    AlignmentGeometry alignment = AlignmentDirectional.topStart,
-    TextDirection? textDirection,
-    StackFit fit = StackFit.loose,
-    Clip clipBehavior = Clip.hardEdge,
-    required M ability,
-  }) : this(
-          parent: (context, children) => Stack(
-            key: key,
-            alignment: alignment,
-            textDirection: textDirection,
-            fit: fit,
-            clipBehavior: clipBehavior,
-            children: children,
-          ),
-          ability: ability,
-        );
-
-  Manion.flex({
-    required Axis direction,
-    MainAxisAlignment mainAxisAlignment = MainAxisAlignment.start,
-    MainAxisSize mainAxisSize = MainAxisSize.max,
-    CrossAxisAlignment crossAxisAlignment = CrossAxisAlignment.center,
-    TextDirection? textDirection,
-    VerticalDirection verticalDirection = VerticalDirection.down,
-    TextBaseline? textBaseline,
-    Clip clipBehavior = Clip.none,
-    required M ability,
-  }) : this(
-          parent: (context, children) => Flex(
-            direction: direction,
-            mainAxisAlignment: mainAxisAlignment,
-            mainAxisSize: mainAxisSize,
-            crossAxisAlignment: crossAxisAlignment,
-            textDirection: textDirection,
-            verticalDirection: verticalDirection,
-            textBaseline: textBaseline,
-            clipBehavior: clipBehavior,
-            children: children,
-          ),
-          ability: ability,
-        );
-
   @override
-  WidgetBuilder planning(Animation<double> animation) {
-    final ability = this.ability;
-    final parent = ability.planForParent(animation, this.parent);
-    final children = ability.planForChildren(animation);
-    return switch (ability) {
-      _ => parent.builderFrom(children),
-    };
-  }
+  WidgetBuilder planning(Animation<double> animation) => ability
+      .planForParent(animation, this.builder)
+      .builderFrom(ability.planForChildren(animation));
 }
 
 ///
-///
-///
 /// [Mationability], [Mamionability], [Manionability]
 ///
-///
-///
-
-///
-/// All the class that implements [Mationability] calls 'have mationability'
-/// and 'mationability' have two type for now: [Mamionability] and [Manionability].
-/// [Mamionability] requires subclasses to implement [Mamionability.planFor].
-/// [Manionability] requires subclasses to implement [Manionability.planForParent], [Manionability.planForChildren]
-/// the implementation will be invoked by [Mation.planning].
-///
-
-//
 abstract interface class Mationability implements _Mationable {}
 
-///
-/// See Also
-///  [MamionSingle]
-///     [MamionTransition], which implements animation of [AnimatedWidget] subclasses to used in [Mationani]
-///     [MamionClipper], which implements animation of [ClipPath] to used in [Mationani]
-///     [MamionPainter], which implements animation of [CustomPaint] to used in [Mationani]
-///     ...
-///  [MamionMulti], which trigger animations by multiple between
-///     [MamionTransform], which is the combinations of [MamionTransformDelegate]
-///     ...
-/// they are the classes that have 'mamionability'
-///
 abstract interface class Mamionability implements Mationability {
   WidgetBuilder planFor(Animation<double> animation, WidgetBuilder builder);
 }
 
-///
-/// See Also
-///   [ManionChildren]
-///   ...
-/// they are the classes that have 'manionability'
-///
 abstract interface class Manionability<M extends Mamionability>
     implements Mationability {
   WidgetParentBuilder planForParent(
@@ -226,638 +193,203 @@ abstract interface class Manionability<M extends Mamionability>
 }
 
 ///
+/// [_Mationable], [_MationableIterable]
+///
+abstract interface class _Mationable {
+  const _Mationable();
+}
+
+abstract interface class _MationableIterable<M extends _Mationable>
+    implements _Mationable {
+  final Iterable<M> ables;
+
+  const _MationableIterable(this.ables);
+
+  static bool isFlat(Iterable<_Mationable> ables) =>
+      ables.every((m) => m is! _MationableIterable);
+
+  static int lengthFlatted(_Mationable ables) => switch (ables) {
+        _MationableIterable() => ables.ables.iterator.induct(
+            lengthFlatted,
+            IntExtension.reducePlus,
+          ),
+        _Mationable() => 1,
+      };
+
+  static String stringOf(_MationableIterable ables) =>
+      'Mations(${lengthFlatted(ables)}):'
+      ' ${ables.ables.fold(
+        '',
+        (value, element) =>
+            '$value \n|-${isFlat(ables.ables) ? '-' : ''}$element',
+      )}';
+}
+
 ///
 ///
-/// [MamionSingle], [MamionTransition]
+/// [_MationAnimatable], [_MationPlanable]
 ///
 ///
-///
+sealed class _MationAnimatable implements _Mationable {
+  const _MationAnimatable();
+
+  Object animate(Animation<double> parent);
+
+  static Iterable<Animation> Function(_Mationable able) animating(
+    Animation<double> animation,
+  ) =>
+      (able) => switch (able) {
+            _MationAnimatable() => switch (able) {
+                _MationAnimatableSingle() => [able.animate(animation)],
+                _MationAnimatableIterable() => able.animate(animation),
+                _MationAnimatableNest() =>
+                  able.animate(animation).iterator.foldNested(),
+              },
+            _Mationable() => throw UnimplementedError(able.toString()),
+          };
+}
 
 //
-class MamionSingle<T> extends _MationableBetween<T> implements Mamionability {
-  const MamionSingle(super.value, super.plan);
+sealed class _MationPlanable implements _Mationable {
+  const _MationPlanable();
+
+  Object get plan;
+
+  static Iterable<AnimationBuilder> planning(_Mationable able) =>
+      switch (able) {
+        _MationPlanable() => switch (able) {
+            _MationPlanableSingle() => [able.plan],
+            _MationPlanableIterable() => able.plan,
+            _MationPlanableNest() => able.plan.iterator.foldNested(),
+          },
+        _Mationable() => throw UnimplementedError(able.toString()),
+      };
+}
+
+///
+/// [_MationAnimatableSingle], [_MationAnimatableIterable], [_MationAnimatableNest]
+/// [_MationPlanableSingle], [_MationPlanableIterable], [_MationPlanableNest]
+///
+mixin _MationAnimatableSingle<T> implements _MationAnimatable {
+  Mationvalue<T> get value;
+
+  @override
+  Animation animate(Animation<double> animation) => value.animate(animation);
+}
+
+mixin _MationAnimatableIterable
+    implements _MationAnimatable, _MationableIterable<_MationAnimatableSingle> {
+  @override
+  Iterable<Animation> animate(Animation<double> animation) =>
+      ables.map((able) => able.animate(animation));
+}
+
+mixin _MationAnimatableNest<M extends _Mationable>
+    implements _MationAnimatable, _MationableIterable<M> {
+  @override
+  Iterable<Iterable<Animation>> animate(Animation<double> animation) =>
+      ables.map(_MationAnimatable.animating(animation));
+}
+
+//
+mixin _MationPlanableSingle implements _MationPlanable {
+  @override
+  AnimationBuilder get plan;
+}
+
+mixin _MationPlanableIterable
+    implements _MationPlanable, _MationableIterable<_MationPlanableSingle> {
+  @override
+  Iterable<AnimationBuilder> get plan => ables.map((able) => able.plan);
+}
+
+mixin _MationPlanableNest<M extends _Mationable>
+    implements _MationPlanable, _MationableIterable<M> {
+  @override
+  Iterable<Iterable<AnimationBuilder>> get plan =>
+      ables.map(_MationPlanable.planning);
+}
+
+///
+/// [_MamionSingle], [_MamionMulti]
+///
+abstract class _MamionSingle<T>
+    with _MationAnimatableSingle<T>, _MationPlanableSingle {
+  @override
+  final Mationvalue<T> value;
+  @override
+  final AnimationBuilder plan;
+
+  const _MamionSingle(this.value, this.plan);
+}
+
+abstract class _MamionMulti<M extends _Mationable>
+    with _MationAnimatableNest<M>, _MationPlanableNest<M>
+    implements Mamionability {
+  @override
+  final Iterable<M> ables;
+
+  const _MamionMulti(this.ables);
 
   @override
   WidgetBuilder planFor(Animation<double> animation, WidgetBuilder builder) {
-    final animate = this.animate(animation);
-    final plan = this.plan;
-    return (context) => plan(animate, builder(context));
+    final evaluations2D = animate(animation);
+    final plans2D = plan;
+    return (context) => plans2D.foldWith2D(
+          evaluations2D,
+          builder(context),
+          (child, build, animation) => build(animation, child),
+        );
   }
-}
-
-///
-///
-/// this is a class that implement traditional transition like [SlideTransition],
-/// [FadeTransition], [DecoratedBoxTransition]..., transcribe those traditional animation to have mationability
-///
-/// [MamionTransition.rotate], [MamionTransition.rotateInRadian]
-/// [MamionTransition.scale], [MamionTransition.size], ...
-/// [MamionTransition.relativePositioned], ...
-/// [MamionTransition.positioned], ..., [MamionTransition.slide], ...
-/// [MamionTransition.decoration], ...
-/// [MamionTransition.fade], ..., [MamionTransition.silverFade], ...
-/// [MamionTransition.align], ...
-/// [MamionTransition.defaultTextStyle], ...
-///
-class MamionTransition extends MamionSingle {
-  MamionTransition.rotate(
-    Mationvalue<double> value, {
-    Alignment alignment = Alignment.topLeft,
-  }) : super(
-          value,
-          (animation, child) => RotationTransition(
-            turns: animation as Animation<double>,
-            alignment: alignment,
-            child: child,
-          ),
-        );
-
-  MamionTransition.rotateInRadian(
-    Mationvalue<double> value, {
-    Alignment alignment = Alignment.topLeft,
-  }) : this.rotate(
-          MationableValueDoubleExtension.toRadianFrom(value),
-          alignment: alignment,
-        );
-
-  MamionTransition.scale(
-    Mationvalue<double> value, {
-    Alignment alignment = Alignment.topLeft,
-  }) : super(
-          value,
-          (animation, child) => ScaleTransition(
-            scale: animation as Animation<double>,
-            alignment: alignment,
-            child: child,
-          ),
-        );
-
-  MamionTransition.size(
-    Mationvalue<double> value, {
-    Axis axis = Axis.vertical,
-    double axisAlignment = 0.0,
-  }) : super(
-          value,
-          (animation, child) => SizeTransition(
-            sizeFactor: animation as Animation<double>,
-            axis: axis,
-            axisAlignment: axisAlignment,
-            child: child,
-          ),
-        );
-
-  MamionTransition.relativePositioned(
-    Mationvalue<double> value, {
-    required Size size,
-  }) : super(
-          value,
-          (animation, child) => RelativePositionedTransition(
-            rect: animation as Animation<Rect>,
-            size: size,
-            child: child,
-          ),
-        );
-
-  MamionTransition.positioned(Mationvalue<RelativeRect> value)
-      : super(
-          value,
-          (animation, child) => PositionedTransition(
-            rect: animation as Animation<RelativeRect>,
-            child: child,
-          ),
-        );
-
-  MamionTransition.slide(
-    Mationvalue<Offset> value, {
-    bool transformHitTests = true,
-    TextDirection? textDirection,
-  }) : super(
-          value,
-          (animation, child) => SlideTransition(
-            position: animation as Animation<Offset>,
-            transformHitTests: transformHitTests,
-            textDirection: textDirection,
-            child: child,
-          ),
-        );
-
-  MamionTransition.decoration(Mationvalue<Decoration> value)
-      : super(
-          value,
-          (animation, child) => DecoratedBoxTransition(
-            decoration: animation as Animation<Decoration>,
-            child: child,
-          ),
-        );
-
-  MamionTransition.fade(Mationvalue<double> value)
-      : super(
-          value,
-          (animation, child) => FadeTransition(
-            opacity: animation as Animation<double>,
-            child: child,
-          ),
-        );
-
-  MamionTransition.fadeIn({CurveFR? curve})
-      : this.fade(FBetween.doubleZeroTo(1, curve: curve));
-
-  MamionTransition.fadeInTo(double opacity, {CurveFR? curve})
-      : this.fade(FBetween.doubleZeroTo(opacity, curve: curve));
-
-  MamionTransition.fadeOut({CurveFR? curve})
-      : this.fade(FBetween.doubleZeroFrom(1, curve: curve));
-
-  MamionTransition.silverFade(Mationvalue<double> value)
-      : super(
-          value,
-          (animation, child) => SliverFadeTransition(
-            opacity: animation as Animation<double>,
-            sliver: child,
-          ),
-        );
-
-  MamionTransition.align(Mationvalue<AlignmentGeometry> value)
-      : super(
-          value,
-          (animation, child) => AlignTransition(
-            alignment: animation as Animation<AlignmentGeometry>,
-            child: child,
-          ),
-        );
-
-  MamionTransition.defaultTextStyle(Mationvalue<TextStyle> value)
-      : super(
-          value,
-          (animation, child) => DefaultTextStyleTransition(
-            style: animation as Animation<TextStyle>,
-            child: child,
-          ),
-        );
-}
-
-///
-///
-///
-/// [_MamionSingleSizingPath], [MamionClipper], [MamionPainter]
-///
-///
-///
-
-//
-class _MamionSingleSizingPath extends MamionSingle<SizingPath> {
-  const _MamionSingleSizingPath(
-    BetweenPath value, {
-    AnimationBuilder builder = WWidgetBuilder.noneAnimation,
-  }) : super(value, builder);
-}
-
-//
-class MamionClipper extends _MamionSingleSizingPath {
-  final Clip clipBehavior;
 
   @override
-  AnimationBuilder get plan => (animation, child) => ClipPath(
-        clipper: Clipping.reclipWhenUpdate(animation.value),
-        clipBehavior: clipBehavior,
-        child: child,
-      );
-
-  const MamionClipper(
-    super.value, {
-    this.clipBehavior = Clip.antiAlias,
-    super.builder,
-  });
+  String toString() => _MationableIterable.stringOf(this);
 }
 
-//
-class MamionPainter extends _MamionSingleSizingPath {
-  final bool isComplex;
-  final CustomPainter? foreground;
-  final Size size;
-  final Painter painter;
+///
+/// [_ManionChildren], [_ManionChildrenParent],
+///
+abstract class _ManionChildren<M extends Mamionability>
+    implements _Mationable, Manionability<M> {
+  final Iterable<Mamion<M>> children;
+
+  _ManionChildren({required this.children});
 
   @override
-  AnimationBuilder get plan => (animation, child) => CustomPaint(
-        willChange: true,
-        painter: painter(animation.value),
-        foregroundPainter: foreground,
-        size: size,
-        isComplex: isComplex,
-        child: child,
-      );
+  WidgetParentBuilder planForParent(
+    Animation<double> animation,
+    WidgetParentBuilder parent,
+  ) =>
+      parent;
 
-  const MamionPainter(
-    super.value, {
-    this.isComplex = false,
-    this.size = Size.zero,
-    required this.foreground,
-    required this.painter,
-    super.builder,
-  });
-
-  MamionPainter.paintFrom(
-    super.value, {
-    required PaintFrom paintFrom,
-    super.builder,
-  })  : isComplex = false,
-        size = Size.zero,
-        foreground = null,
-        painter = FPainter.of(paintFrom);
-}
-
-///
-///
-///
-/// [MamionMulti]
-///
-///
-///
-
-///
-/// [MamionMulti.appear]
-/// [MamionMulti.cover]
-/// [MamionMulti.penetrate]
-/// [MamionMulti.leave]
-/// [MamionMulti.shoot], [MamionMulti.enlarge]
-///
-/// [MamionMulti.slideAndScale]
-///
-/// [generateCover], [generateShoot]
-///
-class MamionMulti extends _MationMulti<Mamionability> {
-  const MamionMulti(super.abilities);
-
-  MamionMulti.appear({
-    Alignment alignmentScale = Alignment.center,
-    required Between<double> fading,
-    required Between<double> scaling,
-  }) : this([
-          MamionTransition.fade(fading),
-          MamionTransition.scale(scaling, alignment: alignmentScale),
-        ]);
-
-  MamionMulti.cover({
-    required Between<double> fading,
-    required Between<Offset> sliding,
-  }) : this([
-          MamionTransition.fade(fading),
-          MamionTransition.slide(sliding),
-        ]);
-
-  MamionMulti.penetrate({
-    double opacityShowing = 1.0,
-    CurveFR? curveClip,
-    Clip clipBehavior = Clip.hardEdge,
-    required Between<double> fading,
-    required Between<Rect> recting,
-    required SizingPathFrom<Rect> sizingPathFrom,
-  }) : this([
-          MamionTransition.fade(fading),
-          MamionClipper(
-            BetweenPath<Rect>(
-              recting,
-              onAnimate: (t, rect) => sizingPathFrom(rect),
-              curve: curveClip,
-            ),
-            clipBehavior: clipBehavior,
-          ),
-        ]);
-
-  MamionMulti.leave({
-    Alignment alignment = Alignment.topLeft,
-    required Between<double> rotation,
-    required Between<Offset> sliding,
-  }) : this([
-          MamionTransition.rotate(rotation, alignment: alignment),
-          MamionTransition.slide(sliding),
-        ]);
-
-  MamionMulti.shoot({
-    Alignment alignmentScale = Alignment.topLeft,
-    required Between<Offset> sliding,
-    required Between<double> scaling,
-  }) : this([
-          MamionTransition.slide(sliding),
-          MamionTransition.scale(scaling, alignment: alignmentScale),
-        ]);
-
-  MamionMulti.enlarge({
-    Alignment alignmentScale = Alignment.topLeft,
-    required Between<double> scaling,
-    required Between<Offset> sliding,
-  }) : this([
-          MamionTransition.scale(scaling, alignment: alignmentScale),
-          MamionTransition.slide(sliding),
-        ]);
-
-  ///
-  /// factories
-  ///
-  factory MamionMulti.slideAndScale({
-    required double scaleEnd,
-    required Offset position,
-    required double interval,
-    CurveFR curveScale = CurveFR.linear,
-    CurveFR curveSlide = CurveFR.linear,
-  }) =>
-      MamionMulti.shoot(
-        alignmentScale: Alignment.center,
-        scaling: FBetween.doubleOneTo(
-          scaleEnd,
-          curve: curveScale.interval(interval, 1),
-        ),
-        sliding: FBetween.offsetZeroTo(
-          -position,
-          curve: curveSlide.interval(0, interval),
-        ),
-      );
-
-  ///
-  /// generators
-  ///
-
-  static MationMultiGenerator generateCover(
-    Generator<double> direction,
-    double distance, {
-    CurveFR? curve,
-    required int total,
-  }) {
-    final interval = 1 / total;
-    return (index) => MamionMulti.cover(
-          fading: FBetween.doubleZeroTo(1, curve: curve),
-          sliding: FBetween.offsetOfDirection(
-            direction(index),
-            0,
-            distance,
-            curve: curve.nullOrMap((c) => c.interval(interval * index, 1.0)),
-          ),
-        );
-  }
-
-  static MationMultiGenerator generateShoot(
-    Offset delta, {
-    Generator<double> distribution = FGenerator.ofDouble,
-    CurveFR? curve,
-    required Alignment alignmentScale,
-    required int total,
-  }) {
-    final interval = 1 / total;
-    return (index) => MamionMulti.shoot(
-          alignmentScale: alignmentScale,
-          sliding: FBetween.offsetZeroTo(
-            delta * distribution(index),
-            curve: curve,
-          ),
-          scaling: FBetween.doubleOneFrom(
-            0.0,
-            curve: curve.nullOrMap((c) => c.interval(interval * index, 1.0)),
-          ),
-        );
-  }
-}
-
-///
-///
-///
-/// [MamionTransform] and [MamionTransformDelegate]
-///
-///
-///
-
-///
-/// their coordinate system is based on [Transform] direction, translation (negative to positive).
-/// direction: x axis is [Direction3DIn6.left] -> [Direction3DIn6.right] ([Matrix4.rotationX]),
-/// direction: y axis is [Direction3DIn6.top] -> [Direction3DIn6.bottom] ([Matrix4.rotationY]),
-/// direction: z axis is [Direction3DIn6.front] -> [Direction3DIn6.back] ([Matrix4.rotationZ], [Offset.direction]),
-/// translation: x axis comes from [Direction3DIn6.left] to [Direction3DIn6.right]
-/// translation: y axis comes from [Direction3DIn6.top] to [Direction3DIn6.bottom]
-/// translation: z axis comes from [Direction3DIn6.front] to [Direction3DIn6.back]
-///
-/// See Also:
-///   * [Direction], [Direction3DIn6]
-///   * [Point3.transferToTransformOf], [Point3.fromDirection]
-///
-
-///
-/// [MamionTransform._], [MamionTransform.distanced]
-/// [MamionTransform._sort]
-///
-class MamionTransform extends _MationMulti<MamionTransformDelegate> {
-  MamionTransform._(
-    Iterable<MamionTransformDelegate> delegates, {
-    Matrix4? host,
-    List<OnAnimateMatrix4> order = MamionTransformDelegate.orderTRS,
-  })  : assert(order.length == 3 && !order.iterator.existEqual),
-        super(_sort(
-          delegates.map((d) => d..link(host ?? Matrix4.identity())),
-          order,
-        ));
-
-  MamionTransform({
-    Matrix4? host,
-    Between<Point3>? translateBetween,
-    Between<Point3>? rotateBetween,
-    Between<Point3>? scaleBetween,
-    AlignmentGeometry? translateAlignment,
-    AlignmentGeometry? rotateAlignment,
-    AlignmentGeometry? scaleAlignment,
-    List<OnAnimateMatrix4> order = MamionTransformDelegate.orderTRS,
-  }) : this._([
-          if (translateBetween != null)
-            MamionTransformDelegate.translation(
-              translateBetween,
-              alignment: translateAlignment,
-              host: host,
-            ),
-          if (rotateBetween != null)
-            MamionTransformDelegate.rotation(
-              rotateBetween,
-              alignment: rotateAlignment,
-              host: host,
-            ),
-          if (scaleBetween != null)
-            MamionTransformDelegate.scale(
-              scaleBetween,
-              alignment: scaleAlignment,
-              host: host,
-            ),
-        ]);
-
-  MamionTransform.distanced({
-    required double distanceToObserver,
-    Between<Point3>? translateBetween,
-    Between<Point3>? rotateBetween,
-    Between<Point3>? scaleBetween,
-    AlignmentGeometry? translateAlignment,
-    AlignmentGeometry? rotateAlignment,
-    AlignmentGeometry? scaleAlignment,
-    Matrix4? host,
-  }) : this(
-          host: (host ?? Matrix4.identity())..setDistance(distanceToObserver),
-          translateBetween: translateBetween,
-          rotateBetween: rotateBetween,
-          scaleBetween: scaleBetween,
-          translateAlignment: translateAlignment,
-          rotateAlignment: rotateAlignment,
-          scaleAlignment: scaleAlignment,
-        );
-
-  MamionTransform alignAll({
-    AlignmentGeometry? translation,
-    AlignmentGeometry? rotation,
-    AlignmentGeometry? scaling,
-  }) =>
-      MamionTransform._(ables.map((base) {
-        final before = base.alignment;
-        final onAnimate = base.onAnimate;
-        return base.align(switch (onAnimate) {
-          FOnAnimateMatrix4.translating => translation ?? before,
-          FOnAnimateMatrix4.rotating => rotation ?? before,
-          FOnAnimateMatrix4.scaling => scaling ?? before,
-          _ => throw UnimplementedError(),
-        });
-      }));
-
-  static Iterable<MamionTransformDelegate> _sort(
-    Iterable<MamionTransformDelegate> delegates,
-    List<OnAnimateMatrix4> order,
-  ) {
-    final map =
-        Map.fromIterable(order, value: (_) => <MamionTransformDelegate>[]);
-    for (var delegate in delegates) {
-      map[delegate.onAnimate]!.add(delegate);
-    }
-    return order.expand((onAnimate) => map[onAnimate]!);
-  }
-}
-
-///
-/// [onAnimate], [alignment], [host], [plan]
-/// [onTranslating], [onRotating], [onScaling]
-/// [orderTRS], [orderTSR], [orderSTR], [orderSRT], [orderRTS], [orderRST]
-/// [MamionTransformDelegate._]
-/// [MamionTransformDelegate.translation]
-/// [MamionTransformDelegate.rotation]
-/// [MamionTransformDelegate.scale]
-/// [link], [isSameTypeWith], [align]
-///
-class MamionTransformDelegate extends _MationableBetween<Point3> {
-  final OnAnimateMatrix4 onAnimate;
-  final AlignmentGeometry? alignment;
-  Matrix4 host;
-
-  static const OnAnimateMatrix4 onTranslating = FOnAnimateMatrix4.translating;
-  static const OnAnimateMatrix4 onRotating = FOnAnimateMatrix4.rotating;
-  static const OnAnimateMatrix4 onScaling = FOnAnimateMatrix4.scaling;
-  static const List<OnAnimateMatrix4> orderTRS = [
-    FOnAnimateMatrix4.translating,
-    FOnAnimateMatrix4.rotating,
-    FOnAnimateMatrix4.scaling,
-  ];
-  static const List<OnAnimateMatrix4> orderTSR = [
-    FOnAnimateMatrix4.translating,
-    FOnAnimateMatrix4.scaling,
-    FOnAnimateMatrix4.rotating,
-  ];
-  static const List<OnAnimateMatrix4> orderSTR = [
-    FOnAnimateMatrix4.scaling,
-    FOnAnimateMatrix4.translating,
-    FOnAnimateMatrix4.rotating,
-  ];
-  static const List<OnAnimateMatrix4> orderSRT = [
-    FOnAnimateMatrix4.scaling,
-    FOnAnimateMatrix4.rotating,
-    FOnAnimateMatrix4.translating,
-  ];
-  static const List<OnAnimateMatrix4> orderRTS = [
-    FOnAnimateMatrix4.rotating,
-    FOnAnimateMatrix4.translating,
-    FOnAnimateMatrix4.scaling,
-  ];
-  static const List<OnAnimateMatrix4> orderRST = [
-    FOnAnimateMatrix4.rotating,
-    FOnAnimateMatrix4.scaling,
-    FOnAnimateMatrix4.translating,
-  ];
-
-  ///
-  /// constructors
-  ///
-  MamionTransformDelegate._(
-    Mationvalue<Point3> value, {
-    required this.alignment,
-    required this.host,
-    required this.onAnimate,
-  }) : super(
-            value,
-            (animation, child) => Transform(
-                  transform: onAnimate(host, animation.value),
-                  alignment: alignment,
-                  child: child,
-                ));
-
-  MamionTransformDelegate.translation(
-    Mationvalue<Point3> value, {
-    AlignmentGeometry? alignment,
-    Matrix4? host,
-  }) : this._(
-          value,
-          alignment: alignment,
-          host: host ?? Matrix4.identity(),
-          onAnimate: FOnAnimateMatrix4.translating,
-        );
-
-  MamionTransformDelegate.rotation(
-    Mationvalue<Point3> value, {
-    AlignmentGeometry? alignment,
-    Matrix4? host,
-  }) : this._(
-          value,
-          alignment: alignment,
-          host: host ?? Matrix4.identity(),
-          onAnimate: FOnAnimateMatrix4.rotating,
-        );
-
-  MamionTransformDelegate.scale(
-    Mationvalue<Point3> value, {
-    AlignmentGeometry? alignment,
-    Matrix4? host,
-  }) : this._(
-          value,
-          alignment: alignment,
-          host: host ?? Matrix4.identity(),
-          onAnimate: FOnAnimateMatrix4.scaling,
-        );
-
-  ///
-  /// instance methods
-  ///
-  void link(Matrix4 host) => this.host = host;
-
-  bool isSameTypeWith(MamionTransformDelegate another) =>
-      onAnimate == another.onAnimate;
-
-  MamionTransformDelegate align(AlignmentGeometry? alignment) =>
-      MamionTransformDelegate._(
-        value,
-        onAnimate: onAnimate,
-        alignment: alignment,
-        host: host,
+  @override
+  List<WidgetBuilder> planForChildren(Animation<double> animation) =>
+      children.iterator.fold(
+        [],
+        (list, mamion) => list..add(mamion.planning(animation)),
       );
 }
 
-//
-class ManionChildren<M extends Mamionability> extends _ManionChildren<M> {
-  ManionChildren({required super.children});
-}
+abstract class _ManionChildrenParent<M extends Mamionability>
+    extends _ManionChildren<M> {
+  final M parent;
 
-class ManionParentChildren<M extends Mamionability>
-    extends _ManionParentChildren<M> {
-  ManionParentChildren({
-    required super.parent,
+  _ManionChildrenParent({
+    required this.parent,
     required super.children,
   });
+
+  @override
+  WidgetParentBuilder planForParent(
+    Animation<double> animation,
+    WidgetParentBuilder parent,
+  ) {
+    final planFor = this.parent.planFor;
+    return (context, children) => planFor(
+          animation,
+          (context) => parent(context, children),
+        )(context);
+  }
 }
 
 ///
@@ -865,17 +397,19 @@ class ManionParentChildren<M extends Mamionability>
 /// typedefs
 ///
 ///
+typedef OnAnimate<T, S> = S Function(double t, T value);
+typedef OnAnimatePath<T> = SizingPath Function(double t, T value);
+typedef OnAnimateMatrix4 = Companion<Matrix4, Point3>;
+
 typedef AnimationBuilder<T> = Widget Function(
   Animation<T> animation,
   Widget child,
 );
-
 typedef MationBuilder<M extends Mamionability> = Widget Function(
   BuildContext context,
   M mation,
 );
 
 typedef MationMultiGenerator = Generator<MamionMulti>;
-
 typedef MationSequencer<T>
     = Sequencer<AniSequenceStep, AniSequenceInterval, Mamionability>;

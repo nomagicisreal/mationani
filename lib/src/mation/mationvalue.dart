@@ -8,49 +8,29 @@
 /// [Between]
 ///   --[BetweenSpline2D]
 ///   --[BetweenPath]
-///   |   [BetweenPathOffset]
-///   |   [BetweenPathVector3D]
-///   |   * [_BetweenPathConcurrent]
-///   |   [BetweenPathPolygon]
+///   |   --[BetweenPathOffset]
+///   |   --[BetweenPathVector3D]
+///   |   --[_BetweenPathConcurrent]
+///   |       --[BetweenPathPolygon]
 ///   |
 ///
 ///
 /// [Amplitude]
 ///
-///
-///
-///
-///
 /// [BetweenInterval]
 /// [BetweenConcurrent]
 ///
+/// extensions:
+/// [MationvalueDoubleExtension]
+/// [BetweenOffsetExtension]
 ///
 ///
 ///
-///
-///
-///
-///
-///
-///
-///
-///
-///
-///
-///
-///
-part of mationani;
-// ignore_for_file: use_string_in_part_of_directives
+part of '../../mationani.dart';
 
-///
-///
 ///
 /// [_Mationvalue], [Mationvalue]
 ///
-///
-///
-
-//
 class _Mationvalue<T> extends Animation<T>
     with AnimationWithParentMixin<double> {
   _Mationvalue(this.parent, this.animatable);
@@ -62,16 +42,8 @@ class _Mationvalue<T> extends Animation<T>
 
   @override
   T get value => animatable.evaluate(parent);
-
-  @override
-  String toString() => '$parent\u27A9$animatable\u27A9$value';
-
-  @override
-  String toStringDetails() => '${super.toStringDetails()} $animatable';
 }
 
-///
-///
 ///
 /// [onLerp], [curve],
 /// [transform], [evaluate], [animate],
@@ -80,10 +52,7 @@ sealed class Mationvalue<T> extends Animatable<T> {
   final Lerper<T> onLerp;
   final CurveFR? curve;
 
-  const Mationvalue({
-    required this.onLerp,
-    this.curve,
-  });
+  const Mationvalue({required this.onLerp, this.curve});
 
   @override
   T transform(double t) => onLerp(t);
@@ -101,14 +70,6 @@ sealed class Mationvalue<T> extends Animatable<T> {
         this,
       );
 }
-
-///
-///
-///
-/// [Between]
-///
-///
-///
 
 ///
 /// [begin], [end],
@@ -134,10 +95,8 @@ class Between<T> extends Mationvalue<T> {
         end = value,
         super(onLerp: DoubleExtension.lerperOf(value));
 
-  Between.sequence({
-    required List<T> steps,
-    super.curve,
-  })  : begin = steps.first,
+  Between.sequence({required List<T> steps, super.curve})
+      : begin = steps.first,
         end = steps.last,
         super(
           onLerp: BetweenInterval._link(
@@ -189,11 +148,7 @@ class Between<T> extends Mationvalue<T> {
 
   ///
   /// properties
-  /// [reverse]
-  /// [follow], [followPlus], [followMinus], [followMultiply], [followDivide]
   ///
-  ///
-
   Between<T> get reverse => Between.constant(
         end,
         begin,
@@ -495,7 +450,6 @@ class BetweenPathOffset extends BetweenPath<Offset> {
   }
 }
 
-
 //
 class _BetweenPathConcurrent<T> extends BetweenPath<List<T>> {
   _BetweenPathConcurrent(BetweenConcurrent<T, SizingPath> concurrent)
@@ -545,9 +499,9 @@ class BetweenPathPolygon extends _BetweenPathConcurrent<double> {
   }) : super(
           BetweenConcurrent(
             betweens: [
-              cornerRadius?.call(polygon) ?? FBetween.doubleKZero,
-              edgeVectorTimes ?? FBetween.doubleKZero,
-              scale ?? FBetween.doubleKOne,
+              cornerRadius?.call(polygon) ?? Between.of(0.0),
+              edgeVectorTimes ?? Between.of(0.0),
+              scale ?? Between.of(1.0),
             ],
             onAnimate: (t, values) => FSizingPath.polygonCubic(
               polygon.cubicPointsFrom(values[0], values[1]),
@@ -707,4 +661,29 @@ class BetweenConcurrent<T, S> {
       onAnimate: onAnimate,
     );
   }
+}
+
+///
+/// extensions
+///
+extension MationvalueDoubleExtension on Mationvalue<double> {
+  static Mationvalue<double> toRadianFrom(Mationvalue<double> round) =>
+      switch (round) {
+        Between<double>() => Between(
+            Radian.fromRound(round.begin),
+            Radian.fromRound(round.end),
+            curve: round.curve,
+          ),
+        Amplitude<double>() => Amplitude(
+            Radian.fromRound(round.from),
+            Radian.fromRound(round.value),
+            round.times,
+            style: round.style,
+            curve: round.curve,
+          ),
+      };
+}
+
+extension BetweenOffsetExtension on Between<Offset> {
+  double get direction => end.direction - begin.direction;
 }
