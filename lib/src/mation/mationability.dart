@@ -259,7 +259,7 @@ class MamionPainter extends _MamionSingleSizingPath {
 /// [MamionMulti.penetrate]
 /// [MamionMulti.leave]
 /// [MamionMulti.shoot], [MamionMulti.enlarge]
-/// [MamionMulti.slideToAndScale]
+/// [MamionMulti.slideToThenScale]
 ///
 /// [generateSpill], [generateShoot]
 ///
@@ -332,7 +332,7 @@ class MamionMulti extends _MamionMulti<Mamionability> {
   ///
   /// factories
   ///
-  factory MamionMulti.slideToAndScale({
+  factory MamionMulti.slideToThenScale({
     required Offset destination,
     required double scaleEnd,
     double interval = 0.5, // must between 0.0 ~ 1.0
@@ -354,7 +354,7 @@ class MamionMulti extends _MamionMulti<Mamionability> {
   ///
   /// generators
   ///
-  static MationMultiGenerator generateSpill(
+  static Generator<MamionMulti> generateSpill(
     Generator<double> direction,
     double distance, {
     CurveFR? curve,
@@ -372,7 +372,7 @@ class MamionMulti extends _MamionMulti<Mamionability> {
         );
   }
 
-  static MationMultiGenerator generateShoot(
+  static Generator<MamionMulti> generateShoot(
     Offset delta, {
     Generator<double> distribution = FKeep.generateDouble,
     CurveFR? curve,

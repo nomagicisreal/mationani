@@ -101,10 +101,10 @@ packages:
     dependency: "direct main"
     description:
       name: datter
-      sha256: "8179336cd6b1c431149711dea5efcdfc21c7f444b9330cb1dbd8ee133d523a15"
+      sha256: "67fa0aa0faed8007922057d66c82a3ddf42b4b8f3900db4ffe8fd4bf98179345"
       url: "https://pub.dev"
     source: hosted
-    version: "0.0.7"
+    version: "0.0.9"
   fake_async:
     dependency: transitive
     description:

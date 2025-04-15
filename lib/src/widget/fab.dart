@@ -17,35 +17,39 @@ class FabExpandable extends StatefulWidget {
     super.key,
     this.setup = FabElementsInitializer.setupRadiationCircle,
     this.initialOpen = false,
-    this.openIcon = WIconMaterial.create,
-    this.closeIcon = WIconMaterial.close,
-    this.curve = CurveFR.easeInOut,
-    this.fabLocation = FloatingActionButtonLocation.endFloat,
+    this.openIcon = WIcon.add,
+    this.closeIcon = WIcon.close,
+    this.curveOpenAndClose = CurveFR.easeInOut,
     this.elementsAlign = Alignment.bottomRight,
-    this.speedCloseFromOpen = 0.8,
+    this.durationCloseRatedByOpen = 0.8,
+    // FloatingActionButtonLocation.endFloat by default in Scaffold
+    required this.initialLocation,
     required this.durationOpen,
     required this.elements,
   });
 
-  final FabExpandableElementsSetup setup;
+  final FloatingActionButtonLocation initialLocation;
   final bool initialOpen;
+  final Duration durationOpen;
+  final double durationCloseRatedByOpen;
+  final CurveFR curveOpenAndClose;
   final Icon openIcon;
   final Icon closeIcon;
-  final Duration durationOpen;
-  final double speedCloseFromOpen;
-  final CurveFR curve;
   final Alignment elementsAlign;
-  final FloatingActionButtonLocation fabLocation;
   final List<IconAction> elements;
+  final FabExpandableElementsSetup setup;
 
-  DurationFR get duration => DurationFR.rated(durationOpen, speedCloseFromOpen);
+  DurationFR get duration => DurationFR.rated(
+        durationOpen,
+        durationCloseRatedByOpen,
+      );
 
   @override
   State<FabExpandable> createState() => _FabExpandableState();
 }
 
 class _FabExpandableState extends State<FabExpandable>
-    with OverlayStateMixin<FabExpandable> {
+    with OverlayStateNormalMixin<FabExpandable> {
   final LayerLink _openButtonLink = LayerLink();
 
   late bool _isOpen;
@@ -71,11 +75,13 @@ class _FabExpandableState extends State<FabExpandable>
   Widget get _openButton => IgnorePointer(
         ignoring: _isOpen,
         child: Mationani.mamion(
-          ani: Ani.updateForwardOrReverseWhen(_isOpen,
-              duration: widget.duration),
+          ani: Ani.updateForwardOrReverseWhen(
+            _isOpen,
+            duration: widget.duration,
+          ),
           ability: MamionMulti.appear(
-            fading: FBetween.double_0From(1, curve: widget.curve),
-            scaling: FBetween.double_1To(0.7, curve: widget.curve),
+            fading: FBetween.double_0From(1, curve: widget.curveOpenAndClose),
+            scaling: FBetween.double_1To(0.7, curve: widget.curveOpenAndClose),
           ),
           builder: (context) => FloatingActionButton(
             onPressed: _onTap,
@@ -90,7 +96,7 @@ class _FabExpandableState extends State<FabExpandable>
           size: KGeometry.size_square_1 * 56,
           child: Material(
             shape: FBorderOutlined.circle(side: BorderSide.none),
-            clipBehavior: Clip.antiAlias,
+            clipBehavior: Clip.hardEdge,
             elevation: 4,
             child: InkWell(
               onTap: _onTap,
@@ -104,10 +110,11 @@ class _FabExpandableState extends State<FabExpandable>
       );
 
   ///
-  /// If element buttons built in [Stack] as [Scaffold]'s [FloatingActionButton],
-  /// all the children in [Stack] are constrained by initial size, no matter children are 'expanded' or not.
-  /// there is no response when user taps on any expanded button translated outside constraints.
-  /// It's more flexible to insert a new overlay instead of setting the correct stack constraints at beginning,
+  /// If element buttons built as [StackFit.loose] in [Scaffold.floatingActionButton],
+  /// all the children in [Stack] are constrained by initial size;
+  /// though, there is no response when user taps on any child translated outside constraints;
+  /// ideally, we can update fab parent constraints in [Scaffold] but there is no easy way to do that for now.
+  /// It's more flexible to insert a new overlay to require all of fab element buttons to be responsible.
   ///
   void _onTap() {
     setState(() => _isOpen = !_isOpen);
@@ -115,7 +122,7 @@ class _FabExpandableState extends State<FabExpandable>
       overlayInsert(
         builder: (context) => _FabExpandableElements(
           ignoring: !_isOpen,
-          generatorAni: (i) => Ani.update(
+          ani: Ani.update(
             initializer: Ani.initializeForward,
             duration: widget.duration,
             onNotAnimating: Ani.decideForwardOrReverse(_isOpen),
@@ -124,7 +131,7 @@ class _FabExpandableState extends State<FabExpandable>
             context: context,
             openButtonOffset: _openButtonLink.leader!.offset,
             openButtonSize: _openButtonLink.leaderSize!,
-            openButtonLocation: widget.fabLocation,
+            openButtonLocation: widget.initialLocation,
             elementsAlign: widget.elementsAlign,
             elements: widget.elements,
           ),
@@ -143,14 +150,14 @@ class _FabExpandableState extends State<FabExpandable>
 class _FabExpandableElements extends StatelessWidget {
   const _FabExpandableElements({
     required this.ignoring,
-    required this.generatorAni,
+    required this.ani,
     required this.setup,
     required this.link,
     required this.alignment,
   });
 
   final bool ignoring;
-  final Generator<Ani> generatorAni;
+  final Ani ani;
   final FabElementsInitializer setup;
   final LayerLink link;
   final Alignment alignment;
@@ -168,7 +175,7 @@ class _FabExpandableElements extends StatelessWidget {
           alignment: Alignment.topLeft,
           children: setup.icons.iterator.mapToListByIndex(
             (iconAction, i) => Mationani.mamion(
-              ani: generatorAni(i),
+              ani: ani,
               ability: setup.mationsGenerator(i),
               builder: setup.builder(setup.icons[i]),
             ),
@@ -179,14 +186,6 @@ class _FabExpandableElements extends StatelessWidget {
   }
 }
 
-///
-/// TODO: accomplish fab expandable implementation
-/// 1. define possible styles of expandable fab elements
-/// 2. define variables related to expandable elements
-/// 3. define a private class helps to translate from 1 to 2
-/// 4. update [FabElementsInitializer]
-/// 5. make it work
-///
 typedef FabExpandableElementsSetup = FabElementsInitializer Function({
   required BuildContext context,
   required Offset openButtonOffset,

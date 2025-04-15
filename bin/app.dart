@@ -27,13 +27,12 @@ class MyHome extends StatefulWidget {
 }
 
 class _MyHomeState extends State<MyHome>
-    with OverlayStateMixinUpdateToRemove<MyHome> {
+    with OverlayStateUpdateToRemoveMixin<MyHome> {
   bool toggle = false;
   int count = 0;
 
   void _onPressed({bool update = true}) {
     count++;
-    print('$count, ${overlays.isEmpty}');
     if (overlays.isEmpty) {
       overlayInsert(
         builder: (context, callToRemove) => Mationani.mamion(
@@ -51,7 +50,7 @@ class _MyHomeState extends State<MyHome>
               initializer: Ani.initializeForward,
               duration: DurationFR.milli100 * 4,
             ),
-            ability: MamionMulti.slideToAndScale(
+            ability: MamionMulti.slideToThenScale(
               scaleEnd: 2,
               destination: KGeometry.offset_bottomRight * 0.1,
             ),
@@ -82,12 +81,13 @@ class _MyHomeState extends State<MyHome>
         ),
       ),
       floatingActionButton: FabExpandable(
+        initialLocation: FloatingActionButtonLocation.centerTop,
         durationOpen: KCore.durationMilli500,
         elementsAlign: Alignment.topCenter,
         elements: [
-          IconAction(WIconMaterial.add, () {}),
-          IconAction(WIconMaterial.password, () {}),
-          IconAction(WIconMaterial.email, _onPressed),
+          IconAction(WIcon.add, () {}),
+          IconAction(Icon(Icons.password), () {}),
+          IconAction(Icon(Icons.email), _onPressed),
         ],
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerTop,

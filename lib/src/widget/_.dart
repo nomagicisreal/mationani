@@ -33,7 +33,7 @@ class Mationani extends StatefulWidget {
   Mationani.manion({
     super.key,
     required this.ani,
-    required WidgetParentBuilder parent,
+    required WidgetBuilderParent parent,
     required Manionability ability,
   }) : mation = Manion(builder: parent, ability: ability);
 
@@ -198,9 +198,8 @@ class MationaniCutting extends StatelessWidget {
             ),
           ),
         ),
-        builder: FWidgetParentBuilder.stack(),
+        builder: FWidgetBuilder.parent_stack(),
       ),
     );
   }
 }
-

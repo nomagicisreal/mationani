@@ -160,7 +160,7 @@ class Mamion<M extends Mamionability> extends Mation<M> {
 }
 
 class Manion<M extends Manionability> extends Mation<M> {
-  final WidgetParentBuilder builder;
+  final WidgetBuilderParent builder;
 
   const Manion({
     required super.ability,
@@ -184,9 +184,9 @@ abstract interface class Mamionability implements Mationability {
 
 abstract interface class Manionability<M extends Mamionability>
     implements Mationability {
-  WidgetParentBuilder planForParent(
+  WidgetBuilderParent planForParent(
     Animation<double> animation,
-    WidgetParentBuilder parent,
+    WidgetBuilderParent parent,
   );
 
   List<WidgetBuilder> planForChildren(Animation<double> animation);
@@ -356,9 +356,9 @@ abstract class _ManionChildren<M extends Mamionability>
   _ManionChildren({required this.children});
 
   @override
-  WidgetParentBuilder planForParent(
+  WidgetBuilderParent planForParent(
     Animation<double> animation,
-    WidgetParentBuilder parent,
+    WidgetBuilderParent parent,
   ) =>
       parent;
 
@@ -380,9 +380,9 @@ abstract class _ManionChildrenParent<M extends Mamionability>
   });
 
   @override
-  WidgetParentBuilder planForParent(
+  WidgetBuilderParent planForParent(
     Animation<double> animation,
-    WidgetParentBuilder parent,
+    WidgetBuilderParent parent,
   ) {
     final planFor = this.parent.planFor;
     return (context, children) => planFor(
@@ -394,22 +394,21 @@ abstract class _ManionChildrenParent<M extends Mamionability>
 
 ///
 ///
-/// typedefs
-///
 ///
 typedef OnAnimate<T, S> = S Function(double t, T value);
 typedef OnAnimatePath<T> = SizingPath Function(double t, T value);
 typedef OnAnimateMatrix4 = Companion<Matrix4, Point3>;
-
 typedef AnimationBuilder<T> = Widget Function(
   Animation<T> animation,
   Widget child,
 );
+
+///
+///
+///
 typedef MationBuilder<M extends Mamionability> = Widget Function(
   BuildContext context,
   M mation,
 );
-
-typedef MationMultiGenerator = Generator<MamionMulti>;
 typedef MationSequencer<T>
     = Sequencer<AniSequenceStep, AniSequenceInterval, Mamionability>;
