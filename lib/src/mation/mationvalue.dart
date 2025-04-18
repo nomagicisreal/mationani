@@ -95,14 +95,17 @@ class Between<T> extends Mationvalue<T> {
         end = value,
         super(onLerp: DoubleExtension.lerperOf(value));
 
-  Between.sequence({required List<T> steps, super.curve})
-      : begin = steps.first,
+  Between.sequence({
+    BetweenInterval weight = BetweenInterval.linear,
+    super.curve,
+    required List<T> steps,
+  })  : begin = steps.first,
         end = steps.last,
         super(
           onLerp: BetweenInterval._link(
             totalStep: steps.length,
             step: (i) => steps[i],
-            interval: (i) => const BetweenInterval(1),
+            interval: (i) => weight,
           ),
         );
 
@@ -574,13 +577,18 @@ class BetweenInterval {
   final double weight;
   final Curve curve;
 
-  const BetweenInterval(this.weight, {this.curve = Curves.fastOutSlowIn});
-
   Lerper<T> lerp<T>(T a, T b) {
     final curving = curve.transform;
     final onLerp = lerperFrom<T>(a, b);
     return (t) => onLerp(curving(t));
   }
+
+  const BetweenInterval(this.weight, {this.curve = Curves.linear});
+
+  ///
+  ///
+  ///
+  static const BetweenInterval linear = BetweenInterval(1);
 
   ///
   ///
