@@ -160,7 +160,7 @@ class Mamion<M extends Mamionability> extends Mation<M> {
 }
 
 class Manion<M extends Manionability> extends Mation<M> {
-  final WidgetBuilderParent builder;
+  final WidgetParentBuilder builder;
 
   const Manion({
     required super.ability,
@@ -184,9 +184,9 @@ abstract interface class Mamionability implements Mationability {
 
 abstract interface class Manionability<M extends Mamionability>
     implements Mationability {
-  WidgetBuilderParent planForParent(
+  WidgetParentBuilder planForParent(
     Animation<double> animation,
-    WidgetBuilderParent parent,
+    WidgetParentBuilder parent,
   );
 
   List<WidgetBuilder> planForChildren(Animation<double> animation);
@@ -356,9 +356,9 @@ abstract class _ManionChildren<M extends Mamionability>
   _ManionChildren({required this.children});
 
   @override
-  WidgetBuilderParent planForParent(
+  WidgetParentBuilder planForParent(
     Animation<double> animation,
-    WidgetBuilderParent parent,
+    WidgetParentBuilder parent,
   ) =>
       parent;
 
@@ -380,9 +380,9 @@ abstract class _ManionChildrenParent<M extends Mamionability>
   });
 
   @override
-  WidgetBuilderParent planForParent(
+  WidgetParentBuilder planForParent(
     Animation<double> animation,
-    WidgetBuilderParent parent,
+    WidgetParentBuilder parent,
   ) {
     final planFor = this.parent.planFor;
     return (context, children) => planFor(

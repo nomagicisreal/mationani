@@ -33,7 +33,7 @@ class Mationani extends StatefulWidget {
   Mationani.manion({
     super.key,
     required this.ani,
-    required WidgetBuilderParent parent,
+    required WidgetParentBuilder parent,
     required Manionability ability,
   }) : mation = Manion(builder: parent, ability: ability);
 

@@ -92,17 +92,19 @@ class _FabExpandableState extends State<FabExpandable>
 
   Widget get _closeButton => IgnorePointer(
         ignoring: !_isOpen,
-        child: SizedBoxCenter.fromSize(
-          size: KGeometry.size_square_1 * 56,
-          child: Material(
-            shape: FBorderOutlined.circle(side: BorderSide.none),
-            clipBehavior: Clip.hardEdge,
-            elevation: 4,
-            child: InkWell(
-              onTap: _onTap,
-              child: Padding(
-                padding: KGeometry.edgeInsets_all_1 * 8,
-                child: widget.closeIcon,
+        child: Center(
+          child: SizedBox.fromSize(
+            size: KGeometry.size_square_1 * 56,
+            child: Material(
+              shape: FBorderOutlined.circle(side: BorderSide.none),
+              clipBehavior: Clip.hardEdge,
+              elevation: 4,
+              child: InkWell(
+                onTap: _onTap,
+                child: Padding(
+                  padding: KGeometry.edgeInsets_all_1 * 8,
+                  child: widget.closeIcon,
+                ),
               ),
             ),
           ),
