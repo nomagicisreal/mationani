@@ -1,8 +1,5 @@
 library;
 
-export 'package:damath/damath.dart';
-export 'package:datter/datter.dart';
-
 import 'package:damath/damath.dart';
 import 'package:datter/datter.dart';
 import 'package:flutter/material.dart';

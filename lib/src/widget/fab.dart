@@ -24,7 +24,7 @@ class FabExpandable extends StatefulWidget {
     this.durationCloseRatedByOpen = 0.8,
     // FloatingActionButtonLocation.endFloat by default in Scaffold
     required this.initialLocation,
-    required this.durationOpen,
+    this.durationOpen = KCore.durationSecond1,
     required this.elements,
   });
 

@@ -62,23 +62,23 @@ class Ani {
   const Ani({
     this.initializer = Ani._initialize,
     this.updater = Ani._update,
-    required this.duration,
+    this.duration = DurationFR.second1,
   });
 
   const Ani.initForward({
     this.updater = _update,
-    required this.duration,
+    this.duration = DurationFR.second1,
   }) : initializer = Ani.initializeForward;
 
   const Ani.initForwardReset({
     this.updater = _update,
-    required this.duration,
+    this.duration = DurationFR.second1,
   }) : initializer = Ani.initializeForwardReset;
 
   const Ani.initRepeat({
     bool reversable = false,
     this.updater = _update,
-    required this.duration,
+    this.duration = DurationFR.second1,
   }) : initializer =
             reversable ? Ani.initializeRepeatReverse : Ani.initializeRepeat;
 
@@ -88,22 +88,29 @@ class Ani {
   Ani.initForwardWithStatusListener({
     this.updater = _update,
     required AnimationStatusListener statusListener,
-    required this.duration,
+    this.duration = DurationFR.second1,
   }) : initializer = Ani.initializeForwardWithStatusListener(statusListener);
+
+  Ani.initForwardListenCompleted({
+    this.updater = _update,
+    this.duration = DurationFR.second1,
+    required VoidCallback listener,
+  }) : initializer = Ani.initializeForwardWithStatusListener(
+            Ani.statusListenCompleted(listener));
 
   ///
   ///
   ///
   Ani.update({
     this.initializer = Ani._initialize,
-    required this.duration,
+    this.duration = DurationFR.second1,
     required Consumer<AnimationController> onNotAnimating,
     Consumer<AnimationController> onAnimating = Ani.consumeNothing,
   }) : updater = Ani._consumeUpdate(onAnimating, onNotAnimating);
 
   Ani.updateForwardOrReverse({
     this.initializer = Ani._initialize,
-    required this.duration,
+    this.duration = DurationFR.second1,
     Consumer<AnimationController> onAnimating = Ani.consumeNothing,
   }) : updater = Ani._consumeUpdate(onAnimating, Ani.consumeForwardOrReverse);
 
@@ -137,7 +144,7 @@ class Ani {
     bool onAnimating = false,
     bool onNotAnimating = true,
     this.initializer = Ani._initialize,
-    required this.duration,
+    this.duration = DurationFR.second1,
   }) : updater = Ani._consumeUpdate(
           onAnimating
               ? Ani.decideForwardOrReverse(trigger)
@@ -154,7 +161,7 @@ class Ani {
     bool trigger, {
     bool onAnimating = false,
     bool onNotAnimating = true,
-    required this.duration,
+    this.duration = DurationFR.second1,
   })  : initializer = Ani.initializeForward,
         updater = Ani._consumeUpdate(
           onAnimating ? Ani.decideReverse(trigger) : Ani.consumeNothing,
@@ -164,7 +171,7 @@ class Ani {
   Ani.initForwardAndWaitUpdateReverseTo(
     bool trigger, {
     required VoidCallback dismissedCall,
-    required this.duration,
+    this.duration = DurationFR.second1,
   })  : initializer = Ani.initializeForwardWithStatusListener(
           Ani.statusListenDismissed(dismissedCall),
         ),
@@ -374,7 +381,7 @@ class AniSequenceInterval {
   final List<Offset> offsets; // for curving control, interval step
 
   const AniSequenceInterval({
-    required this.duration,
+    this.duration = KCore.durationSecond1,
     required this.curves,
     this.offsets = const [],
   });
