@@ -27,14 +27,14 @@ class MyHome extends StatefulWidget {
 }
 
 class _MyHomeState extends State<MyHome>
-    with OverlayStateUpdateToRemoveMixin<MyHome> {
+    with OverlayStateNormalMixin<MyHome> {
   bool toggle = false;
   int count = 0;
 
   void _onPressed({bool update = true}) {
     count++;
     if (overlays.isEmpty) {
-      overlayInsert(
+      overlayInsertUpdateToRemove(
         builder: (context, callToRemove) => Mationani.mamion(
           ani: Ani.initForwardAndWaitUpdateReverseTo(
             count % 2 == 0,
