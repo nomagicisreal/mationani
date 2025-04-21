@@ -42,13 +42,11 @@ class _MyHomeState extends State<MyHome>
               context.showSnackBarMessage(count.toString());
               callToRemove();
             },
-            duration: DurationFR.second1,
           ),
           ability: MamionTransition.fadeIn(),
           builder: (context) => Mationani.mamion(
             ani: Ani.updateForwardOrReverse(
               initializer: Ani.initializeForward,
-              duration: DurationFR.milli100 * 4,
             ),
             ability: MamionMulti.slideToThenScale(
               scaleEnd: 2,

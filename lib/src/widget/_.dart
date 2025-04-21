@@ -8,7 +8,6 @@ part of '../../mationani.dart';
 ///
 ///
 
-
 ///
 /// [Mationani.mamion], [Mationani.manion]
 /// [Mationani.mamionSequence]
@@ -73,7 +72,10 @@ class _MationaniState extends State<Mationani>
   late final AnimationController controller;
   late WidgetBuilder builder;
 
-  WidgetBuilder get planForBuilder => widget.mation.planning(controller);
+  WidgetBuilder get planForBuilder => widget.mation.planning(
+        controller,
+        widget.ani.curve,
+      );
 
   @override
   void initState() {
@@ -128,7 +130,7 @@ class MationaniArrow extends StatelessWidget {
                 curve: CurveFR.of(Curving.sinPeriodOf(2)),
               ),
             ),
-            ani: Ani.initRepeat(duration: DurationFR.second1),
+            ani: Ani.initRepeat(),
             builder: builder,
           ),
         ),

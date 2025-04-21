@@ -19,7 +19,8 @@ class FabExpandable extends StatefulWidget {
     this.initialOpen = false,
     this.openIcon = WIcon.add,
     this.closeIcon = WIcon.close,
-    this.curveOpenAndClose = CurveFR.easeInOut,
+    this.curveOpen = Curves.easeInOut,
+    this.curveClose = Curves.easeInOut,
     this.elementsAlign = Alignment.bottomRight,
     this.durationCloseRatedByOpen = 0.8,
     // FloatingActionButtonLocation.endFloat by default in Scaffold
@@ -32,17 +33,22 @@ class FabExpandable extends StatefulWidget {
   final bool initialOpen;
   final Duration durationOpen;
   final double durationCloseRatedByOpen;
-  final CurveFR curveOpenAndClose;
+  final Curve curveOpen;
+  final Curve curveClose;
   final Icon openIcon;
   final Icon closeIcon;
   final Alignment elementsAlign;
   final List<IconAction> elements;
   final FabExpandableElementsSetup setup;
 
-  DurationFR get duration => DurationFR.rated(
-        durationOpen,
-        durationCloseRatedByOpen,
+  AnimationStyle get style => AnimationStyle(
+        duration: durationOpen,
+        reverseDuration: durationOpen * durationCloseRatedByOpen,
+        curve: curveOpen,
+        reverseCurve: curveClose,
       );
+
+  CurveFR get curve => CurveFR(curveOpen, curveClose);
 
   @override
   State<FabExpandable> createState() => _FabExpandableState();
@@ -77,11 +83,11 @@ class _FabExpandableState extends State<FabExpandable>
         child: Mationani.mamion(
           ani: Ani.updateForwardOrReverseWhen(
             _isOpen,
-            duration: widget.duration,
+            style: widget.style,
           ),
           ability: MamionMulti.appear(
-            fading: FBetween.double_0From(1, curve: widget.curveOpenAndClose),
-            scaling: FBetween.double_1To(0.7, curve: widget.curveOpenAndClose),
+            fading: FBetween.double_0From(1, curve: widget.curve),
+            scaling: FBetween.double_1To(0.7, curve: widget.curve),
           ),
           builder: (context) => FloatingActionButton(
             onPressed: _onTap,
@@ -126,7 +132,7 @@ class _FabExpandableState extends State<FabExpandable>
           ignoring: !_isOpen,
           ani: Ani.update(
             initializer: Ani.initializeForward,
-            duration: widget.duration,
+            style: widget.style,
             onNotAnimating: Ani.decideForwardOrReverse(_isOpen),
           ),
           setup: widget.setup(

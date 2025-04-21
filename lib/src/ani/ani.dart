@@ -42,12 +42,14 @@ part of '../../mationani.dart';
 /// status controller see [Ani.statusListenForward]
 ///
 class Ani {
-  final DurationFR duration;
+  final AnimationStyle? style;
   final AnimationControllerInitializer initializer;
   final AnimatedStatefulWidgetUpdater<Mationani> updater;
 
-  AnimationController initializing(TickerProvider ticker) =>
-      initializer(ticker, duration.forward, duration.reverse);
+  AnimationController initializing(TickerProvider ticker) => initializer(
+      ticker,
+      style?.duration ?? KCore.durationMilli500,
+      style?.reverseDuration ?? KCore.durationMilli500);
 
   void updating(
     AnimationController controller,
@@ -56,29 +58,36 @@ class Ani {
   ) =>
       updater(controller, oldWidget, widget);
 
+  CurveFR? get curve {
+    final style = this.style;
+    if (style == null) return null;
+    if (style.curve == null || style.reverseCurve == null) return null;
+    return CurveFR(style.curve!, style.reverseCurve!);
+  }
+
   ///
   ///
   ///
   const Ani({
     this.initializer = Ani._initialize,
     this.updater = Ani._update,
-    this.duration = DurationFR.second1,
+    this.style,
   });
 
   const Ani.initForward({
     this.updater = _update,
-    this.duration = DurationFR.second1,
+    this.style,
   }) : initializer = Ani.initializeForward;
 
   const Ani.initForwardReset({
     this.updater = _update,
-    this.duration = DurationFR.second1,
+    this.style,
   }) : initializer = Ani.initializeForwardReset;
 
   const Ani.initRepeat({
     bool reversable = false,
     this.updater = _update,
-    this.duration = DurationFR.second1,
+    this.style,
   }) : initializer =
             reversable ? Ani.initializeRepeatReverse : Ani.initializeRepeat;
 
@@ -88,12 +97,12 @@ class Ani {
   Ani.initForwardWithStatusListener({
     this.updater = _update,
     required AnimationStatusListener statusListener,
-    this.duration = DurationFR.second1,
+    this.style,
   }) : initializer = Ani.initializeForwardWithStatusListener(statusListener);
 
   Ani.initForwardListenCompleted({
     this.updater = _update,
-    this.duration = DurationFR.second1,
+    this.style,
     required VoidCallback listener,
   }) : initializer = Ani.initializeForwardWithStatusListener(
             Ani.statusListenCompleted(listener));
@@ -103,14 +112,14 @@ class Ani {
   ///
   Ani.update({
     this.initializer = Ani._initialize,
-    this.duration = DurationFR.second1,
+    this.style,
     required Consumer<AnimationController> onNotAnimating,
     Consumer<AnimationController> onAnimating = Ani.consumeNothing,
   }) : updater = Ani._consumeUpdate(onAnimating, onNotAnimating);
 
   Ani.updateForwardOrReverse({
     this.initializer = Ani._initialize,
-    this.duration = DurationFR.second1,
+    this.style,
     Consumer<AnimationController> onAnimating = Ani.consumeNothing,
   }) : updater = Ani._consumeUpdate(onAnimating, Ani.consumeForwardOrReverse);
 
@@ -123,7 +132,7 @@ class Ani {
     bool trigger, {
     this.initializer = Ani._initialize,
     required Duration duration,
-  })  : duration = DurationFR.of(duration),
+  })  : style = AnimationStyle(duration: duration, reverseDuration: duration),
         updater = Ani._consumeUpdate(
           Ani.consumeNothing,
           Ani.decideForward(trigger),
@@ -133,7 +142,7 @@ class Ani {
     bool? trigger, {
     this.initializer = Ani._initialize,
     required Duration duration,
-  })  : duration = DurationFR.of(duration),
+  })  : style = AnimationStyle(duration: duration, reverseDuration: duration),
         updater = Ani._consumeUpdate(
           Ani.consumeNothing,
           Ani.decideForwardOrReverse(trigger),
@@ -144,7 +153,7 @@ class Ani {
     bool onAnimating = false,
     bool onNotAnimating = true,
     this.initializer = Ani._initialize,
-    this.duration = DurationFR.second1,
+    this.style,
   }) : updater = Ani._consumeUpdate(
           onAnimating
               ? Ani.decideForwardOrReverse(trigger)
@@ -161,7 +170,7 @@ class Ani {
     bool trigger, {
     bool onAnimating = false,
     bool onNotAnimating = true,
-    this.duration = DurationFR.second1,
+    this.style,
   })  : initializer = Ani.initializeForward,
         updater = Ani._consumeUpdate(
           onAnimating ? Ani.decideReverse(trigger) : Ani.consumeNothing,
@@ -171,7 +180,7 @@ class Ani {
   Ani.initForwardAndWaitUpdateReverseTo(
     bool trigger, {
     required VoidCallback dismissedCall,
-    this.duration = DurationFR.second1,
+    this.style,
   })  : initializer = Ani.initializeForwardWithStatusListener(
           Ani.statusListenDismissed(dismissedCall),
         ),
@@ -495,10 +504,11 @@ extension AnimationControllerExtension on AnimationController {
   ///
   ///
   void updateDurationIfNew(Mationani oldWidget, Mationani widget) {
-    final d = widget.ani.duration;
-    if (oldWidget.ani.duration != d) {
-      duration = d.forward;
-      reverseDuration = d.reverse;
+    final style = widget.ani.style;
+    final styleOld = oldWidget.ani.style;
+    if (styleOld?.duration != style?.duration) duration = style?.duration;
+    if (styleOld?.reverseDuration != style?.reverseDuration) {
+      reverseDuration = style?.reverseDuration;
     }
   }
 }

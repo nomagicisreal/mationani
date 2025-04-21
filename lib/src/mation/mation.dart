@@ -134,7 +134,7 @@ sealed class Mation<M extends Mationability> {
   @override
   String toString() => 'Mation($ability)';
 
-  WidgetBuilder planning(Animation<double> animation);
+  WidgetBuilder planning(Animation<double> animation, CurveFR? curve);
 }
 
 class Mamion<M extends Mamionability> extends Mation<M> {
@@ -146,9 +146,9 @@ class Mamion<M extends Mamionability> extends Mation<M> {
   });
 
   @override
-  WidgetBuilder planning(Animation<double> animation) {
+  WidgetBuilder planning(Animation<double> animation, CurveFR? curve) {
     final ability = this.ability;
-    final build = ability.planFor(animation, builder);
+    final build = ability.planFor(animation, curve, builder);
     return switch (ability) {
       MamionTransition() => build,
       _ => (_) => AnimatedBuilder(
@@ -168,9 +168,9 @@ class Manion<M extends Manionability> extends Mation<M> {
   });
 
   @override
-  WidgetBuilder planning(Animation<double> animation) => ability
-      .planForParent(animation, this.builder)
-      .builderFrom(ability.planForChildren(animation));
+  WidgetBuilder planning(Animation<double> animation, CurveFR? curve) => ability
+      .planForParent(animation, curve, this.builder)
+      .builderFrom(ability.planForChildren(animation, curve));
 }
 
 ///
@@ -179,17 +179,25 @@ class Manion<M extends Manionability> extends Mation<M> {
 abstract interface class Mationability implements _Mationable {}
 
 abstract interface class Mamionability implements Mationability {
-  WidgetBuilder planFor(Animation<double> animation, WidgetBuilder builder);
+  WidgetBuilder planFor(
+    Animation<double> animation,
+    CurveFR? curve,
+    WidgetBuilder builder,
+  );
 }
 
 abstract interface class Manionability<M extends Mamionability>
     implements Mationability {
   WidgetParentBuilder planForParent(
     Animation<double> animation,
+    CurveFR? curve,
     WidgetParentBuilder parent,
   );
 
-  List<WidgetBuilder> planForChildren(Animation<double> animation);
+  List<WidgetBuilder> planForChildren(
+    Animation<double> animation,
+    CurveFR? curve,
+  );
 }
 
 ///
@@ -233,17 +241,16 @@ abstract interface class _MationableIterable<M extends _Mationable>
 sealed class _MationAnimatable implements _Mationable {
   const _MationAnimatable();
 
-  Object animate(Animation<double> parent);
+  Object animate(Animation<double> parent, CurveFR? curve);
 
   static Iterable<Animation> Function(_Mationable able) animating(
-    Animation<double> animation,
-  ) =>
+          Animation<double> animation, CurveFR? curve) =>
       (able) => switch (able) {
             _MationAnimatable() => switch (able) {
-                _MationAnimatableSingle() => [able.animate(animation)],
-                _MationAnimatableIterable() => able.animate(animation),
+                _MationAnimatableSingle() => [able.animate(animation, curve)],
+                _MationAnimatableIterable() => able.animate(animation, curve),
                 _MationAnimatableNest() =>
-                  able.animate(animation).iterator.foldNested(),
+                  able.animate(animation, curve).iterator.foldNested(),
               },
             _Mationable() => throw UnimplementedError(able.toString()),
           };
@@ -274,21 +281,30 @@ mixin _MationAnimatableSingle<T> implements _MationAnimatable {
   Mationvalue<T> get value;
 
   @override
-  Animation animate(Animation<double> animation) => value.animate(animation);
+  Animation animate(Animation<double> animation, CurveFR? curve) =>
+      curve.mapNotNullOr(
+          (curve) => value.animate(CurvedAnimation(
+              parent: animation,
+              curve: curve.forward,
+              reverseCurve: curve.reverse)),
+          () => value.animate(animation));
 }
 
 mixin _MationAnimatableIterable
     implements _MationAnimatable, _MationableIterable<_MationAnimatableSingle> {
   @override
-  Iterable<Animation> animate(Animation<double> animation) =>
-      ables.map((able) => able.animate(animation));
+  Iterable<Animation> animate(Animation<double> animation, CurveFR? curve) =>
+      ables.map((able) => able.animate(animation, curve));
 }
 
 mixin _MationAnimatableNest<M extends _Mationable>
     implements _MationAnimatable, _MationableIterable<M> {
   @override
-  Iterable<Iterable<Animation>> animate(Animation<double> animation) =>
-      ables.map(_MationAnimatable.animating(animation));
+  Iterable<Iterable<Animation>> animate(
+    Animation<double> animation,
+    CurveFR? curve,
+  ) =>
+      ables.map(_MationAnimatable.animating(animation, curve));
 }
 
 //
@@ -332,8 +348,12 @@ abstract class _MamionMulti<M extends _Mationable>
   const _MamionMulti(this.ables);
 
   @override
-  WidgetBuilder planFor(Animation<double> animation, WidgetBuilder builder) {
-    final evaluations2D = animate(animation);
+  WidgetBuilder planFor(
+    Animation<double> animation,
+    CurveFR? curve,
+    WidgetBuilder builder,
+  ) {
+    final evaluations2D = animate(animation, curve);
     final plans2D = plan;
     return (context) => plans2D.foldWith2D(
           evaluations2D,
@@ -358,15 +378,17 @@ abstract class _ManionChildren<M extends Mamionability>
   @override
   WidgetParentBuilder planForParent(
     Animation<double> animation,
+    CurveFR? curve,
     WidgetParentBuilder parent,
   ) =>
       parent;
 
   @override
-  List<WidgetBuilder> planForChildren(Animation<double> animation) =>
+  List<WidgetBuilder> planForChildren(
+          Animation<double> animation, CurveFR? curve) =>
       children.iterator.fold(
         [],
-        (list, mamion) => list..add(mamion.planning(animation)),
+        (list, mamion) => list..add(mamion.planning(animation, curve)),
       );
 }
 
@@ -382,11 +404,13 @@ abstract class _ManionChildrenParent<M extends Mamionability>
   @override
   WidgetParentBuilder planForParent(
     Animation<double> animation,
+    CurveFR? curve,
     WidgetParentBuilder parent,
   ) {
     final planFor = this.parent.planFor;
     return (context, children) => planFor(
           animation,
+          curve,
           (context) => parent(context, children),
         )(context);
   }
@@ -400,6 +424,11 @@ typedef OnAnimatePath<T> = SizingPath Function(double t, T value);
 typedef OnAnimateMatrix4 = Companion<Matrix4, Point3>;
 typedef AnimationBuilder<T> = Widget Function(
   Animation<T> animation,
+  Widget child,
+);
+typedef AnimationCurveFRBuilder<T> = Widget Function(
+  Animation<T> animation,
+  CurveFR curve,
   Widget child,
 );
 

@@ -45,7 +45,7 @@ class SampleSlide extends StatelessWidget {
     return Mationani(
       mation: MamionTransition.slide(Between(Offset.zero, Offset(1, 1))),
       ani: Ani(
-        duration: DurationFR(Duration(seconds: 1), Duration.zero),
+        style: AnimationStyle(duration: Duration(seconds: 1)),
         initializer: Ani.initializeForward,
       ),
       child: CircularProgressIndicator(),

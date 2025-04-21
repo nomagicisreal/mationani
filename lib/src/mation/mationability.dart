@@ -29,8 +29,8 @@ class MamionSingle<T> extends _MamionSingle<T> implements Mamionability {
   const MamionSingle(super.value, super.plan);
 
   @override
-  WidgetBuilder planFor(Animation<double> animation, WidgetBuilder builder) {
-    final animate = this.animate(animation);
+  WidgetBuilder planFor(Animation<double> animation, CurveFR? curve, WidgetBuilder builder) {
+    final animate = this.animate(animation, curve);
     final plan = this.plan;
     return (context) => plan(animate, builder(context));
   }
