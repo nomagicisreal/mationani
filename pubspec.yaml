@@ -1,6 +1,6 @@
 name: mationani
 description: create animation by stateless widget
-version: 0.0.29
+version: 0.0.30
 repository: https://github.com/nomagicisreal/mationani
 
 environment:
@@ -10,9 +10,9 @@ dependencies:
   flutter:
     sdk: flutter
 
-  damath: ^0.0.33
-  datter: ^0.0.15
   vector_math: ^2.1.4
+  damath: ^0.0.34
+  datter: ^0.0.17
 
 dev_dependencies:
   flutter_test:

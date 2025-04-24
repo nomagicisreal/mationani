@@ -1,10 +1,10 @@
 see mationani in [Pub.dev](https://pub.dev/packages/mationani) and [Github](https://github.com/nomagicisreal/mationani)
 
 To prevent scattered instances of `AnimationController`, `Animation`, `Tween` in multiple widgets;
-there is a stateful widget called `Mationani` empower us to have an easy way to create animation.
+there is a stateful widget called `Mationani`, empowering us to have an easy way to create animation.
 With `Matoinani`, we can only create widgets in a build.
 
-before,
+In tradition, an animation needs a stateful widget with ticker mixin.
 ```dart
 class SampleSlide extends StatefulWidget {
   const SampleSlide({super.key});
@@ -35,7 +35,7 @@ class _SampleSlideState extends State<SampleSlide> with SingleTickerProviderStat
 }
 ```
 
-after,
+With `Mationani`, creating animation needs only `Mation` and `Ani` as argument.
 ```dart
 class SampleSlide extends StatelessWidget {
   const SampleSlide({super.key});
@@ -43,11 +43,11 @@ class SampleSlide extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Mationani(
-      mation: MamionTransition.slide(Between(Offset.zero, Offset(1, 1))),
       ani: Ani(
         style: AnimationStyle(duration: Duration(seconds: 1)),
         initializer: Ani.initializeForward,
       ),
+      mation: MamionTransition.slide(Between(Offset.zero, Offset(1, 1))),
       child: CircularProgressIndicator(),
     );
   }
@@ -55,9 +55,7 @@ class SampleSlide extends StatelessWidget {
 
 ```
 
-In tradition, an animation needs a stateful widget with ticker mixin,
-but now, an animation just needs a stateless widget with `Mation` and `Ani` as argument.
-
-`Mationani` is different to `ImplicitlyAnimatedWidget`.
-`ImplicitlyAnimatedWidget` provides implicitly animation by inheritance through many classes,
-while `Mationani` requires only `Mation`, `Between`, `Ani` as arguments in widget build,
+this is a library aims to integrate flutter animation and not limited to built-in animation; for example,
+talks to `MamionTransition.fade` and `MamionTransition.slide`, there is `FadeTransition` and `SlideTransition`;
+talks to `MamionClipper` or `MamionPainter`, there is no pertinent widget if `ClipPath` or `CustomPaint` is not.
+whether there is a flutter animation widget or not, hopes there are more implementation in the future!

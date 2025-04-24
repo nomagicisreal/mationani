@@ -1,15 +1,13 @@
+part of '../mationani.dart';
+
 ///
-///
-/// this file contains:
-///
-/// [_Mationvalue]
-/// [Mationvalue]
+/// [_Matalue]
+/// [Matalue]
 ///
 /// [Between]
 ///   --[BetweenSpline2D]
 ///   --[BetweenPath]
 ///   |   --[BetweenPathOffset]
-///   |   --[BetweenPathVector3D]
 ///   |   --[_BetweenPathConcurrent]
 ///   |       --[BetweenPathPolygon]
 ///   |
@@ -21,24 +19,22 @@
 /// [BetweenConcurrent]
 ///
 /// extensions:
-/// [MationvalueDoubleExtension]
 /// [BetweenOffsetExtension]
 ///
 ///
 ///
-part of '../../mationani.dart';
 
 ///
-/// [_Mationvalue], [Mationvalue]
+/// [_Matalue], [Matalue]
 ///
-class _Mationvalue<T> extends Animation<T>
+class _Matalue<T> extends Animation<T>
     with AnimationWithParentMixin<double> {
-  _Mationvalue(this.parent, this.animatable);
+  _Matalue(this.parent, this.animatable);
 
   @override
   final Animation<double> parent;
 
-  final Mationvalue<T> animatable;
+  final Matalue<T> animatable;
 
   @override
   T get value => animatable.evaluate(parent);
@@ -48,11 +44,11 @@ class _Mationvalue<T> extends Animation<T>
 /// [onLerp], [curve],
 /// [transform], [evaluate], [animate],
 ///
-sealed class Mationvalue<T> extends Animatable<T> {
+sealed class Matalue<T> extends Animatable<T> {
   final Lerper<T> onLerp;
   final CurveFR? curve;
 
-  const Mationvalue({required this.onLerp, this.curve});
+  const Matalue({required this.onLerp, this.curve});
 
   @override
   T transform(double t) => onLerp(t);
@@ -61,7 +57,7 @@ sealed class Mationvalue<T> extends Animatable<T> {
   T evaluate(Animation<double> animation) => transform(animation.value);
 
   @override
-  Animation<T> animate(Animation<double> parent) => _Mationvalue(
+  Animation<T> animate(Animation<double> parent) => _Matalue(
         CurvedAnimation(
           parent: parent,
           curve: curve?.forward ?? Curves.fastOutSlowIn,
@@ -69,6 +65,25 @@ sealed class Mationvalue<T> extends Animatable<T> {
         ),
         this,
       );
+
+  ///
+  ///
+  ///
+  static Matalue<double> doubleToRadian(Matalue<double> round) =>
+      switch (round) {
+        Between<double>() => Between(
+          Radian.fromRound(round.begin),
+          Radian.fromRound(round.end),
+          curve: round.curve,
+        ),
+        Amplitude<double>() => Amplitude(
+          Radian.fromRound(round.from),
+          Radian.fromRound(round.value),
+          round.times,
+          style: round.style,
+          curve: round.curve,
+        ),
+      };
 }
 
 ///
@@ -76,7 +91,7 @@ sealed class Mationvalue<T> extends Animatable<T> {
 /// [Between.constant], [Between.of], [Between.sequence], [Between.sequenceFromGenerator], ...
 /// [reverse], [follow], [followOperate], ..., [toString]
 ///
-class Between<T> extends Mationvalue<T> {
+class Between<T> extends Matalue<T> {
   final T begin;
   final T end;
 
@@ -523,7 +538,7 @@ enum AmplitudeStyle {
 }
 
 //
-class Amplitude<T> extends Mationvalue<T> {
+class Amplitude<T> extends Matalue<T> {
   final T from;
   final T value;
   final int times;
@@ -674,24 +689,6 @@ class BetweenConcurrent<T, S> {
 ///
 /// extensions
 ///
-extension MationvalueDoubleExtension on Mationvalue<double> {
-  static Mationvalue<double> toRadianFrom(Mationvalue<double> round) =>
-      switch (round) {
-        Between<double>() => Between(
-            Radian.fromRound(round.begin),
-            Radian.fromRound(round.end),
-            curve: round.curve,
-          ),
-        Amplitude<double>() => Amplitude(
-            Radian.fromRound(round.from),
-            Radian.fromRound(round.value),
-            round.times,
-            style: round.style,
-            curve: round.curve,
-          ),
-      };
-}
-
 extension BetweenOffsetExtension on Between<Offset> {
   double get direction => end.direction - begin.direction;
 }

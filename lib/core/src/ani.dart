@@ -1,62 +1,48 @@
-part of '../../mationani.dart';
+part of '../mationani.dart';
 
 ///
 ///
-/// [Ani] and [Mation] helps us to create animation for [Mationani].
-/// [Mation] implement how [Animation] can be triggered by [Ani] in [_MationaniState].
-/// while [Ani] implement how [AnimationController] can be used in [_MationaniState].
+/// * [Ani]
+///
+/// * [AniSequence]
+/// * [AniSequenceStep]
+/// * [AniSequenceInterval]
+/// * [AniSequenceStyle]
+///
+///
+///
+
+///
+///
+/// [Ani] implement how [AnimationController] can be used in [_MationaniState].
 ///   - [initializing] for [_MationaniState.initState]
 ///   - [updating] for [_MationaniState.didUpdateWidget]
-/// Normally, it's hard to implement [AnimationController] everytime we want to trigger animation; we need to
-///   1. let stateful widget state inherit ticker provider.
-///   2. let controller instance hold for state inherited ticker provider.
-///   3. be in right place to let controller instance control animation (initState, didUpdateWidget, ...)
-///   4. be in right way to let controller instance trigger animation (by invoke function , by change value)
-/// With [Ani] as interface, 1 and 2 are prevented. 3 and 4 are easier.
-///
-/// In short,
-/// the development of [Ani] focus on implementing the [AnimationController] functionality,
-/// and explore the capability of animation control, not limited to the [AnimationController] functionality.
+/// In tradition, it's hard to implement [AnimationController] everytime we want to trigger animation; we need to
+///   1. let [State] object inherit [TickerProvider].
+///   2. let [AnimationController] instance hold for the [State] inherited [TickerProvider].
+///   3. trigger animation be in the right place ([State.initState], [State.didUpdateWidget], [State.setState])
+/// With [Ani] as interface, 1 and 2 are prevented, 3 are easier.
+/// it focus on [AnimationController] implementation, and also not limited to the it.
 ///
 ///
 
-///
-///
-/// [AniSequence]
-///   [AniSequenceStep]
-///   [AniSequenceInterval]
-///   [AniSequenceStyle]
-///
-/// typedefs:
-///   [AnimationControllerInitializer]
-///   [AnimatedStatefulWidgetUpdater]
-///
-/// extensions:
-///
-///
-///
 
 ///
-/// [initializer] see [Ani._initialize], ...
-/// [updater] see [Ani.consumeNothing], [Ani.consumeBack], ..., [Ani.decideNothing], ...
-/// status controller see [Ani.statusListenForward]
+/// static methods:
+/// [Ani._initialize], ...
+/// [Ani._updateNothing], ...
+/// [Ani.statusListenForward], ...
 ///
 class Ani {
   final AnimationStyle? style;
+  final Consumer<VoidCallback>? initialConsumeSetStateCallback;
   final AnimationControllerInitializer initializer;
-  final AnimatedStatefulWidgetUpdater<Mationani> updater;
+  final AnimationUpdater updating;
 
   AnimationController initializing(TickerProvider ticker) => initializer(
       ticker,
       style?.duration ?? KCore.durationMilli500,
       style?.reverseDuration ?? KCore.durationMilli500);
-
-  void updating(
-    AnimationController controller,
-    Mationani oldWidget,
-    Mationani widget,
-  ) =>
-      updater(controller, oldWidget, widget);
 
   CurveFR? get curve {
     final style = this.style;
@@ -70,23 +56,27 @@ class Ani {
   ///
   const Ani({
     this.initializer = Ani._initialize,
-    this.updater = Ani._update,
+    this.updating = Ani._updateNothing,
+    this.initialConsumeSetStateCallback,
     this.style,
   });
 
   const Ani.initForward({
-    this.updater = _update,
+    this.updating = Ani._updateNothing,
+    this.initialConsumeSetStateCallback,
     this.style,
   }) : initializer = Ani.initializeForward;
 
   const Ani.initForwardReset({
-    this.updater = _update,
+    this.updating = Ani._updateNothing,
+    this.initialConsumeSetStateCallback,
     this.style,
   }) : initializer = Ani.initializeForwardReset;
 
   const Ani.initRepeat({
     bool reversable = false,
-    this.updater = _update,
+    this.updating = Ani._updateNothing,
+    this.initialConsumeSetStateCallback,
     this.style,
   }) : initializer =
             reversable ? Ani.initializeRepeatReverse : Ani.initializeRepeat;
@@ -95,13 +85,15 @@ class Ani {
   ///
   ///
   Ani.initForwardWithStatusListener({
-    this.updater = _update,
+    this.updating = Ani._updateNothing,
+    this.initialConsumeSetStateCallback,
     required AnimationStatusListener statusListener,
     this.style,
   }) : initializer = Ani.initializeForwardWithStatusListener(statusListener);
 
   Ani.initForwardListenCompleted({
-    this.updater = _update,
+    this.updating = Ani._updateNothing,
+    this.initialConsumeSetStateCallback,
     this.style,
     required VoidCallback listener,
   }) : initializer = Ani.initializeForwardWithStatusListener(
@@ -112,16 +104,18 @@ class Ani {
   ///
   Ani.update({
     this.initializer = Ani._initialize,
+    this.initialConsumeSetStateCallback,
     this.style,
     required Consumer<AnimationController> onNotAnimating,
     Consumer<AnimationController> onAnimating = Ani.consumeNothing,
-  }) : updater = Ani._consumeUpdate(onAnimating, onNotAnimating);
+  }) : updating = Ani._consumeUpdate(onAnimating, onNotAnimating);
 
   Ani.updateForwardOrReverse({
     this.initializer = Ani._initialize,
+    this.initialConsumeSetStateCallback,
     this.style,
     Consumer<AnimationController> onAnimating = Ani.consumeNothing,
-  }) : updater = Ani._consumeUpdate(onAnimating, Ani.consumeForwardOrReverse);
+  }) : updating = Ani._consumeUpdate(onAnimating, Ani.consumeForwardOrReverse);
 
   ///
   ///
@@ -131,9 +125,10 @@ class Ani {
   Ani.updateForwardWhen(
     bool trigger, {
     this.initializer = Ani._initialize,
+    this.initialConsumeSetStateCallback,
     required Duration duration,
   })  : style = AnimationStyle(duration: duration, reverseDuration: duration),
-        updater = Ani._consumeUpdate(
+        updating = Ani._consumeUpdate(
           Ani.consumeNothing,
           Ani.decideForward(trigger),
         );
@@ -141,9 +136,10 @@ class Ani {
   Ani.updateSequencingWhen(
     bool? trigger, {
     this.initializer = Ani._initialize,
+    this.initialConsumeSetStateCallback,
     required Duration duration,
   })  : style = AnimationStyle(duration: duration, reverseDuration: duration),
-        updater = Ani._consumeUpdate(
+        updating = Ani._consumeUpdate(
           Ani.consumeNothing,
           Ani.decideForwardOrReverse(trigger),
         );
@@ -153,8 +149,9 @@ class Ani {
     bool onAnimating = false,
     bool onNotAnimating = true,
     this.initializer = Ani._initialize,
+    this.initialConsumeSetStateCallback,
     this.style,
-  }) : updater = Ani._consumeUpdate(
+  }) : updating = Ani._consumeUpdate(
           onAnimating
               ? Ani.decideForwardOrReverse(trigger)
               : Ani.consumeNothing,
@@ -170,9 +167,10 @@ class Ani {
     bool trigger, {
     bool onAnimating = false,
     bool onNotAnimating = true,
+    this.initialConsumeSetStateCallback,
     this.style,
   })  : initializer = Ani.initializeForward,
-        updater = Ani._consumeUpdate(
+        updating = Ani._consumeUpdate(
           onAnimating ? Ani.decideReverse(trigger) : Ani.consumeNothing,
           onNotAnimating ? Ani.decideReverse(trigger) : Ani.consumeNothing,
         );
@@ -180,11 +178,12 @@ class Ani {
   Ani.initForwardAndWaitUpdateReverseTo(
     bool trigger, {
     required VoidCallback dismissedCall,
+    this.initialConsumeSetStateCallback,
     this.style,
   })  : initializer = Ani.initializeForwardWithStatusListener(
           Ani.statusListenDismissed(dismissedCall),
         ),
-        updater = Ani._consumeUpdate(
+        updating = Ani._consumeUpdate(
           Ani.consumeNothing,
           Ani.decideReverse(trigger),
         );
@@ -246,7 +245,7 @@ class Ani {
           : null;
 
   ///
-  /// [_update]
+  /// [_updateNothing]
   /// [_consumeUpdate]
   /// [consumeNothing]
   /// [consumeForward], [consumeForwardReset], [consumeForwardOrReverse], [consumeReverse]
@@ -254,9 +253,9 @@ class Ani {
   /// [consumeResetForward]
   /// [consumeBack]
   ///
-  static void _update(AnimationController c, Mationani oW, Mationani nW) {}
+  static void _updateNothing(AnimationController c, Mationani o, Mationani n) {}
 
-  static AnimatedStatefulWidgetUpdater<Mationani> _consumeUpdate(
+  static AnimationUpdater _consumeUpdate(
     Consumer<AnimationController> onAnimating,
     Consumer<AnimationController> onNotAnimating,
   ) =>
@@ -330,14 +329,14 @@ class Ani {
 ///
 ///
 /// See Also
-///   * [Mamion], [Manion] are [Mation] implementation
+///   * [_Mamion], [_Manion] are [Mation] implementation
 ///   * [Between.sequence] achieve chaining animation by directly lerp [Animation.value].
 ///   * [BetweenInterval._link] is similar to [AniSequence] default factory.
 ///   * [Mationani.mamionSequence] takes [AniSequence] as required argument.
 ///
 ///
-class AniSequence {
-  final List<Mamionability> abilities;
+final class AniSequence {
+  final List<Mamable> abilities;
   final List<Duration> durations;
 
   const AniSequence._(this.abilities, this.durations);
@@ -357,7 +356,7 @@ class AniSequence {
 
     var i = -1;
     return AniSequence._(
-      step.linkToListTill(
+      step.linkToListTill<AniSequenceInterval, Mamable>(
         totalStep,
         intervalGenerator,
         (previous, next, interval) =>
@@ -370,7 +369,7 @@ class AniSequence {
 
 ///
 ///
-class AniSequenceStep {
+final class AniSequenceStep {
   final List<double> values;
   final List<Offset> offsets;
   final List<Point3> points3;
@@ -384,7 +383,7 @@ class AniSequenceStep {
 
 ///
 ///
-class AniSequenceInterval {
+final class AniSequenceInterval {
   final Duration duration;
   final List<Curve> curves;
   final List<Offset> offsets; // for curving control, interval step
@@ -406,22 +405,22 @@ enum AniSequenceStyle {
   transitionRotateSlideBezierCubic;
 
   ///
-  /// [_forwardOrReverse] is the only way to sequence [Mamionability] for now
+  /// [_forwardOrReverse] is the only way to sequence [Mamable] for now
   ///
   static bool _forwardOrReverse(int i) => i % 2 == 0;
 
-  static Mapper<int, Mamionability> _sequence({
+  static Mapper<int, Mamable> _sequence({
     Predicator<int> predicator = _forwardOrReverse,
     required AniSequenceStep previous,
     required AniSequenceStep next,
-    required Fusionor<AniSequenceStep, Mamionability> combine,
+    required Fusionor<AniSequenceStep, Mamable> combine,
   }) =>
       (i) => combine(
             predicator(i) ? previous : next,
             predicator(i) ? next : previous,
           );
 
-  MationSequencer get sequencer => switch (this) {
+  AniSequencer<Mamable> get sequencer => switch (this) {
         transformTRS => (previous, next, interval) {
             final curve = CurveFR.of(interval.curves[0]);
             return AniSequenceStyle._sequence(
@@ -430,17 +429,17 @@ enum AniSequenceStyle {
               combine: (begin, end) {
                 final a = begin.points3;
                 final b = end.points3;
-                return MamionTransform._(
+                return MamableTransform._(
                   [
-                    MamionTransformDelegate.translation(
+                    MamableTransformDelegate.translation(
                       Between(a[0], b[0], curve: curve),
                       alignment: Alignment.topLeft,
                     ),
-                    MamionTransformDelegate.rotation(
+                    MamableTransformDelegate.rotation(
                       Between(a[1], b[1], curve: curve),
                       alignment: Alignment.topLeft,
                     ),
-                    MamionTransformDelegate.scale(
+                    MamableTransformDelegate.scale(
                       Between(a[2], b[2], curve: curve),
                       alignment: Alignment.topLeft,
                     ),
@@ -455,13 +454,13 @@ enum AniSequenceStyle {
             return AniSequenceStyle._sequence(
               previous: previous,
               next: next,
-              combine: (begin, end) => MamionMulti([
-                MamionTransition.rotate(Between(
+              combine: (begin, end) => MamableSet([
+                MamableTransition.rotate(Between(
                   begin.values[0],
                   end.values[0],
                   curve: curve,
                 )),
-                MamionTransition.slide(BetweenSpline2D(
+                MamableTransition.slide(BetweenSpline2D(
                   onLerp: BetweenSpline2D.lerpBezierCubic(
                     begin.offsets[0],
                     end.offsets[0],
@@ -474,41 +473,4 @@ enum AniSequenceStyle {
             );
           },
       };
-}
-
-///
-/// typedefs:
-///
-typedef AnimationControllerInitializer = AnimationController Function(
-  TickerProvider vsync,
-  Duration forward,
-  Duration reverse,
-);
-
-typedef AnimatedStatefulWidgetUpdater<W extends StatefulWidget> = void Function(
-  AnimationController controller,
-  W oldWidget,
-  W widget,
-);
-
-///
-/// extensions:
-///
-extension AnimationControllerExtension on AnimationController {
-  void forwardReset({double? from}) => forward(from: from).then((_) => reset());
-
-  void resetForward({double? from}) => this
-    ..reset()
-    ..forward(from: from);
-
-  ///
-  ///
-  void updateDurationIfNew(Mationani oldWidget, Mationani widget) {
-    final style = widget.ani.style;
-    final styleOld = oldWidget.ani.style;
-    if (styleOld?.duration != style?.duration) duration = style?.duration;
-    if (styleOld?.reverseDuration != style?.reverseDuration) {
-      reverseDuration = style?.reverseDuration;
-    }
-  }
 }
