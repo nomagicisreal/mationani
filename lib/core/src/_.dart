@@ -1,6 +1,7 @@
 part of '../mationani.dart';
 
 ///
+///
 /// [Mationani]
 ///
 ///
@@ -15,14 +16,6 @@ part of '../mationani.dart';
 /// * [OnAnimateMatrix4]
 /// * [AnimationBuilder]
 ///
-///
-///
-
-///
-///
-/// See Also:
-///   * [MationaniArrow], [MationaniCutting], ... are stateless widgets implemented [Mationani] as parent
-///   * [FabExpandable] is expandable version of material [FloatingActionButton] in [Scaffold]
 ///
 ///
 final class Mationani extends StatefulWidget {
@@ -41,7 +34,7 @@ final class Mationani extends StatefulWidget {
     required this.ani,
     required Mamable mamable,
     required Widget child,
-  }) : mation = _Mamion(mamable: mamable, child: child);
+  }) : mation = Mamion(mamable: mamable, child: child);
 
   // create animation for children
   Mationani.manion({
@@ -53,30 +46,7 @@ final class Mationani extends StatefulWidget {
   }) : mation = _Manion(
             manable: manable, child: parenting, grandChildren: children);
 
-  ///
-  /// if [step] == null, there is no animation,
-  /// if [step] % 2 == 0, there is forward animation,
-  /// if [step] % 2 == 1, there is reverse animation,
-  ///
-  factory Mationani.mamionSequence(
-    int? step, {
-    Key? key,
-    required AniSequence sequence,
-    required Widget child,
-    required AnimationControllerInitializer initializer,
-  }) {
-    final i = step ?? 0;
-    return Mationani.mamion(
-      key: key,
-      ani: Ani.updateSequencingWhen(
-        step == null ? null : i % 2 == 0,
-        duration: sequence.durations[i],
-        initializer: initializer,
-      ),
-      mamable: sequence.abilities[i],
-      child: child,
-    );
-  }
+
 
   ///
   ///
@@ -102,8 +72,8 @@ class _MationaniState extends State<Mationani>
   @override
   void initState() {
     super.initState();
-    controller = widget.ani.initializing(this);
     widget.ani.initialConsumeSetStateCallback?.call(() => setState(() {}));
+    controller = widget.ani.initializing(this);
     child = planForChild;
   }
 
@@ -113,13 +83,11 @@ class _MationaniState extends State<Mationani>
     controller.dispose();
   }
 
-
   ///
-  /// In parent widget, if we directly call to [setState] function triggering [_MationaniState.didUpdateWidget],
-  /// whenever widget configuration changed or not.
-  /// if it's expensive to [setState] or update widget cause some unwanted behavior,
-  /// we can also received [_MationaniState.setState] callback by [Ani.initialConsumeSetStateCallback],
-  /// by calling [_MationaniState.setState], [_MationaniState.didUpdateWidget] won't be called.
+  /// If we called [setState] function in parent widget,
+  /// it triggers [_MationaniState.didUpdateWidget] no matter [Mationani] configuration changed or not.
+  /// Instead of performing the expensive [setState] function in parent,
+  /// we can also received [_MationaniState.setState] callback by [Ani.initialConsumeSetStateCallback] in parent,
   ///
   @override
   void didUpdateWidget(covariant Mationani oldWidget) {
@@ -137,6 +105,20 @@ class _MationaniState extends State<Mationani>
 ///
 ///
 extension AnimationControllerExtension on AnimationController {
+  ///
+  ///
+  ///
+  void addStatusListenerIfNotNull(AnimationStatusListener? statusListener) {
+    if (statusListener != null) addStatusListener(statusListener);
+  }
+
+  void addListenerIfNotNull(VoidCallback? listener) {
+    if (listener != null) addListener(listener);
+  }
+
+  ///
+  ///
+  ///
   void forwardReset({double? from}) => forward(from: from).then((_) => reset());
 
   void resetForward({double? from}) => this
@@ -176,9 +158,6 @@ typedef AnimationUpdater = void Function(
   Mationani oldWidget,
   Mationani widget,
 );
-
-typedef AniSequencer<M extends Matable>
-    = Sequencer<AniSequenceStep, AniSequenceInterval, M>;
 
 ///
 ///

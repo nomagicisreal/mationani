@@ -35,7 +35,7 @@ class MationaniArrow extends StatelessWidget {
           child: Mationani.mamion(
             ani: Ani.initRepeat(),
             mamable: MamableTransition.slide(
-              FMationValue.offset_0To(
+              FMatalue.offset_0To(
                 KGeometry.offset_square_1 / 2,
                 curve: CurveFR.of(Curving.sinPeriodOf(2)),
               ),
@@ -77,17 +77,17 @@ class MationaniCutting extends StatelessWidget {
   Widget build(BuildContext context) {
     return Mationani.manion(
       ani: ani,
-      manable: ManableMappingWithParent(
+      manable: ManableRespectively.andParent(
         parent: MamableTransition.fadeOut(curve: curveFadeOut),
         children: List.generate(
           pieces,
-          (index) => MamableSet.leave(
+          (index) => FMatable.mamableSet_leave(
             alignment: Alignment.bottomRight,
-            rotation: FMationValue.between_double_0To(
+            rotation: FMatalue.between_double_0To(
               (index == 0 ? -rotation : rotation) / Radian.angle_360,
               curve: curve,
             ),
-            sliding: FMationValue.offset_0To(
+            sliding: FMatalue.offset_0To(
               index == 0
                   ? KGeometry.offset_bottomLeft * distance
                   : KGeometry.offset_topRight * distance,

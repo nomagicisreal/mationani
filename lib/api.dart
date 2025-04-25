@@ -8,5 +8,6 @@ import 'package:damath/damath.dart';
 import 'core/mationani.dart';
 
 part 'src/extended.dart';
-part 'src/takeaway.dart';
+part 'src/takeaway_matalue.dart';
 part 'src/takeaway_mation.dart';
+part 'src/takeaway_ani.dart';

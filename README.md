@@ -47,7 +47,7 @@ class SampleSlide extends StatelessWidget {
         style: AnimationStyle(duration: Duration(seconds: 1)),
         initializer: Ani.initializeForward,
       ),
-      mation: MamionTransition.slide(Between(Offset.zero, Offset(1, 1))),
+      mation: MamableTransition.slide(Between(Offset.zero, Offset(1, 1))),
       child: CircularProgressIndicator(),
     );
   }
@@ -56,6 +56,6 @@ class SampleSlide extends StatelessWidget {
 ```
 
 this is a library aims to integrate flutter animation and not limited to built-in animation; for example,
-talks to `MamionTransition.fade` and `MamionTransition.slide`, there is `FadeTransition` and `SlideTransition`;
-talks to `MamionClipper` or `MamionPainter`, there is no pertinent widget if `ClipPath` or `CustomPaint` is not.
+talks to `MamableTransition.fade` and `MamableTransition.slide`, there is `FadeTransition` and `SlideTransition`;
+talks to `MamableClipper` or `MamablePainter`, there is no pertinent widget if `ClipPath` or `CustomPaint` is not.
 whether there is a flutter animation widget or not, hopes there are more implementation in the future!
