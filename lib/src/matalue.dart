@@ -4,9 +4,9 @@ part of '../mationani.dart';
 /// .
 ///     --[Amplitude]
 ///     |
-/// * [Matalue] + [_AnimationMatalue]
+/// * [Matalue] * [_AnimationMatalue]
 ///     |
-///     --[Between] + [BetweenInterval]
+///     --[Between] * [BetweenInterval]
 ///         |
 ///         --[BetweenSpline2D]
 ///         --[BetweenPath]
@@ -14,9 +14,10 @@ part of '../mationani.dart';
 ///
 
 ///
-/// [_AnimationMatalue], [Matalue]
 ///
-class _AnimationMatalue<T> extends Animation<T> with AnimationWithParentMixin<double> {
+///
+class _AnimationMatalue<T> extends Animation<T>
+    with AnimationWithParentMixin<double> {
   _AnimationMatalue(this.parent, this.animatable);
 
   @override
@@ -28,10 +29,6 @@ class _AnimationMatalue<T> extends Animation<T> with AnimationWithParentMixin<do
   T get value => animatable.evaluate(parent);
 }
 
-///
-/// [onLerp], [curve],
-/// [transform], [evaluate], [animate],
-///
 sealed class Matalue<T> extends Animatable<T> {
   final Lerper<T> onLerp;
   final CurveFR? curve;
@@ -57,7 +54,7 @@ sealed class Matalue<T> extends Animatable<T> {
   ///
   ///
   ///
-  static Matalue<double> doubleToRadian(Matalue<double> round) =>
+  static Matalue<double> doubleToRadian(Animatable<double> round) =>
       switch (round) {
         Between<double>() => Between(
             Radian.fromRound(round.begin),
@@ -71,6 +68,7 @@ sealed class Matalue<T> extends Animatable<T> {
             curving: round.curving,
             curve: round.curve,
           ),
+        Animatable<double>() => throw UnimplementedError(),
       };
 }
 
@@ -149,12 +147,12 @@ class Between<T> extends Matalue<T> {
           ),
         );
 
+  ///
+  ///
+  ///
   @override
   String toString() => 'Between($begin, $end, $curve)';
 
-  ///
-  /// properties
-  ///
   Between<T> get reverse =>
       Between.constant(end, begin, onLerp: onLerp, curve: curve);
 
@@ -210,12 +208,7 @@ class BetweenInterval {
     T next,
     Lerper<T> onLerp,
   ) =>
-      (_) => Between.constant(
-            previous,
-            next,
-            onLerp: onLerp,
-            curve: null,
-          );
+      (_) => Between.constant(previous, next, onLerp: onLerp, curve: null);
 }
 
 ///

@@ -1,23 +1,20 @@
-part of '../mationani.dart';
+///
+///
+/// this library shows my opinion of animated widget in dart.
+///
+///
+library;
 
-///
-///
-/// [Mationani]
-///
-///
-/// * [AnimationControllerExtension]
-/// * [AnimationStyleExtension]
-/// * [AnimationControllerInitializer]
-/// * [AnimationUpdater]
-/// * [AniSequencer]
-///
-/// * [OnAnimate]
-/// * [OnAnimatePath]
-/// * [OnAnimateMatrix4]
-/// * [AnimationBuilder]
-///
-///
-///
+import 'package:vector_math/vector_math_64.dart' as v64;
+import 'package:damath/damath.dart';
+import 'package:datter/datter.dart';
+import 'package:flutter/material.dart';
+
+part 'src/_impl.dart';
+part 'src/animation.dart';
+part 'src/matable.dart';
+part 'src/matalue.dart';
+
 final class Mationani extends StatefulWidget {
   final Ani ani;
   final Mation mation;
@@ -45,8 +42,6 @@ final class Mationani extends StatefulWidget {
     required List<Widget> children,
   }) : mation = _Manion(
             manable: manable, child: parenting, grandChildren: children);
-
-
 
   ///
   ///
@@ -100,72 +95,3 @@ class _MationaniState extends State<Mationani>
   @override
   Widget build(BuildContext context) => child;
 }
-
-///
-///
-///
-extension AnimationControllerExtension on AnimationController {
-  ///
-  ///
-  ///
-  void addStatusListenerIfNotNull(AnimationStatusListener? statusListener) {
-    if (statusListener != null) addStatusListener(statusListener);
-  }
-
-  void addListenerIfNotNull(VoidCallback? listener) {
-    if (listener != null) addListener(listener);
-  }
-
-  ///
-  ///
-  ///
-  void forwardReset({double? from}) => forward(from: from).then((_) => reset());
-
-  void resetForward({double? from}) => this
-    ..reset()
-    ..forward(from: from);
-
-  void updateDurationIfNew(Mationani oldWidget, Mationani widget) {
-    final style = widget.ani.style;
-    final styleOld = oldWidget.ani.style;
-    if (styleOld?.duration != style?.duration) duration = style?.duration;
-    if (styleOld?.reverseDuration != style?.reverseDuration) {
-      reverseDuration = style?.reverseDuration;
-    }
-  }
-}
-
-extension AnimationStyleExtension on AnimationStyle? {
-  bool isCurveEqualTo(AnimationStyle? another) {
-    final style = this;
-    if (style == null) return another == null;
-    if (another == null) return false;
-    return style.curve == another.curve &&
-        style.reverseCurve == another.reverseCurve;
-  }
-}
-
-///
-///
-///
-typedef AnimationControllerInitializer = AnimationController Function(
-  TickerProvider vsync,
-  Duration forward,
-  Duration reverse,
-);
-typedef AnimationUpdater = void Function(
-  AnimationController controller,
-  Mationani oldWidget,
-  Mationani widget,
-);
-
-///
-///
-///
-typedef OnAnimate<T, S> = S Function(double t, T value);
-typedef OnAnimatePath<T> = SizingPath Function(double t, T value);
-typedef OnAnimateMatrix4 = Companion<Matrix4, Point3>;
-typedef AnimationBuilder<T> = Widget Function(
-  Animation<T> animation,
-  Widget child,
-);

@@ -1,7 +1,6 @@
 // ignore_for_file: unused_import, unused_local_variable
 import 'package:datter/datter.dart';
 import 'package:flutter/material.dart';
-import 'package:mationani/api.dart';
 
 void main(List<String> args) {
   runApp(const MyApp());

@@ -2,6 +2,18 @@ part of '../mationani.dart';
 
 ///
 ///
+///
+/// * [Ani]
+/// * [Mation]
+///     --[Mamion]
+///     --[Manion]
+///
+///
+///
+///
+
+///
+///
 /// In tradition, it's hard to implement [AnimationController] everytime we want to trigger animation; we need to
 ///   1. let [State] object inherit [TickerProvider].
 ///   2. let [AnimationController] instance hold for the [State] inherited [TickerProvider].
@@ -319,3 +331,71 @@ final class Ani {
       };
 }
 
+///
+/// below is an approximate flow illustrating how [Mation] works, take [MamableClipper] as example.
+/// .
+///                           [MamableClipper] <  <  [MamableSolo._perform]
+///                                      v               ^
+/// [Mamion.matable] < [Mation.matable]  v               ^    [_MatableDriver._drive]
+///                  [Mationani.mation]  v               ^    [_MatableDriver._builder]
+///      [_MationaniState.planForChild]  v               ^
+///                                      v               ^
+///          [Mation.plan] > [Mamion.plan] required [Mamable._perform] < [Matable._perform]
+///
+///
+abstract base class Mation<A extends Matable, C> {
+  final A matable;
+  final C child;
+
+  // factory cannot construct typed generic, so it's not possible to integrate subclasses into Mation for now
+  // static methods as constructor is not referenced well in android studio.
+  const Mation({required this.matable, required this.child});
+
+  Widget plan(Animation<double> parent, CurveFR? curve);
+
+  @override
+  String toString() => 'Mation($matable)';
+}
+
+///
+/// [Mamion] responsible for animation on a child widget. ([SizedBox], [Container], [Scaffold], ...)
+///
+final class Mamion extends Mation<Mamable, Widget> {
+  const Mamion({required Mamable mamable, required super.child})
+      : super(matable: mamable);
+
+  @override
+  Widget plan(Animation<double> parent, CurveFR? curve) => switch (matable) {
+        // all transition widgets themself in flutter are listenable
+        MamableTransition() => matable._perform(parent, curve, child),
+        _ => ListenableBuilder(
+            listenable: parent,
+            builder: (_, __) => matable._perform(parent, curve, child),
+          ),
+      };
+}
+
+///
+/// [_Manion] responsible for animation on a parent widget with 'children'. ([Stack], [Column], ...)
+/// notice that the 'parent' of [Parenting] is different from 'parent' argument in [Mation.plan],
+/// the former means the 'widget parent' be like [Stack] or [Column]
+/// the latter means the 'animation parent', [AnimationController], see also the 'parent' in [Animatable.animate]
+///
+final class _Manion extends Mation<Manable, Parenting> {
+  final List<Widget> grandChildren;
+
+  const _Manion({
+    required Manable manable,
+    required super.child,
+    required this.grandChildren,
+  }) : super(matable: manable);
+
+  @override
+  Widget plan(Animation<double> parent, CurveFR? curve) {
+    final matable = this.matable;
+    final children = matable._perform(parent, curve, grandChildren);
+    return matable is _ManableParentRespectively
+        ? matable.parent._perform(parent, curve, child(children))
+        : child(children);
+  }
+}
