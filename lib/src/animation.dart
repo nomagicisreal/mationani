@@ -8,7 +8,8 @@ part of '../mationani.dart';
 ///     --[_Mamion]
 ///     --[_Manion]
 ///
-///
+/// * [AnimationControllerInitializer]
+/// * [AnimationUpdater]
 ///
 ///
 
@@ -35,10 +36,10 @@ final class Mationani extends StatefulWidget {
     required Parenting parenting,
     required List<Widget> children,
   }) : mation = _Manion(
-    manable: manable,
-    child: parenting,
-    grandChildren: children,
-  );
+          manable: manable,
+          child: parenting,
+          grandChildren: children,
+        );
 
   ///
   ///
@@ -48,7 +49,7 @@ final class Mationani extends StatefulWidget {
 
   static bool dismissUpdateBuilder(Mationani oldWidget, Mationani widget) =>
       oldWidget.mation == widget.mation &&
-          oldWidget.ani.style.isCurveEqualTo(widget.ani.style);
+      oldWidget.ani.style.isCurveEqualTo(widget.ani.style);
 }
 
 class _MationaniState extends State<Mationani>
@@ -57,9 +58,9 @@ class _MationaniState extends State<Mationani>
   late Widget child;
 
   Widget get planForChild => widget.mation.plan(
-    controller,
-    widget.ani.curve,
-  );
+        controller,
+        widget.ani.curve,
+      );
 
   @override
   void initState() {
@@ -92,7 +93,6 @@ class _MationaniState extends State<Mationani>
   @override
   Widget build(BuildContext context) => child;
 }
-
 
 ///
 ///
@@ -478,3 +478,17 @@ final class _Manion extends Mation<Manable, Parenting> {
               )
           : child(matable._perform(parent, curve, grandChildren));
 }
+
+///
+///
+///
+typedef AnimationControllerInitializer = AnimationController Function(
+    TickerProvider vsync,
+    Duration forward,
+    Duration reverse,
+    );
+typedef AnimationUpdater = void Function(
+    AnimationController controller,
+    Mationani oldWidget,
+    Mationani widget,
+    );

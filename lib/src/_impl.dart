@@ -1,23 +1,27 @@
 part of '../mationani.dart';
 
 ///
+///
+/// implementation for `matalue.dart`
+/// * [_ShapeDecoration]
+///
+/// implementation for `animation.dart`
 /// * [_AnimationControllerExtension]
 /// * [_AnimationStyleExtension]
-/// * [AnimationControllerInitializer]
-/// * [AnimationUpdater]
+///
+/// implementation for `matable.dart`
 /// * [AnimationBuilder]
+/// * [_MatableDriver], and more ...
 ///
-/// * [OnAnimate]
-/// * [OnAnimateMatrix4]
-/// * [FTransform]
-///
-/// there are also some private implementation showed in the graph begin in matable.dart
-/// see [_MatableDriver], ...
 ///
 ///
 
+///
+///
+///
 extension _ShapeDecoration on ShapeDecoration {
-  bool get isRounded => shape is CircleBorder || shape is RoundedRectangleBorder;
+  bool get isRounded =>
+      shape is CircleBorder || shape is RoundedRectangleBorder;
 }
 
 ///
@@ -59,147 +63,6 @@ extension _AnimationStyleExtension on AnimationStyle? {
     return style.curve == another.curve &&
         style.reverseCurve == another.reverseCurve;
   }
-}
-
-///
-///
-///
-typedef AnimationControllerInitializer = AnimationController Function(
-  TickerProvider vsync,
-  Duration forward,
-  Duration reverse,
-);
-typedef AnimationUpdater = void Function(
-  AnimationController controller,
-  Mationani oldWidget,
-  Mationani widget,
-);
-typedef AnimationBuilder<T> = Widget Function(
-  Animation<T> animation,
-  Widget child,
-);
-
-///
-///
-///
-typedef OnAnimate<T, S> = S Function(double t, T value);
-typedef OnAnimateMatrix4 = Companion<Matrix4, Point3>;
-
-///
-/// static methods, constants:
-/// [applier_translating], ...
-/// [fixed_translating], ...
-/// [formFromDirection]
-///
-/// instance methods, getters:
-/// [setPerspective], ...
-/// [getPerspective], ...
-/// [perspectiveIdentity], ...
-///
-extension FTransform on Matrix4 {
-  ///
-  ///
-  ///
-  static OnAnimateMatrix4 applier_translating(Applier<Point3> apply) =>
-      (matrix4, value) => matrix4
-        ..perspectiveIdentity
-        ..translateOf(apply(value));
-
-  static OnAnimateMatrix4 applier_rotating(Applier<Point3> apply) =>
-      (matrix4, value) => matrix4
-        ..setRotation(
-            (Matrix4.identity()..rotateOf(apply(value))).getRotation());
-
-  static OnAnimateMatrix4 applier_scaling(Applier<Point3> apply) =>
-      (matrix4, value) => matrix4.scaledOf(apply(value));
-
-  // with fixed value
-  static OnAnimateMatrix4 fixed_translating(Point3 fixed) =>
-      (matrix4, value) => matrix4
-        ..perspectiveIdentity
-        ..translateOf(value + fixed);
-
-  static OnAnimateMatrix4 fixed_rotating(Point3 fixed) =>
-      (matrix4, value) => matrix4
-        ..setRotation(
-            (Matrix4.identity()..rotateOf(fixed + value)).getRotation());
-
-  static OnAnimateMatrix4 fixed_scaling(Point3 fixed) =>
-      (matrix4, value) => matrix4.scaledOf(value + fixed);
-
-  ///
-  ///
-  ///
-  static Transform formFromDirection({
-    double zDeep = 100,
-    required Direction3DIn6 direction,
-    required Widget child,
-  }) =>
-      switch (direction) {
-        Direction3DIn6.front => Transform(
-            transform: Matrix4.identity(),
-            alignment: Alignment.center,
-            child: child,
-          ),
-        Direction3DIn6.back => Transform(
-            alignment: Alignment.center,
-            transform: Matrix4.identity()..translateOf(Point3.ofZ(-zDeep)),
-            child: child,
-          ),
-        Direction3DIn6.left => Transform(
-            alignment: Alignment.centerLeft,
-            transform: Matrix4.identity()..rotateY(Radian.angle_90),
-            child: child,
-          ),
-        Direction3DIn6.right => Transform(
-            alignment: Alignment.centerRight,
-            transform: Matrix4.identity()..rotateY(-Radian.angle_90),
-            child: child,
-          ),
-        Direction3DIn6.top => Transform(
-            alignment: Alignment.topCenter,
-            transform: Matrix4.identity()..rotateX(-Radian.angle_90),
-            child: child,
-          ),
-        Direction3DIn6.bottom => Transform(
-            alignment: Alignment.bottomCenter,
-            transform: Matrix4.identity()..rotateX(Radian.angle_90),
-            child: child,
-          ),
-      };
-
-  ///
-  /// instance methods
-  ///
-  void setPerspective(double perspective) => setEntry(3, 2, perspective);
-
-  void setDistance(double? distance) =>
-      setPerspective(distance == null ? 0 : 1 / distance);
-
-  void copyPerspective(Matrix4 matrix4) =>
-      setPerspective(matrix4.getPerspective());
-
-  void translateOf(Point3 point3) =>
-      translate(v64.Vector3(point3.x, point3.y, point3.z));
-
-  void translateFor(Offset offset) =>
-      translate(v64.Vector3(offset.dx, offset.dy, 0));
-
-  void rotateOf(Point3 point3) => this
-    ..rotateX(point3.x)
-    ..rotateY(point3.y)
-    ..rotateZ(point3.z);
-
-  void rotateOn(Point3 point3, double radian) =>
-      rotate(v64.Vector3(point3.x, point3.y, point3.z), radian);
-
-  double getPerspective() => entry(3, 2);
-
-  Matrix4 get perspectiveIdentity => Matrix4.identity()..copyPerspective(this);
-
-  Matrix4 scaledOf(Point3 point3) => scaled(point3.x, point3.y, point3.z);
-
-  Matrix4 scaledFor(Offset offset) => scaled(offset.dx, offset.dy, 1);
 }
 
 ///

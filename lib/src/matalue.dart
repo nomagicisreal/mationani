@@ -6,7 +6,7 @@ part of '../mationani.dart';
 ///     |
 /// * [Matalue] * [_AnimationMatalue]
 ///     |
-///     --[Between] * [BetweenInterval]
+///     --[Between]
 ///         |
 ///         --[BetweenSpline2D]
 ///         --[BetweenPath]
@@ -62,9 +62,9 @@ sealed class Matalue<T> extends Animatable<T> {
             curve: round.curve,
           ),
         Amplitude<double>() => Amplitude(
-            Radian.fromRound(round.from),
-            Radian.fromRound(round.value),
-            round.times,
+            from: Radian.fromRound(round.from),
+            value: Radian.fromRound(round.value),
+            times: round.times,
             curving: round.curving,
             curve: round.curve,
           ),
@@ -95,57 +95,6 @@ class Between<T> extends Matalue<T> {
       : begin = value,
         end = value,
         super(onLerp: (_) => value);
-
-  Between.sequence({
-    BetweenInterval weight = BetweenInterval.linear,
-    super.curve,
-    required List<T> steps,
-  })  : begin = steps.first,
-        end = steps.last,
-        super(
-          onLerp: BetweenInterval._link(
-            totalStep: steps.length,
-            step: (i) => steps[i],
-            interval: (i) => weight,
-          ),
-        );
-
-  Between.sequenceFromGenerator({
-    required int totalStep,
-    required Generator<T> step,
-    required Generator<BetweenInterval> interval,
-    super.curve,
-    Sequencer<T, Lerper<T>, Between<T>>? sequencer,
-  })  : begin = step(0),
-        end = step(totalStep - 1),
-        super(
-          onLerp: BetweenInterval._link(
-            totalStep: totalStep,
-            step: step,
-            interval: interval,
-            sequencer: sequencer,
-          ),
-        );
-
-  Between.outAndBack({
-    required this.begin,
-    required T target,
-    super.curve = CurveFR.linear,
-    double ratio = 1.0,
-    Curve curveOut = Curves.fastOutSlowIn,
-    Curve curveBack = Curves.fastOutSlowIn,
-    Sequencer<T, Lerper<T>, Between<T>>? sequencer,
-  })  : end = begin,
-        super(
-          onLerp: BetweenInterval._link(
-            totalStep: 3,
-            step: (i) => i == 1 ? target : begin,
-            interval: (i) => i == 0
-                ? BetweenInterval(ratio, curve: curveOut)
-                : BetweenInterval(1 / ratio, curve: curveBack),
-            sequencer: sequencer,
-          ),
-        );
 
   ///
   ///
@@ -213,77 +162,25 @@ class Between<T> extends Matalue<T> {
 ///
 ///
 ///
-class BetweenInterval {
-  final double weight;
-  final Curve curve;
-
-  Lerper<T> lerp<T>(T a, T b) {
-    final curving = curve.transform;
-    final onLerp = Between.lerperOf<T>(a, b);
-    return (t) => onLerp(curving(t));
-  }
-
-  const BetweenInterval(this.weight, {this.curve = Curves.linear});
-
-  static const BetweenInterval linear = BetweenInterval(1);
-
-  ///
-  ///
-  /// the index 0 of [interval] is between index 0 and 1 of [step]
-  /// the index 1 of [interval] is between index 1 and 2 of [step], and so on.
-  ///
-  ///
-  static Lerper<T> _link<T>({
-    required int totalStep,
-    required Generator<T> step,
-    required Generator<BetweenInterval> interval,
-    Sequencer<T, Lerper<T>, Between<T>>? sequencer,
-  }) {
-    final seq = sequencer ?? _sequencer<T>;
-    var i = -1;
-    return TweenSequence(
-      step.linkToListTill(
-        totalStep,
-        interval,
-        (previous, next, interval) => TweenSequenceItem<T>(
-          tween: seq(previous, next, interval.lerp(previous, next))(++i),
-          weight: interval.weight,
-        ),
-      ),
-    ).transform;
-  }
-
-  static Mapper<int, Between<T>> _sequencer<T>(
-    T previous,
-    T next,
-    Lerper<T> onLerp,
-  ) =>
-      (_) => Between.constant(
-          begin: previous, end: next, onLerp: onLerp, curve: null);
-}
-
-///
-///
-///
 class Amplitude<T> extends Matalue<T> {
   final T from;
   final T value;
   final int times;
   final Curving curving;
 
-  const Amplitude.constant(
-    this.from,
-    this.value,
-    this.times, {
+  const Amplitude.constant({
+    required this.from,
+    required this.value,
+    required this.times,
     required this.curving,
     required super.onLerp,
     super.curve,
   });
 
-  Amplitude(
-    this.from,
-    this.value,
-    this.times, {
+  Amplitude({
+    required this.from,
+    required this.value,
+    required this.times,
     required this.curving,
     super.curve,
   }) : super(

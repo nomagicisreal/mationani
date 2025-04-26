@@ -34,12 +34,10 @@ class MyHome extends StatefulWidget {
 
 class _MyHomeState extends State<MyHome> {
   bool toggle = false;
-  int count = -1;
 
   void _onPressed({bool update = true}) {
-    count++;
-    context.showSnackBarMessage(count.toString());
-    setState(() {});
+    setState(() => toggle = !toggle);
+    context.showSnackBarMessage(toggle.toString());
   }
 
   @override
@@ -52,8 +50,11 @@ class _MyHomeState extends State<MyHome> {
           width: 100,
           child: Mationani.manion(
             ani: Ani.updateForwardOrReverseWhen(
-              count % 2 == 0,
-              style: AnimationStyle(duration: KCore.durationSecond1 * 2),
+              toggle,
+              style: AnimationStyle(
+                duration: KCore.durationSecond1 * 3,
+                reverseDuration: KCore.durationSecond1 * 2,
+              ),
             ),
             manable: ManableSet.selectedAndParent(
               parent: MamableSingle(
@@ -77,7 +78,7 @@ class _MyHomeState extends State<MyHome> {
     );
   }
 
-  Offset get center => Offset(25, 25);
+  static const Offset center = Offset(25, 25);
 
   List<Widget> get children => WSizedBox.sandwich(
         dimension: 10,
@@ -105,10 +106,17 @@ class _MyHomeState extends State<MyHome> {
   Map<int, MamableSet> get children_mamable => {
         0: MamableSet([
           MamableTransition.slide(
-            Between(begin: Offset.zero, end: KGeometry.offset_right),
+            BetweenSpline2D(
+              onLerp: BetweenSpline2D.lerpArcCircle(
+                origin: KGeometry.offset_left * 0.5,
+                radius: 0.5,
+                direction: Between(begin: 0.0, end: pi),
+              ),
+              curve: CurveFR.fastOutSlowIn,
+            ),
           ),
           MamableTransition.scale(
-            Amplitude(1, 0.7, 1, curving: Curving.sinPeriodOf(1)),
+            Between(begin: 1, end: 0.7, curve: CurveFR.bounceOut),
           )
         ]),
         2: MamableSet([
@@ -129,20 +137,15 @@ class _MyHomeState extends State<MyHome> {
             ),
           ),
           MamableTransition.fade(
-            Amplitude(1, 0.6, 2, curving: Curving.sinPeriodOf(1)),
+            Amplitude(
+              from: 1,
+              value: 0.6,
+              times: 2,
+              curving: Curving.sinPeriodOf(1),
+            ),
           ),
         ]),
         4: MamableSet([
-          MamableTransition.slide(
-            BetweenSpline2D(
-              onLerp: BetweenSpline2D.lerpArcCircle(
-                origin: KGeometry.offset_left * 0.5,
-                radius: 0.5,
-                direction: Between(begin: 0.0, end: pi),
-              ),
-              curve: CurveFR.fastOutSlowIn,
-            ),
-          ),
           MamablePainter.paintFrom(
             BetweenPath(
               Between<double>(begin: -Radian.angle_30, end: Radian.angle_315),
@@ -158,13 +161,14 @@ class _MyHomeState extends State<MyHome> {
             ),
           ),
         ]),
-        6: MamableSetTransform(
-          distanceToObserver: 0.001,
-          rotateBetween: Between(
-            begin: Point3(0, 0, 0),
-            end: Point3(0, Radian.angle_90, Radian.angle_30),
+        6: MamableSet([
+          MamableTransform.rotation(
+            rotate: Between(
+              begin: Point3(0, 0, 0),
+              end: Point3(Radian.angle_315, Radian.angle_90, Radian.angle_10),
+            ),
+            alignment: Alignment.center,
           ),
-          rotateAlignment: Alignment.topLeft,
-        ),
+        ]),
       };
 }

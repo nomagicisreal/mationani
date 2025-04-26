@@ -17,3 +17,4 @@ pubspec.lock
 
 # others
 build/
+.build/

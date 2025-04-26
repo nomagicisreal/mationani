@@ -2,45 +2,49 @@ part of '../mationani.dart';
 
 ///
 /// .
-///         --[MamableSetTransform]
 ///     --[MamableSet]
 ///     |
-///     |   --[MamableTransformDelegate]
+///     |   --[MamableTransform]
 ///     |   --[MamableClipper]
 ///     |   --[MamablePainter]
 ///     |   --[MamableTransition]
 ///     --[MamableSingle]--
-///     |               |
-///     --[Mamable]     |
-/// * [Matable]         * [_MatableDriver]
-///     --[Manable]     |
-///     |               |                          * [_ManableParent]
-///     --[ManableSync]--                          |
-///     |   --[_ManableParentSyncAlso]--------------
-///     |   --[_ManableParentSyncAnd]---------------
-///     |                                          |
-///     --[ManableSet]                             |
-///         --[_ManableSetSync]                    |
-///         |   --[_ManableParentSetSync]-----------
-///         |                                      |
-///         --[_ManableSetEach]                    |
-///         |   --[_ManableParentSetEach]----------|
-///         |                                      |
-///         --[_ManableSetRespectively]            |
-///         |   --[_ManableParentRespectively]------
-///         |                                      |
-///         --[_ManableSetSelected]                |
-///             --[_ManableParentSelected]----------
+///     |                 |             * [AnimationBuilder]
+///     --[Mamable]       |
+/// * [Matable]           * [_MatableDriver]
+///     --[Manable]       |
+///     |                 |                    * [_ManableParent]
+///     --[ManableSync]----                    |
+///     |   --[_ManableParentSyncAlso]----------
+///     |   --[_ManableParentSyncAnd]-----------
+///     |                                      |
+///     --[ManableSet]                         |
+///         --[_ManableSetSync]                |
+///         |   --[_ManableParentSetSync]-------
+///         |                                  |
+///         --[_ManableSetEach]                |
+///         |   --[_ManableParentSetEach]------|
+///         |                                  |
+///         --[_ManableSetRespectively]        |
+///         |   --[_ManableParentRespectively]--
+///         |                                  |
+///         --[_ManableSetSelected]            |
+///             --[_ManableParentSelected]------
 ///
 ///
 
 ///
 ///
 ///
-abstract final class Matable {
-  // ignore: unused_element
-  Object _perform(Animation<double> parent, CurveFR? curve, Object child);
-}
+typedef AnimationBuilder<T> = Widget Function(
+  Animation<T> animation,
+  Widget child,
+);
+
+///
+///
+///
+abstract final class Matable {}
 
 abstract final class Mamable implements Matable {
   Widget _perform(
@@ -399,25 +403,13 @@ final class MamablePainter<T> extends MamableSingle<SizingPath> {
 
 ///
 ///
-/// the coordinate system of [MamableTransformDelegate] is same as [Transform] widget's direction, translation.
-/// the 'axis' below is from 'coordinate-axis-negative' to 'coordinate-axis-positive'.
-/// it's easier to understand them with animated [Transform] widget with [Matrix4] instance continued setState,
-/// or just using [MamableTransformDelegate] wrapped in [Mationani] widget with [Ani.initRepeat].
 ///
-/// translation x axis comes from [Direction3DIn6.left] to [Direction3DIn6.right]
-/// translation y axis comes from [Direction3DIn6.top] to [Direction3DIn6.bottom]
-/// translation z axis comes from [Direction3DIn6.front] to [Direction3DIn6.back]
-/// direction x axis is [Direction3DIn6.left] -> [Direction3DIn6.right] ([Matrix4.rotationX]),
-/// direction y axis is [Direction3DIn6.top] -> [Direction3DIn6.bottom] ([Matrix4.rotationY]),
-/// direction z axis is [Direction3DIn6.front] -> [Direction3DIn6.back] ([Matrix4.rotationZ], [Offset.direction]),
-///
-///
-final class MamableTransformDelegate extends MamableSingle<Point3> {
-  final OnAnimateMatrix4 onAnimate;
-  final AlignmentGeometry? alignment;
+final class MamableTransform extends MamableSingle<Point3> {
+  final Companion<Matrix4, Point3> onAnimate;
+  AlignmentGeometry? alignment;
   Matrix4 host;
 
-  MamableTransformDelegate._(
+  MamableTransform(
     Matalue<Point3> value, {
     required this.alignment,
     required this.host,
@@ -437,182 +429,51 @@ final class MamableTransformDelegate extends MamableSingle<Point3> {
   ///
   ///
   ///
-  MamableTransformDelegate.translation(
-    Matalue<Point3> value, {
+  MamableTransform.translation({
+    required Matalue<Point3> translate,
     AlignmentGeometry? alignment,
     Matrix4? host,
-  }) : this._(
-          value,
+  }) : this(
+          translate,
           alignment: alignment,
           host: host ?? Matrix4.identity(),
-          onAnimate: MamableTransformDelegate.translating,
+          onAnimate: MamableTransform._translating,
         );
 
-  MamableTransformDelegate.rotation(
-    Matalue<Point3> value, {
+  MamableTransform.rotation({
+    required Matalue<Point3> rotate,
     AlignmentGeometry? alignment,
     Matrix4? host,
-  }) : this._(
-          value,
+  }) : this(
+          rotate,
           alignment: alignment,
           host: host ?? Matrix4.identity(),
-          onAnimate: MamableTransformDelegate.rotating,
+          onAnimate: MamableTransform._rotating,
         );
 
-  MamableTransformDelegate.scale(
-    Matalue<Point3> value, {
+  MamableTransform.scale({
+    required Matalue<Point3> scale,
     AlignmentGeometry? alignment,
     Matrix4? host,
-  }) : this._(
-          value,
+  }) : this(
+          scale,
           alignment: alignment,
           host: host ?? Matrix4.identity(),
-          onAnimate: MamableTransformDelegate.scaling,
+          onAnimate: MamableTransform._scaling,
         );
 
-  static Matrix4 translating(Matrix4 matrix4, Point3 value) =>
-      matrix4.perspectiveIdentity..translateOf(value);
+  static Matrix4 _translating(Matrix4 matrix4, Point3 p) =>
+      matrix4..translate(Vector3(p.x, p.y, p.z));
 
-  static Matrix4 rotating(Matrix4 matrix4, Point3 value) =>
-      matrix4..setRotation((Matrix4.identity()..rotateOf(value)).getRotation());
+  static Matrix4 _rotating(Matrix4 matrix4, Point3 p) => matrix4
+    ..setRotation((Matrix4.identity()
+          ..rotateX(p.x)
+          ..rotateY(p.y)
+          ..rotateZ(p.z))
+        .getRotation());
 
-  static Matrix4 scaling(Matrix4 matrix4, Point3 value) =>
-      matrix4.scaledOf(value);
-
-  ///
-  ///
-  ///
-  void link(Matrix4 host) => this.host = host;
-
-  bool isSameTypeWith(MamableTransformDelegate another) =>
-      onAnimate == another.onAnimate;
-
-  MamableTransformDelegate align(AlignmentGeometry? alignment) =>
-      MamableTransformDelegate._(
-        value,
-        onAnimate: onAnimate,
-        alignment: alignment,
-        host: host,
-      );
-}
-
-///
-/// [orderTRS], ...
-/// [MamableSetTransform._sort]
-/// [MamableSetTransform.fromDelegates], ...
-///
-final class MamableSetTransform extends MamableSet<MamableTransformDelegate> {
-  ///
-  ///
-  ///
-  static const List<OnAnimateMatrix4> orderTRS = [
-    MamableTransformDelegate.translating,
-    MamableTransformDelegate.rotating,
-    MamableTransformDelegate.scaling,
-  ];
-  static const List<OnAnimateMatrix4> orderTSR = [
-    MamableTransformDelegate.translating,
-    MamableTransformDelegate.scaling,
-    MamableTransformDelegate.rotating,
-  ];
-  static const List<OnAnimateMatrix4> orderSTR = [
-    MamableTransformDelegate.scaling,
-    MamableTransformDelegate.translating,
-    MamableTransformDelegate.rotating,
-  ];
-  static const List<OnAnimateMatrix4> orderSRT = [
-    MamableTransformDelegate.scaling,
-    MamableTransformDelegate.rotating,
-    MamableTransformDelegate.translating,
-  ];
-  static const List<OnAnimateMatrix4> orderRTS = [
-    MamableTransformDelegate.rotating,
-    MamableTransformDelegate.translating,
-    MamableTransformDelegate.scaling,
-  ];
-  static const List<OnAnimateMatrix4> orderRST = [
-    MamableTransformDelegate.rotating,
-    MamableTransformDelegate.scaling,
-    MamableTransformDelegate.translating,
-  ];
-
-  ///
-  ///
-  ///
-  static Iterable<MamableTransformDelegate> _sort(
-    Iterable<MamableTransformDelegate> delegates,
-    List<OnAnimateMatrix4> order,
-  ) {
-    final map =
-        Map.fromIterable(order, value: (_) => <MamableTransformDelegate>[]);
-    for (var delegate in delegates) {
-      map[delegate.onAnimate]!.add(delegate);
-    }
-    return order.expand((onAnimate) => map[onAnimate]!);
-  }
-
-  ///
-  ///
-  ///
-  MamableSetTransform.fromDelegates(
-    Iterable<MamableTransformDelegate> delegates, {
-    Matrix4? host,
-    List<OnAnimateMatrix4> order = MamableSetTransform.orderTRS,
-  })  : assert(order.length == 3 && !order.iterator.existEqual),
-        super(_sort(
-          delegates.map((d) => d..link(host ?? Matrix4.identity())),
-          order,
-        ));
-
-  factory MamableSetTransform({
-    double? distanceToObserver,
-    Matrix4? host,
-    Between<Point3>? translateBetween,
-    Between<Point3>? rotateBetween,
-    Between<Point3>? scaleBetween,
-    AlignmentGeometry? translateAlignment,
-    AlignmentGeometry? rotateAlignment,
-    AlignmentGeometry? scaleAlignment,
-    List<OnAnimateMatrix4> order = MamableSetTransform.orderTRS,
-  }) {
-    final matrix = (host ?? Matrix4.identity())
-      ..setDistance(distanceToObserver);
-    return MamableSetTransform.fromDelegates([
-      if (translateBetween != null)
-        MamableTransformDelegate.translation(
-          translateBetween,
-          alignment: translateAlignment,
-          host: matrix,
-        ),
-      if (rotateBetween != null)
-        MamableTransformDelegate.rotation(
-          rotateBetween,
-          alignment: rotateAlignment,
-          host: matrix,
-        ),
-      if (scaleBetween != null)
-        MamableTransformDelegate.scale(
-          scaleBetween,
-          alignment: scaleAlignment,
-          host: matrix,
-        ),
-    ]);
-  }
-
-  MamableSetTransform alignAll({
-    AlignmentGeometry? translation,
-    AlignmentGeometry? rotation,
-    AlignmentGeometry? scaling,
-  }) =>
-      MamableSetTransform.fromDelegates(ables.map(
-        (delegate) => delegate.align(switch (delegate.onAnimate) {
-          MamableTransformDelegate.translating =>
-            translation ?? delegate.alignment,
-          MamableTransformDelegate.rotating => rotation ?? delegate.alignment,
-          MamableTransformDelegate.scaling => scaling ?? delegate.alignment,
-          _ => throw UnimplementedError(),
-        }),
-      ));
+  static Matrix4 _scaling(Matrix4 matrix4, Point3 p) =>
+      matrix4.scaled(p.x, p.y, p.z);
 }
 
 ///
