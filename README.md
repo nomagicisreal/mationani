@@ -43,12 +43,12 @@ class SampleSlide extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Mationani(
+    return Mationani.mamion(
       ani: Ani(
         style: AnimationStyle(duration: Duration(seconds: 1)),
         initializer: Ani.initializeForward,
       ),
-      mation: MamableTransition.slide(Between(Offset.zero, Offset(1, 1))),
+      mamable: MamableTransition.slide(Between(Offset.zero, Offset(1, 1))),
       child: CircularProgressIndicator(),
     );
   }

@@ -9,7 +9,7 @@ part of '../mationani.dart';
 ///     |   --[MamableClipper]
 ///     |   --[MamablePainter]
 ///     |   --[MamableTransition]
-///     --[MamableSolo]--
+///     --[MamableSingle]--
 ///     |               |
 ///     --[Mamable]     |
 /// * [Matable]         * [_MatableDriver]
@@ -61,12 +61,15 @@ abstract final class Manable implements Matable {
 ///
 ///
 ///
-final class MamableSolo<T> extends _MatableDriver<T> implements Mamable {
+final class MamableSingle<T> extends _MatableDriver<T> implements Mamable {
   @override
   Widget _perform(Animation<double> parent, CurveFR? curve, Widget child) =>
-      _builder(_drive(parent, curve), child);
+      ListenableBuilder(
+        listenable: parent,
+        builder: (_, __) => _builder(_drive(parent, curve), child),
+      );
 
-  const MamableSolo(super.value, super._builder);
+  const MamableSingle(super.value, super._builder);
 }
 
 final class ManableSync<T> extends _MatableDriver<T> implements Manable {
@@ -78,7 +81,10 @@ final class ManableSync<T> extends _MatableDriver<T> implements Manable {
   ) {
     final animation = _drive(parent, curve);
     final builder = _builder;
-    return children.mapToList((child) => builder(animation, child));
+    return List.of(
+      children.map((child) => builder(animation, child)),
+      growable: false,
+    );
   }
 
   const ManableSync(super.value, super._builder);
@@ -96,7 +102,7 @@ final class ManableSync<T> extends _MatableDriver<T> implements Manable {
 ///
 ///
 ///
-final class MamableSet<A extends MamableSolo> implements Mamable {
+final class MamableSet<A extends MamableSingle> implements Mamable {
   final Iterable<A> ables;
 
   const MamableSet(this.ables);
@@ -116,35 +122,32 @@ final class MamableSet<A extends MamableSolo> implements Mamable {
 /// [MamableTransition.slide], ...
 /// [MamableTransition.decoration], ...
 ///
-final class MamableTransition extends MamableSolo {
+final class MamableTransition extends MamableSingle {
   MamableTransition.fade(
     Matalue<double> value, {
     bool alwaysIncludeSemantics = false,
-  }) : super(value, _fromFade(alwaysIncludeSemantics) as AnimationBuilder);
+  }) : super(value, _fromFade(alwaysIncludeSemantics));
 
   MamableTransition.fadeIn({
     CurveFR? curve,
     bool alwaysIncludeSemantics = false,
-  }) : this.fade(Between(0.0, 1.0, curve: curve));
+  }) : this.fade(Between(begin: 0.0, end: 1.0, curve: curve));
 
   MamableTransition.fadeInTo(
     double opacity, {
     CurveFR? curve,
     bool alwaysIncludeSemantics = false,
-  }) : this.fade(Between(0.0, opacity, curve: curve));
+  }) : this.fade(Between(begin: 0.0, end: opacity, curve: curve));
 
   MamableTransition.fadeOut({
     CurveFR? curve,
     bool alwaysIncludeSemantics = false,
-  }) : this.fade(Between(1.0, 0.0, curve: curve));
+  }) : this.fade(Between(begin: 1.0, end: 0.0, curve: curve));
 
   MamableTransition.silverFade(
     Matalue<double> value, {
     bool alwaysIncludeSemantics = false,
-  }) : super(
-          value,
-          _fromFadeSliver(alwaysIncludeSemantics) as AnimationBuilder,
-        );
+  }) : super(value, _fromFadeSliver(alwaysIncludeSemantics));
 
   ///
   ///
@@ -153,19 +156,14 @@ final class MamableTransition extends MamableSolo {
     Matalue<double> value, {
     Alignment alignment = Alignment.topLeft,
     FilterQuality? filterQuality,
-  }) : super(value,
-            _fromFadeScale(alignment, filterQuality) as AnimationBuilder);
+  }) : super(value, _fromFadeScale(alignment, filterQuality));
 
   MamableTransition.size(
     Matalue<double> value, {
     Axis axis = Axis.vertical,
     double axisAlignment = 0.0,
     double? fixedCrossAxisSizeFactor,
-  }) : super(
-          value,
-          _fromSize(axis, axisAlignment, fixedCrossAxisSizeFactor)
-              as AnimationBuilder,
-        );
+  }) : super(value, _fromSize(axis, axisAlignment, fixedCrossAxisSizeFactor));
 
   ///
   ///
@@ -174,7 +172,7 @@ final class MamableTransition extends MamableSolo {
     Matalue<double> value, {
     Alignment alignment = Alignment.topLeft,
     FilterQuality? filterQuality,
-  }) : super(value, _fromRotate(alignment, filterQuality) as AnimationBuilder);
+  }) : super(value, _fromRotate(alignment, filterQuality));
 
   MamableTransition.rotateInRadian(
     Matalue<double> value, {
@@ -188,24 +186,21 @@ final class MamableTransition extends MamableSolo {
     Matalue<Offset> value, {
     bool transformHitTests = true,
     TextDirection? textDirection,
-  }) : super(
-          value,
-          _fromSlide(transformHitTests, textDirection) as AnimationBuilder,
-        );
+  }) : super(value, _fromSlide(transformHitTests, textDirection));
 
   MamableTransition.positioned(Matalue<RelativeRect> value)
-      : super(value, _fromPositioned as AnimationBuilder);
+      : super(value, _fromPositioned);
 
   MamableTransition.relativePositioned(
     Matalue<double> value, {
     required Size size,
-  }) : super(value, _fromPositionedRelative(size) as AnimationBuilder);
+  }) : super(value, _fromPositionedRelative(size));
 
   MamableTransition.align(
     Matalue<AlignmentGeometry> value, {
     double? widthFactor,
     double? heightFactor,
-  }) : super(value, _fromAlign(widthFactor, heightFactor) as AnimationBuilder);
+  }) : super(value, _fromAlign(widthFactor, heightFactor));
 
   ///
   ///
@@ -213,7 +208,7 @@ final class MamableTransition extends MamableSolo {
   MamableTransition.decoration(
     Matalue<Decoration> value, {
     DecorationPosition position = DecorationPosition.background,
-  }) : super(value, _fromDecoration(position) as AnimationBuilder);
+  }) : super(value, _fromDecoration(position));
 
   MamableTransition.defaultTextStyle(
     Matalue<TextStyle> value, {
@@ -221,119 +216,115 @@ final class MamableTransition extends MamableSolo {
     bool softWrap = true,
     TextOverflow overflow = TextOverflow.clip,
     int? maxLines,
-  }) : super(
-          value,
-          _fromTextStyle(textAlign, softWrap, overflow, maxLines)
-              as AnimationBuilder,
-        );
+  }) : super(value, _fromTextStyle(textAlign, softWrap, overflow, maxLines));
 
   ///
   ///
   ///
-  static AnimationBuilder<double> _fromFade(bool alwaysIncludeSemantics) =>
+  static AnimationBuilder _fromFade(bool alwaysIncludeSemantics) =>
       (animation, child) => FadeTransition(
-            opacity: animation,
+            opacity: animation as Animation<double>,
             alwaysIncludeSemantics: alwaysIncludeSemantics,
             child: child,
           );
 
-  static AnimationBuilder<double> _fromFadeSliver(
+  static AnimationBuilder _fromFadeSliver(
     bool alwaysIncludeSemantics,
   ) =>
       (animation, child) => SliverFadeTransition(
-            opacity: animation,
+            opacity: animation as Animation<double>,
             alwaysIncludeSemantics: alwaysIncludeSemantics,
             sliver: child,
           );
 
-  static AnimationBuilder<double> _fromFadeScale(
+  static AnimationBuilder _fromFadeScale(
     Alignment alignment,
     FilterQuality? filterQuality,
   ) =>
       (animation, child) => ScaleTransition(
-            scale: animation,
+            scale: animation as Animation<double>,
             alignment: alignment,
             filterQuality: filterQuality,
             child: child,
           );
 
-  static AnimationBuilder<double> _fromSize(
+  static AnimationBuilder _fromSize(
     Axis axis,
     double axisAlignment,
     double? fixedCrossAxisSizeFactor,
   ) =>
       (animation, child) => SizeTransition(
-            sizeFactor: animation,
+            sizeFactor: animation as Animation<double>,
             axis: axis,
             axisAlignment: axisAlignment,
             fixedCrossAxisSizeFactor: fixedCrossAxisSizeFactor,
             child: child,
           );
 
-  static AnimationBuilder<double> _fromRotate(
+  static AnimationBuilder _fromRotate(
     Alignment alignment,
     FilterQuality? filterQuality,
   ) =>
       (animation, child) => RotationTransition(
-            turns: animation,
+            turns: animation as Animation<double>,
             alignment: alignment,
             filterQuality: filterQuality,
             child: child,
           );
 
-  static AnimationBuilder<Offset> _fromSlide(
+  static AnimationBuilder _fromSlide(
     bool transformHitTests,
     TextDirection? textDirection,
   ) =>
       (animation, child) => SlideTransition(
-            position: animation,
+            position: animation as Animation<Offset>,
             transformHitTests: transformHitTests,
             textDirection: textDirection,
             child: child,
           );
 
   static Widget _fromPositioned(
-    Animation<RelativeRect> animation,
+    Animation animation,
     Widget child,
   ) =>
       PositionedTransition(
-        rect: animation,
+        rect: animation as Animation<RelativeRect>,
         child: child,
       );
 
-  static AnimationBuilder<Rect> _fromPositionedRelative(Size size) =>
+  static AnimationBuilder _fromPositionedRelative(Size size) =>
       (animation, child) => RelativePositionedTransition(
-            rect: animation,
+            rect: animation as Animation<Rect>,
             size: size,
             child: child,
           );
 
-  static AnimationBuilder<AlignmentGeometry> _fromAlign(
+  static AnimationBuilder _fromAlign(
     double? widthFactor,
     double? heightFactor,
   ) =>
       (animation, child) => AlignTransition(
-            alignment: animation,
+            alignment: animation as Animation<AlignmentGeometry>,
             heightFactor: heightFactor,
             widthFactor: widthFactor,
             child: child,
           );
 
-  static AnimationBuilder<Decoration> _fromDecoration(DecorationPosition p) =>
+  static AnimationBuilder _fromDecoration(DecorationPosition p) =>
       (animation, child) => DecoratedBoxTransition(
-            decoration: animation,
+            decoration: animation as Animation<Decoration>,
             position: p,
             child: child,
           );
 
-  static AnimationBuilder<TextStyle> _fromTextStyle(
+  static AnimationBuilder _fromTextStyle(
     TextAlign? textAlign,
     bool softWrap,
     TextOverflow overflow,
     int? maxLines,
   ) =>
       (animation, child) => DefaultTextStyleTransition(
-            style: animation,
+            style: animation as Animation<TextStyle>,
             child: child,
             textAlign: textAlign,
             softWrap: softWrap,
@@ -345,18 +336,21 @@ final class MamableTransition extends MamableSolo {
 ///
 ///
 ///
-final class MamableClipper extends MamableSolo<SizingPath> {
+final class MamableClipper<T> extends MamableSingle<SizingPath> {
   final Clip clipBehavior;
 
   MamableClipper(
-    Between<SizingPath> value, {
+    BetweenPath<T> value, {
     this.clipBehavior = Clip.antiAlias,
   }) : super(
           value,
-          (animation, child) => ClipPath(
-            clipper: Clipping.reclipWhenUpdate(animation.value),
-            clipBehavior: clipBehavior,
-            child: child,
+          (animation, child) => ListenableBuilder(
+            listenable: animation,
+            builder: (_, __) => ClipPath(
+              clipper: Clipping.reclipWhenUpdate(animation.value),
+              clipBehavior: clipBehavior,
+              child: child,
+            ),
           ),
         );
 }
@@ -364,38 +358,41 @@ final class MamableClipper extends MamableSolo<SizingPath> {
 ///
 ///
 ///
-final class MamablePainter extends MamableSolo<SizingPath> {
+final class MamablePainter<T> extends MamableSingle<SizingPath> {
   final bool isComplex;
-  final CustomPainter? foreground;
+  final CustomPainter? background;
   final Size size;
   final Painter painter;
 
   MamablePainter(
-    Between<SizingPath> value, {
+    BetweenPath<T> value, {
     this.isComplex = false,
     this.size = Size.zero,
-    required this.foreground,
+    required this.background,
     required this.painter,
   }) : super(
           value,
-          (animation, child) => CustomPaint(
-            willChange: true,
-            painter: painter(animation.value),
-            foregroundPainter: foreground,
-            size: size,
-            isComplex: isComplex,
-            child: child,
+          (animation, child) => ListenableBuilder(
+            listenable: animation,
+            builder: (_, __) => CustomPaint(
+              willChange: true,
+              painter: background,
+              foregroundPainter: painter(animation.value),
+              size: size,
+              isComplex: isComplex,
+              child: child,
+            ),
           ),
         );
 
   MamablePainter.paintFrom(
-    Between<SizingPath> value, {
+    BetweenPath<T> value, {
     required PaintFrom paintFrom,
   }) : this(
           value,
           isComplex: false,
           size: Size.zero,
-          foreground: null,
+          background: null,
           painter: FPainter.of(paintFrom),
         );
 }
@@ -415,7 +412,7 @@ final class MamablePainter extends MamableSolo<SizingPath> {
 /// direction z axis is [Direction3DIn6.front] -> [Direction3DIn6.back] ([Matrix4.rotationZ], [Offset.direction]),
 ///
 ///
-final class MamableTransformDelegate extends MamableSolo<Point3> {
+final class MamableTransformDelegate extends MamableSingle<Point3> {
   final OnAnimateMatrix4 onAnimate;
   final AlignmentGeometry? alignment;
   Matrix4 host;
@@ -427,10 +424,13 @@ final class MamableTransformDelegate extends MamableSolo<Point3> {
     required this.onAnimate,
   }) : super(
           value,
-          (animation, child) => Transform(
-            transform: onAnimate(host, animation.value),
-            alignment: alignment,
-            child: child,
+          (animation, child) => ListenableBuilder(
+            listenable: animation,
+            builder: (_, __) => Transform(
+              transform: onAnimate(host, animation.value),
+              alignment: alignment,
+              child: child,
+            ),
           ),
         );
 
@@ -626,7 +626,7 @@ abstract final class ManableSet implements Manable {
   const factory ManableSet.syncAlsoParent(MamableSet model) =
       _ManableParentSetSync.also;
 
-  const factory ManableSet.each(Iterable<MamableSolo> each) = _ManableSetEach;
+  const factory ManableSet.each(Iterable<MamableSingle> each) = _ManableSetEach;
 
   const factory ManableSet.respectively(Iterable<MamableSet> children) =
       _ManableSetRespectively;
@@ -642,7 +642,7 @@ abstract final class ManableSet implements Manable {
 
   const factory ManableSet.eachAndParent({
     required Mamable parent,
-    required Iterable<MamableSolo> each,
+    required Iterable<MamableSingle> each,
   }) = _ManableParentSetEach;
 
   const factory ManableSet.respectivelyAndParent({

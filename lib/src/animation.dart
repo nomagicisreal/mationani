@@ -2,11 +2,11 @@ part of '../mationani.dart';
 
 ///
 ///
-///
+/// [Mationani]
 /// * [Ani]
 /// * [Mation]
-///     --[Mamion]
-///     --[Manion]
+///     --[_Mamion]
+///     --[_Manion]
 ///
 ///
 ///
@@ -14,15 +14,98 @@ part of '../mationani.dart';
 
 ///
 ///
+///
+final class Mationani extends StatefulWidget {
+  final Ani ani;
+  final Mation mation;
+
+  // create animation for a child
+  Mationani.mamion({
+    super.key,
+    required this.ani,
+    required Mamable mamable,
+    required Widget child,
+  }) : mation = _Mamion(mamable: mamable, child: child);
+
+  // create animation for children
+  Mationani.manion({
+    super.key,
+    required this.ani,
+    required Manable manable,
+    required Parenting parenting,
+    required List<Widget> children,
+  }) : mation = _Manion(
+    manable: manable,
+    child: parenting,
+    grandChildren: children,
+  );
+
+  ///
+  ///
+  ///
+  @override
+  State<Mationani> createState() => _MationaniState();
+
+  static bool dismissUpdateBuilder(Mationani oldWidget, Mationani widget) =>
+      oldWidget.mation == widget.mation &&
+          oldWidget.ani.style.isCurveEqualTo(widget.ani.style);
+}
+
+class _MationaniState extends State<Mationani>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController controller;
+  late Widget child;
+
+  Widget get planForChild => widget.mation.plan(
+    controller,
+    widget.ani.curve,
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    widget.ani.initialConsumeSetStateCallback?.call(() => setState(() {}));
+    controller = widget.ani.initializing(this);
+    child = planForChild;
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    controller.dispose();
+  }
+
+  ///
+  /// If we called [setState] function in parent widget,
+  /// it triggers [_MationaniState.didUpdateWidget] no matter [Mationani] configuration changed or not.
+  /// Instead of performing the expensive [setState] function in parent,
+  /// we can also received [_MationaniState.setState] callback by [Ani.initialConsumeSetStateCallback] in parent,
+  ///
+  @override
+  void didUpdateWidget(covariant Mationani oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    widget.ani.updating(controller, oldWidget, widget);
+    if (Mationani.dismissUpdateBuilder(widget, oldWidget)) return;
+    child = planForChild;
+  }
+
+  @override
+  Widget build(BuildContext context) => child;
+}
+
+
+///
+///
+/// [Ani] is a class that focus on how animation can be used in [_MationaniState].
+///
 /// In tradition, it's hard to implement [AnimationController] everytime we want to trigger animation; we need to
 ///   1. let [State] object inherit [TickerProvider].
 ///   2. let [AnimationController] instance hold for the [State] inherited [TickerProvider].
 ///   3. trigger animation be in the right place ([State.initState], [State.didUpdateWidget], [State.setState])
 /// With [Ani], 1 and 2 are prevented, 3 is easier. It implement the chance we changed state in [_MationaniState]
-///   - by [_MationaniState.initState], there is [initializing] function for configuration.
-///   - by [_MationaniState.didUpdateWidget], there is [updating] to be defined
-///   - by [_MationaniState.setState], there is [initialConsumeSetStateCallback] passing callback to parent widget
-/// [Ani] is a class that focus on how animation can be used in [_MationaniState].
+/// [_MationaniState.initState], there is [initializing] function for configuration.
+/// [_MationaniState.didUpdateWidget], there is [updating] to be defined
+/// [_MationaniState.setState], there is [initialConsumeSetStateCallback] passing callback to parent widget
 ///
 ///
 
@@ -334,13 +417,13 @@ final class Ani {
 ///
 /// below is an approximate flow illustrating how [Mation] works, take [MamableClipper] as example.
 /// .
-///                           [MamableClipper] <  <  [MamableSolo._perform]
+///                           [MamableClipper] <  <  [MamableSingle._perform]
 ///                                      v               ^
-/// [Mamion.matable] < [Mation.matable]  v               ^    [_MatableDriver._drive]
+/// [_Mamion.matable] < [Mation.matable]  v               ^    [_MatableDriver._drive]
 ///                  [Mationani.mation]  v               ^    [_MatableDriver._builder]
 ///      [_MationaniState.planForChild]  v               ^
 ///                                      v               ^
-///          [Mation.plan] > [Mamion.plan] required [Mamable._perform] < [Matable._perform]
+///          [Mation.plan] > [_Mamion.plan] required [Mamable._perform] < [Matable._perform]
 ///
 ///
 abstract base class Mation<A extends Matable, C> {
@@ -358,25 +441,20 @@ abstract base class Mation<A extends Matable, C> {
 }
 
 ///
-/// [Mamion] responsible for animation on a child widget. ([SizedBox], [Container], [Scaffold], ...)
+/// [_Mamion] responsible for animation on a child widget. ([SizedBox], [Container], [Scaffold], ...)
 ///
-final class Mamion extends Mation<Mamable, Widget> {
-  const Mamion({required Mamable mamable, required super.child})
+final class _Mamion extends Mation<Mamable, Widget> {
+  const _Mamion({required Mamable mamable, required super.child})
       : super(matable: mamable);
 
   @override
-  Widget plan(Animation<double> parent, CurveFR? curve) => switch (matable) {
-        // all transition widgets themself in flutter are listenable
-        MamableTransition() => matable._perform(parent, curve, child),
-        _ => ListenableBuilder(
-            listenable: parent,
-            builder: (_, __) => matable._perform(parent, curve, child),
-          ),
-      };
+  Widget plan(Animation<double> parent, CurveFR? curve) =>
+      matable._perform(parent, curve, child);
 }
 
 ///
 /// [_Manion] responsible for animation on a parent widget with 'children'. ([Stack], [Column], ...)
+///
 /// notice that the 'parent' of [Parenting] is different from 'parent' argument in [Mation.plan],
 /// the former means the 'widget parent' be like [Stack] or [Column]
 /// the latter means the 'animation parent', [AnimationController], see also the 'parent' in [Animatable.animate]
@@ -391,11 +469,12 @@ final class _Manion extends Mation<Manable, Parenting> {
   }) : super(matable: manable);
 
   @override
-  Widget plan(Animation<double> parent, CurveFR? curve) {
-    final matable = this.matable;
-    final children = matable._perform(parent, curve, grandChildren);
-    return matable is _ManableParentRespectively
-        ? matable.parent._perform(parent, curve, child(children))
-        : child(children);
-  }
+  Widget plan(Animation<double> parent, CurveFR? curve) =>
+      matable is _ManableParent
+          ? (matable as _ManableParent).parent._perform(
+                parent,
+                curve,
+                child(matable._perform(parent, curve, grandChildren)),
+              )
+          : child(matable._perform(parent, curve, grandChildren));
 }

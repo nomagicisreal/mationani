@@ -1,30 +1,29 @@
 part of '../mationani.dart';
 
-
 ///
-///
-/// * [AnimationControllerExtension]
-/// * [AnimationStyleExtension]
+/// * [_AnimationControllerExtension]
+/// * [_AnimationStyleExtension]
 /// * [AnimationControllerInitializer]
 /// * [AnimationUpdater]
 /// * [AnimationBuilder]
 ///
 /// * [OnAnimate]
-/// * [OnAnimatePath]
 /// * [OnAnimateMatrix4]
-/// * [FOnAnimateMatrix4]
-///
+/// * [FTransform]
 ///
 /// there are also some private implementation showed in the graph begin in matable.dart
 /// see [_MatableDriver], ...
 ///
 ///
 
+extension _ShapeDecoration on ShapeDecoration {
+  bool get isRounded => shape is CircleBorder || shape is RoundedRectangleBorder;
+}
 
 ///
 ///
 ///
-extension AnimationControllerExtension on AnimationController {
+extension _AnimationControllerExtension on AnimationController {
   void addStatusListenerIfNotNull(AnimationStatusListener? statusListener) {
     if (statusListener != null) addStatusListener(statusListener);
   }
@@ -52,7 +51,7 @@ extension AnimationControllerExtension on AnimationController {
 ///
 ///
 ///
-extension AnimationStyleExtension on AnimationStyle? {
+extension _AnimationStyleExtension on AnimationStyle? {
   bool isCurveEqualTo(AnimationStyle? another) {
     final style = this;
     if (style == null) return another == null;
@@ -66,108 +65,107 @@ extension AnimationStyleExtension on AnimationStyle? {
 ///
 ///
 typedef AnimationControllerInitializer = AnimationController Function(
-    TickerProvider vsync,
-    Duration forward,
-    Duration reverse,
-    );
+  TickerProvider vsync,
+  Duration forward,
+  Duration reverse,
+);
 typedef AnimationUpdater = void Function(
-    AnimationController controller,
-    Mationani oldWidget,
-    Mationani widget,
-    );
+  AnimationController controller,
+  Mationani oldWidget,
+  Mationani widget,
+);
 typedef AnimationBuilder<T> = Widget Function(
-    Animation<T> animation,
-    Widget child,
-    );
+  Animation<T> animation,
+  Widget child,
+);
 
 ///
 ///
 ///
 typedef OnAnimate<T, S> = S Function(double t, T value);
-typedef OnAnimatePath<T> = SizingPath Function(double t, T value);
 typedef OnAnimateMatrix4 = Companion<Matrix4, Point3>;
 
 ///
 /// static methods, constants:
-/// [mapTranslating], ...
-/// [fixedTranslating], ...
-/// [transformFromDirection]
+/// [applier_translating], ...
+/// [fixed_translating], ...
+/// [formFromDirection]
 ///
 /// instance methods, getters:
 /// [setPerspective], ...
 /// [getPerspective], ...
 /// [perspectiveIdentity], ...
 ///
-extension FOnAnimateMatrix4 on Matrix4 {
+extension FTransform on Matrix4 {
   ///
   ///
   ///
-  static OnAnimateMatrix4 mapTranslating(Applier<Point3> mapping) =>
-          (matrix4, value) => matrix4
+  static OnAnimateMatrix4 applier_translating(Applier<Point3> apply) =>
+      (matrix4, value) => matrix4
         ..perspectiveIdentity
-        ..translateOf(mapping(value));
+        ..translateOf(apply(value));
 
-  static OnAnimateMatrix4 mapRotating(Applier<Point3> mapping) =>
-          (matrix4, value) => matrix4
+  static OnAnimateMatrix4 applier_rotating(Applier<Point3> apply) =>
+      (matrix4, value) => matrix4
         ..setRotation(
-            (Matrix4.identity()..rotateOf(mapping(value))).getRotation());
+            (Matrix4.identity()..rotateOf(apply(value))).getRotation());
 
-  static OnAnimateMatrix4 mapScaling(Applier<Point3> mapping) =>
-          (matrix4, value) => matrix4.scaledOf(mapping(value));
+  static OnAnimateMatrix4 applier_scaling(Applier<Point3> apply) =>
+      (matrix4, value) => matrix4.scaledOf(apply(value));
 
   // with fixed value
-  static OnAnimateMatrix4 fixedTranslating(Point3 fixed) =>
-          (matrix4, value) => matrix4
+  static OnAnimateMatrix4 fixed_translating(Point3 fixed) =>
+      (matrix4, value) => matrix4
         ..perspectiveIdentity
         ..translateOf(value + fixed);
 
-  static OnAnimateMatrix4 fixedRotating(Point3 fixed) =>
-          (matrix4, value) => matrix4
+  static OnAnimateMatrix4 fixed_rotating(Point3 fixed) =>
+      (matrix4, value) => matrix4
         ..setRotation(
             (Matrix4.identity()..rotateOf(fixed + value)).getRotation());
 
-  static OnAnimateMatrix4 fixedScaling(Point3 fixed) =>
-          (matrix4, value) => matrix4.scaledOf(value + fixed);
+  static OnAnimateMatrix4 fixed_scaling(Point3 fixed) =>
+      (matrix4, value) => matrix4.scaledOf(value + fixed);
 
   ///
   ///
   ///
-  static Transform transformFromDirection({
+  static Transform formFromDirection({
     double zDeep = 100,
     required Direction3DIn6 direction,
     required Widget child,
   }) =>
       switch (direction) {
         Direction3DIn6.front => Transform(
-          transform: Matrix4.identity(),
-          alignment: Alignment.center,
-          child: child,
-        ),
+            transform: Matrix4.identity(),
+            alignment: Alignment.center,
+            child: child,
+          ),
         Direction3DIn6.back => Transform(
-          alignment: Alignment.center,
-          transform: Matrix4.identity()..translateOf(Point3.ofZ(-zDeep)),
-          child: child,
-        ),
+            alignment: Alignment.center,
+            transform: Matrix4.identity()..translateOf(Point3.ofZ(-zDeep)),
+            child: child,
+          ),
         Direction3DIn6.left => Transform(
-          alignment: Alignment.centerLeft,
-          transform: Matrix4.identity()..rotateY(Radian.angle_90),
-          child: child,
-        ),
+            alignment: Alignment.centerLeft,
+            transform: Matrix4.identity()..rotateY(Radian.angle_90),
+            child: child,
+          ),
         Direction3DIn6.right => Transform(
-          alignment: Alignment.centerRight,
-          transform: Matrix4.identity()..rotateY(-Radian.angle_90),
-          child: child,
-        ),
+            alignment: Alignment.centerRight,
+            transform: Matrix4.identity()..rotateY(-Radian.angle_90),
+            child: child,
+          ),
         Direction3DIn6.top => Transform(
-          alignment: Alignment.topCenter,
-          transform: Matrix4.identity()..rotateX(-Radian.angle_90),
-          child: child,
-        ),
+            alignment: Alignment.topCenter,
+            transform: Matrix4.identity()..rotateX(-Radian.angle_90),
+            child: child,
+          ),
         Direction3DIn6.bottom => Transform(
-          alignment: Alignment.bottomCenter,
-          transform: Matrix4.identity()..rotateX(Radian.angle_90),
-          child: child,
-        ),
+            alignment: Alignment.bottomCenter,
+            transform: Matrix4.identity()..rotateX(Radian.angle_90),
+            child: child,
+          ),
       };
 
   ///
@@ -204,29 +202,37 @@ extension FOnAnimateMatrix4 on Matrix4 {
   Matrix4 scaledFor(Offset offset) => scaled(offset.dx, offset.dy, 1);
 }
 
-
 ///
 ///
 ///
 abstract final class _MatableDriver<T> {
   final Matalue<T> value;
 
+  ///
+  /// there is an error if typed generic for [_builder] and [_drive] for multiple driver instance.
+  ///
+  /// for example, ([Animation]<[Offset]>, [Widget]) => [SlideTransition],
+  /// which is not the subtype of ([Animation]<dynamic>, [Widget]) => [SlideTransition].
+  /// its a class designed ta be use many times in a widget build,
+  /// not a class intended ta be type safe for each single creation in [MamableSingle]
+  ///
   final AnimationBuilder _builder;
 
   const _MatableDriver(this.value, this._builder);
 
-  Animation _drive(Animation<double> parent, CurveFR? curve) =>
-      curve.mapNotNullOr(
-            (curve) => value.animate(CurvedAnimation(
-            parent: parent, curve: curve.forward, reverseCurve: curve.reverse)),
-            () => value.animate(parent),
-      );
+  Animation _drive(Animation<double> parent, CurveFR? curve) {
+    if (curve == null) return value.animate(parent);
+    return value.animate(CurvedAnimation(
+      parent: parent,
+      curve: curve.forward,
+      reverseCurve: curve.reverse,
+    ));
+  }
 }
 
-abstract interface class _ManableParent {
+abstract final class _ManableParent {
   Mamable get parent;
 }
-
 
 ///
 ///
@@ -238,33 +244,36 @@ final class _ManableSetSync extends ManableSet {
 
   @override
   List<Widget> _perform(
-      Animation<double> parent,
-      CurveFR? curve,
-      covariant List<Widget> children,
-      ) =>
-      children.mapToList(
-            (child) => matable.ables.fold(
-          child,
-              (child, able) => able._builder(able._drive(parent, curve), child),
+    Animation<double> parent,
+    CurveFR? curve,
+    covariant List<Widget> children,
+  ) =>
+      List.of(
+        children.map(
+          (child) => matable.ables.fold(
+            child,
+            (child, able) => able._builder(able._drive(parent, curve), child),
+          ),
         ),
+        growable: false,
       );
 }
 
 final class _ManableSetEach extends ManableSet {
-  final Iterable<MamableSolo> each;
+  final Iterable<MamableSingle> each;
 
   const _ManableSetEach(this.each);
 
   @override
   List<Widget> _perform(
-      Animation<double> parent,
-      CurveFR? curve,
-      covariant List<Widget> children,
-      ) =>
+    Animation<double> parent,
+    CurveFR? curve,
+    covariant List<Widget> children,
+  ) =>
       children.foldWith(
         each,
         [],
-            (output, child, solo) => output
+        (output, child, solo) => output
           ..add(
             solo._builder(solo._drive(parent, curve), child),
           ),
@@ -281,18 +290,18 @@ final class _ManableSetRespectively extends ManableSet {
 
   @override
   List<Widget> _perform(
-      Animation<double> parent,
-      CurveFR? curve,
-      covariant List<Widget> children,
-      ) =>
+    Animation<double> parent,
+    CurveFR? curve,
+    covariant List<Widget> children,
+  ) =>
       children.foldWith(
         this.children,
         [],
-            (output, child, matable) => output
+        (output, child, matable) => output
           ..add(
             matable.ables.fold(
               child,
-                  (child, able) => able._builder(able._drive(parent, curve), child),
+              (c, able) => able._builder(able._drive(parent, curve), c),
             ),
           ),
       );
@@ -305,15 +314,19 @@ final class _ManableSetSelected extends ManableSet {
 
   @override
   List<Widget> _perform(
-      Animation<double> parent,
-      CurveFR? curve,
-      covariant List<Widget> children,
-      ) =>
+    Animation<double> parent,
+    CurveFR? curve,
+    covariant List<Widget> children,
+  ) =>
       children.iterator.mapToListByIndex(
-            (child, i) => selected[i]!.ables.fold(
-          child,
-              (child, able) => able._builder(able._drive(parent, curve), child),
-        ),
+        (child, i) {
+          final select = selected[i];
+          if (select == null) return child;
+          return select.ables.fold(
+            child,
+            (widget, able) => able._builder(able._drive(parent, curve), widget),
+          );
+        },
       );
 }
 
@@ -323,7 +336,7 @@ final class _ManableSetSelected extends ManableSet {
 final class _ManableParentSyncAlso<T> extends ManableSync<T>
     implements _ManableParent {
   @override
-  Mamable get parent => MamableSolo(value, _builder);
+  Mamable get parent => MamableSingle(value, _builder);
 
   const _ManableParentSyncAlso(super.value, super.builder);
 }
@@ -360,7 +373,7 @@ final class _ManableParentSetEach extends _ManableSetEach
   final Mamable parent;
 
   const _ManableParentSetEach(
-      {required this.parent, required Iterable<MamableSolo> each})
+      {required this.parent, required Iterable<MamableSingle> each})
       : super(each);
 }
 
