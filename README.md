@@ -1,5 +1,3 @@
-
-https://github.com/user-attachments/assets/36ff6680-a253-41b8-a3b4-b341b752cd72
 # Mationani
 
 see mationani in [Pub.dev](https://pub.dev/packages/mationani)
