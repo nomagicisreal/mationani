@@ -1,3 +1,5 @@
+
+https://github.com/user-attachments/assets/36ff6680-a253-41b8-a3b4-b341b752cd72
 # Mationani
 
 see mationani in [Pub.dev](https://pub.dev/packages/mationani)
@@ -89,4 +91,5 @@ This is a library aims to integrate flutter animation and not limited to built-i
 Hopes there are more implementation in the future!\
 Here is the sample that only build in a widget with only one field.\
 You can check the source code at `example/mationani_example.dart`.\
-https://raw.githubusercontent.com/nomagicisreal/mationani/main/example/mationani_example.mp4
+
+https://github.com/user-attachments/assets/d76d6803-0f13-42b8-8e2e-4ce250e4a2bb
