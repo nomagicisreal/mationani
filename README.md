@@ -1,12 +1,12 @@
 # Mationani
 
 see mationani in [Pub.dev](https://pub.dev/packages/mationani)
-and [Github](https://github.com/nomagicisreal/mationani)\
+and [Github](https://github.com/nomagicisreal/mationani)
 
 To prevent scattered instances of `AnimationController`, `Animation`, `Tween` in multiple widgets;\
 there is a widget called `Mationani`.\
 With `Mationani`, we can easily create animation, we can only create animated widget by a build in
-parent.\
+parent.
 
 In tradition, an animation needs a stateful widget with ticker mixin.
 
@@ -61,7 +61,7 @@ class SampleSlide extends StatelessWidget {
 
 ```
 
-There are many old ways to create animation in flutter; to name just a few,\
+There are many old ways to create animation in flutter; to name just a few,
 
 - `ScaleTransition` requires animatable `Tween`<`double`>
 - `SlideTransition` requires animatable `Tween`<`Offset`>
@@ -75,7 +75,8 @@ not only because the implementation is hard to be translated into a simple word,
 but also the chance that we want to create some beautiful animated looks,\
 and we find out that we have to wrap our child widget maybe inside 3 nested parent widget or even 5
 more widget!\
-With this library,\
+With this library,
+
 - `Mationani` try to become the only parent widget when building an animation, which consumed `Ani`,
   and `Mation`.
 - `Ani` is responsible for 'when' to build animation in `_MationaniState` of `Mationani`.
@@ -88,4 +89,4 @@ This is a library aims to integrate flutter animation and not limited to built-i
 Hopes there are more implementation in the future!\
 Here is the sample that only build in a widget with only one field.\
 You can check the source code at `example/mationani_example.dart`.\
-[![It is fun ! Isn't it ?](https://raw.githubusercontent.com/nomagicisreal/mationani/main/example/mationani_example.png)](https://raw.githubusercontent.com/nomagicisreal/mationani/main/example/mationani_example.mov)
+[![It is fun ! Isn't it ?](https://raw.githubusercontent.com/nomagicisreal/mationani/main/example/mationani_example.png)](https://raw.githubusercontent.com/nomagicisreal/mationani/main/example/mationani_example.mp4)
