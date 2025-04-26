@@ -88,4 +88,4 @@ This is a library aims to integrate flutter animation and not limited to built-i
 Hopes there are more implementation in the future!\
 Here is the sample that only build in a widget with only one field.\
 You can check the source code at `example/mationani_example.dart`.\
-[It is fun ! Isn't it ?](https://raw.githubusercontent.com/nomagicisreal/mationani/main/example/mationani_example.mov)
+[![It is fun ! Isn't it ?](https://raw.githubusercontent.com/nomagicisreal/mationani/main/example/mationani_example.png)](https://raw.githubusercontent.com/nomagicisreal/mationani/main/example/mationani_example.mov)
