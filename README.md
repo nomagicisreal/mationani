@@ -90,4 +90,4 @@ Hopes there are more implementation in the future!\
 Here is the sample that only build in a widget with only one field.\
 You can check the source code at `example/mationani_example.dart`.\
 
-https://github.com/user-attachments/assets/d76d6803-0f13-42b8-8e2e-4ce250e4a2bb
+<img src="https://github.com/nomagicisreal/mationani/blob/main/example/mationani_example.gif?raw=true" alt="Example ">
