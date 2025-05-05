@@ -132,8 +132,8 @@ final class Ani {
 
   AnimationController initializing(TickerProvider ticker) => initializer(
         ticker,
-        style?.duration ?? KCore.durationMilli500,
-        style?.reverseDuration ?? KCore.durationMilli500,
+        style?.duration ?? DurationExtension.milli500,
+        style?.reverseDuration ?? DurationExtension.milli500,
       )
         ..addStatusListenerIfNotNull(initialStatusListener)
         ..addListenerIfNotNull(initialListener);
@@ -483,12 +483,12 @@ final class _Manion extends Mation<Manable, Parenting> {
 ///
 ///
 typedef AnimationControllerInitializer = AnimationController Function(
-    TickerProvider vsync,
-    Duration forward,
-    Duration reverse,
-    );
+  TickerProvider vsync,
+  Duration forward,
+  Duration reverse,
+);
 typedef AnimationUpdater = void Function(
-    AnimationController controller,
-    Mationani oldWidget,
-    Mationani widget,
-    );
+  AnimationController controller,
+  Mationani oldWidget,
+  Mationani widget,
+);

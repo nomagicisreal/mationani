@@ -52,8 +52,8 @@ class _MyHomeState extends State<MyHome> {
             ani: Ani.updateForwardOrReverseWhen(
               toggle,
               style: AnimationStyle(
-                duration: KCore.durationSecond1 * 3,
-                reverseDuration: KCore.durationSecond1 * 2,
+                duration: DurationExtension.second1 * 3,
+                reverseDuration: DurationExtension.second1 * 2,
               ),
             ),
             manable: ManableSet.selectedAndParent(
@@ -148,7 +148,9 @@ class _MyHomeState extends State<MyHome> {
         4: MamableSet([
           MamablePainter.paintFrom(
             BetweenPath(
-              Between<double>(begin: -Radian.angle_30, end: Radian.angle_315),
+              Between<double>(
+                  begin: -DoubleExtension.radian_angle30,
+                  end: DoubleExtension.radian_angle315),
               onAnimate: (value) => FSizingPath.connect(
                 center,
                 center + Offset.fromDirection(value, 30),
@@ -165,7 +167,10 @@ class _MyHomeState extends State<MyHome> {
           MamableTransform.rotation(
             rotate: Between(
               begin: Point3(0, 0, 0),
-              end: Point3(Radian.angle_315, Radian.angle_90, Radian.angle_10),
+              end: Point3(
+                  DoubleExtension.radian_angle315,
+                  DoubleExtension.radian_angle90,
+                  DoubleExtension.radian_angle10),
             ),
             alignment: Alignment.center,
           ),

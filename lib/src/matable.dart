@@ -181,7 +181,7 @@ final class MamableTransition extends MamableSingle {
   MamableTransition.rotateInRadian(
     Matalue<double> value, {
     Alignment alignment = Alignment.topLeft,
-  }) : this.rotate(Matalue.doubleToRadian(value), alignment: alignment);
+  }) : this.rotate(Matalue.doubleRadianFromRound(value), alignment: alignment);
 
   ///
   ///
@@ -463,7 +463,7 @@ final class MamableTransform extends MamableSingle<Point3> {
         );
 
   static Matrix4 _translating(Matrix4 matrix4, Point3 p) =>
-      matrix4..translate(Vector3(p.x, p.y, p.z));
+      matrix4..translate(v64.Vector3(p.x, p.y, p.z));
 
   static Matrix4 _rotating(Matrix4 matrix4, Point3 p) => matrix4
     ..setRotation((Matrix4.identity()

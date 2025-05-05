@@ -54,16 +54,16 @@ sealed class Matalue<T> extends Animatable<T> {
   ///
   ///
   ///
-  static Matalue<double> doubleToRadian(Animatable<double> round) =>
+  static Matalue<double> doubleRadianFromRound(Animatable<double> round) =>
       switch (round) {
         Between<double>() => Between(
-            begin: Radian.fromRound(round.begin),
-            end: Radian.fromRound(round.end),
+            begin: round.begin * DoubleExtension.radian_angle360,
+            end: round.end * DoubleExtension.radian_angle360,
             curve: round.curve,
           ),
         Amplitude<double>() => Amplitude(
-            from: Radian.fromRound(round.from),
-            value: Radian.fromRound(round.value),
+            from: round.from * DoubleExtension.radian_angle360,
+            value: round.value * DoubleExtension.radian_angle360,
             times: round.times,
             curving: round.curving,
             curve: round.curve,
@@ -165,7 +165,7 @@ class Between<T> extends Matalue<T> {
 class Amplitude<T> extends Matalue<T> {
   final T from;
   final T value;
-  final int times;
+  final double times;
   final Curving curving;
 
   const Amplitude.constant({
@@ -243,7 +243,7 @@ class BetweenSpline2D extends Between<Offset> {
 
     final center = begin.middleTo(end);
     final radianBegin = begin.direction - center.direction;
-    final r = clockwise ? Radian.angle_180 : -Radian.angle_180;
+    final r = DoubleExtension.radian_angle180 * (clockwise ? 1 : -1);
     final radius = (begin - end).distance / 2;
 
     return (t) => center + Offset.fromDirection(radianBegin + r * t, radius);
