@@ -30,7 +30,7 @@ class _AnimationMatalue<T> extends Animation<T>
 }
 
 sealed class Matalue<T> extends Animatable<T> {
-  final Lerper<T> onLerp;
+  final T Function(double value) onLerp;
   final CurveFR? curve;
 
   const Matalue({required this.onLerp, this.curve});
@@ -111,11 +111,13 @@ class Between<T> extends Matalue<T> {
   ///
   ///
   ///
-  static Lerper<T> lerperOf<T>(T begin, T end) => switch (begin) {
+  static T Function(double value) lerperOf<T>(T begin, T end) =>
+      switch (begin) {
         double _ => DoubleExtension.lerp(begin, end as double),
         Point3 _ => Point3.lerp(begin, end as Point3),
         Point2 _ => Point2.lerp(begin, end as Point2),
-        SizingPath _ => throw StateError('Plz use BetweenPath instead'),
+        Path Function(Size size) _ =>
+          throw StateError('Plz use BetweenPath instead'),
 
         ///
         ///
@@ -151,7 +153,7 @@ class Between<T> extends Matalue<T> {
             _ => _errorUnimplement_lerp(begin, end!),
           },
         _ => Tween<T>(begin: begin, end: end).transform,
-      } as Lerper<T>;
+      } as T Function(double value);
 
   static void _errorUnimplement_lerp(Object begin, Object end) =>
       throw UnimplementedError(
@@ -212,7 +214,7 @@ class BetweenSpline2D extends Between<Offset> {
   ///
   ///
   ///
-  static Lerper<Offset> lerpArcOval({
+  static Offset Function(double value) lerpArcOval({
     required Offset origin,
     required Between<double> direction,
     required Between<double> radius,
@@ -223,7 +225,7 @@ class BetweenSpline2D extends Between<Offset> {
     return origin == Offset.zero ? onLerp : (t) => origin + onLerp(t);
   }
 
-  static Lerper<Offset> lerpArcCircle({
+  static Offset Function(double value) lerpArcCircle({
     required Offset origin,
     required double radius,
     required Between<double> direction,
@@ -234,7 +236,7 @@ class BetweenSpline2D extends Between<Offset> {
         radius: Between.of(radius),
       );
 
-  static Lerper<Offset> lerpArcCircleSemi({
+  static Offset Function(double value) lerpArcCircleSemi({
     required Offset begin,
     required Offset end,
     required bool clockwise,
@@ -252,7 +254,7 @@ class BetweenSpline2D extends Between<Offset> {
   ///
   ///
   ///
-  static Lerper<Offset> lerpBezierQuadratic({
+  static Offset Function(double value) lerpBezierQuadratic({
     required Offset begin,
     required Offset end,
     required Offset controlPoint,
@@ -266,7 +268,7 @@ class BetweenSpline2D extends Between<Offset> {
         );
   }
 
-  static Lerper<Offset> lerpBezierQuadraticSymmetry({
+  static Offset Function(double value) lerpBezierQuadraticSymmetry({
     required Offset begin,
     required Offset end,
     double dPerpendicular = 5, // distance perpendicular
@@ -282,7 +284,7 @@ class BetweenSpline2D extends Between<Offset> {
       );
 
   /// bezier cubic
-  static Lerper<Offset> lerpBezierCubic({
+  static Offset Function(double value) lerpBezierCubic({
     required Offset begin,
     required Offset end,
     required Offset c1,
@@ -301,7 +303,7 @@ class BetweenSpline2D extends Between<Offset> {
     };
   }
 
-  static Lerper<Offset> lerpBezierCubicSymmetry({
+  static Offset Function(double value) lerpBezierCubicSymmetry({
     required Offset begin,
     required Offset end,
     double dPerpendicular = 10,
@@ -314,7 +316,7 @@ class BetweenSpline2D extends Between<Offset> {
   ///
   ///
   ///
-  static Lerper<Offset> lerpCatmullRom({
+  static Offset Function(double value) lerpCatmullRom({
     required List<Offset> controlPoints,
     double tension = 0.0,
     Offset? startHandle,
@@ -327,7 +329,7 @@ class BetweenSpline2D extends Between<Offset> {
         endHandle: endHandle,
       ).transform;
 
-  static Lerper<Offset> lerpCatmullRomSymmetry({
+  static Offset Function(double value) lerpCatmullRomSymmetry({
     required Offset begin,
     required Offset end,
     double dPerpendicular = 5,
@@ -347,8 +349,8 @@ class BetweenSpline2D extends Between<Offset> {
 ///
 ///
 ///
-class BetweenPath<T> extends Between<SizingPath> {
-  final Mapper<T, SizingPath> onAnimate;
+class BetweenPath<T> extends Between<Path Function(Size size)> {
+  final Path Function(Size size) Function(T value) onAnimate;
 
   const BetweenPath.constant({
     required super.begin,
@@ -369,16 +371,17 @@ class BetweenPath<T> extends Between<SizingPath> {
           onLerp: _animateOf(onAnimate, between.onLerp),
         );
 
-  static Lerper<SizingPath> _animateOf<T>(
-    Mapper<T, SizingPath> onAnimate,
-    Lerper<T> onLerp,
+  static Path Function(Size size) Function(double value) _animateOf<T>(
+    Path Function(Size size) Function(T value) onAnimate,
+    T Function(double value) onLerp,
   ) =>
       (t) => onAnimate(onLerp(t));
 
-  static Mapper<ShapeBorder, SizingPath> onAnimateShapeBorder({
+  static Path Function(Size size) Function(ShapeBorder border)
+      onAnimateShapeBorder({
     bool outerPath = true,
     TextDirection? textDirection,
-    SizingRect sizingRect = FSizingRect.full,
+    Rect Function(Size size) sizingRect = FSizingRect.full,
   }) {
     final shaping = outerPath
         ? (s) => FSizingPath.shapeBorderOuter(s, sizingRect, textDirection)

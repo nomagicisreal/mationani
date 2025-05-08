@@ -33,7 +33,7 @@ final class Mationani extends StatefulWidget {
     super.key,
     required this.ani,
     required Manable manable,
-    required Parenting parenting,
+    required Widget Function(List<Widget> children) parenting,
     required List<Widget> children,
   }) : mation = _Manion(
           manable: manable,
@@ -124,7 +124,7 @@ class _MationaniState extends State<Mationani>
 ///
 final class Ani {
   final AnimationStyle? style;
-  final Consumer<VoidCallback>? initialConsumeSetStateCallback;
+  final void Function(VoidCallback call)? initialConsumeSetStateCallback;
   final VoidCallback? initialListener;
   final AnimationStatusListener? initialStatusListener;
   final AnimationControllerInitializer initializer;
@@ -132,8 +132,8 @@ final class Ani {
 
   AnimationController initializing(TickerProvider ticker) => initializer(
         ticker,
-        style?.duration ?? DurationExtension.milli500,
-        style?.reverseDuration ?? DurationExtension.milli500,
+        style?.duration ?? const Duration(milliseconds: 500),
+        style?.reverseDuration ?? const Duration(milliseconds: 500),
       )
         ..addStatusListenerIfNotNull(initialStatusListener)
         ..addListenerIfNotNull(initialListener);
@@ -192,8 +192,9 @@ final class Ani {
     this.initialConsumeSetStateCallback,
     this.initializer = Ani._initialize,
     this.style,
-    required Consumer<AnimationController> onNotAnimating,
-    Consumer<AnimationController> onAnimating = Ani.consumeNothing,
+    required void Function(AnimationController controller) onNotAnimating,
+    void Function(AnimationController controller) onAnimating =
+        Ani.consumeNothing,
   }) : updating = Ani._consumeUpdate(onAnimating, onNotAnimating);
 
   Ani.updateForwardOrReverse({
@@ -202,7 +203,8 @@ final class Ani {
     this.initialConsumeSetStateCallback,
     this.initializer = Ani._initialize,
     this.style,
-    Consumer<AnimationController> onAnimating = Ani.consumeNothing,
+    void Function(AnimationController controller) onAnimating =
+        Ani.consumeNothing,
   }) : updating = Ani._consumeUpdate(onAnimating, Ani.consumeForwardOrReverse);
 
   ///
@@ -344,8 +346,8 @@ final class Ani {
   static void _updateNothing(AnimationController c, Mationani o, Mationani n) {}
 
   static AnimationUpdater _consumeUpdate(
-    Consumer<AnimationController> onAnimating,
-    Consumer<AnimationController> onNotAnimating,
+    void Function(AnimationController controller) onAnimating,
+    void Function(AnimationController controller) onNotAnimating,
   ) =>
       (controller, oldWidget, widget) {
         controller.updateDurationIfNew(oldWidget, widget);
@@ -384,29 +386,36 @@ final class Ani {
   /// [decideForward], [decideReverse], [decideRepeat], [decideForwardReset]
   /// [decideForwardOrReverse], [decideForwardOrRepeat]
   ///
-  static Consumer<AnimationController> decideNothing(bool trigger) =>
+  static void Function(AnimationController controller) decideNothing(
+          bool trigger) =>
       consumeNothing;
 
-  static Consumer<AnimationController> decideForward(bool trigger) =>
+  static void Function(AnimationController controller) decideForward(
+          bool trigger) =>
       trigger ? consumeForward : consumeNothing;
 
-  static Consumer<AnimationController> decideReverse(bool trigger) =>
+  static void Function(AnimationController controller) decideReverse(
+          bool trigger) =>
       trigger ? consumeReverse : consumeNothing;
 
-  static Consumer<AnimationController> decideForwardReset(bool trigger) =>
+  static void Function(AnimationController controller) decideForwardReset(
+          bool trigger) =>
       trigger ? consumeForwardReset : consumeNothing;
 
-  static Consumer<AnimationController> decideRepeat(bool trigger) =>
+  static void Function(AnimationController controller) decideRepeat(
+          bool trigger) =>
       trigger ? consumeRepeat : consumeNothing;
 
-  static Consumer<AnimationController> decideForwardOrReverse(bool? forward) =>
+  static void Function(AnimationController controller) decideForwardOrReverse(
+          bool? forward) =>
       switch (forward) {
         true => consumeForward,
         false => consumeReverse,
         null => consumeNothing,
       };
 
-  static Consumer<AnimationController> decideForwardOrRepeat(bool? forward) =>
+  static void Function(AnimationController controller) decideForwardOrRepeat(
+          bool? forward) =>
       switch (forward) {
         true => consumeForward,
         false => consumeRepeat,
@@ -455,11 +464,8 @@ final class _Mamion extends Mation<Mamable, Widget> {
 ///
 /// [_Manion] responsible for animation on a parent widget with 'children'. ([Stack], [Column], ...)
 ///
-/// notice that the 'parent' of [Parenting] is different from 'parent' argument in [Mation.plan],
-/// the former means the 'widget parent' be like [Stack] or [Column]
-/// the latter means the 'animation parent', [AnimationController], see also the 'parent' in [Animatable.animate]
-///
-final class _Manion extends Mation<Manable, Parenting> {
+final class _Manion
+    extends Mation<Manable, Widget Function(List<Widget> children)> {
   final List<Widget> grandChildren;
 
   const _Manion({

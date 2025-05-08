@@ -37,7 +37,10 @@ class _MyHomeState extends State<MyHome> {
 
   void _onPressed({bool update = true}) {
     setState(() => toggle = !toggle);
-    context.showSnackBarMessage(toggle.toString());
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Center(
+      child: Text(toggle.toString()),
+    )));
   }
 
   @override

@@ -340,7 +340,7 @@ final class MamableTransition extends MamableSingle {
 ///
 ///
 ///
-final class MamableClipper<T> extends MamableSingle<SizingPath> {
+final class MamableClipper<T> extends MamableSingle<Path Function(Size size)> {
   final Clip clipBehavior;
 
   MamableClipper(
@@ -362,11 +362,11 @@ final class MamableClipper<T> extends MamableSingle<SizingPath> {
 ///
 ///
 ///
-final class MamablePainter<T> extends MamableSingle<SizingPath> {
+final class MamablePainter<T> extends MamableSingle<Path Function(Size size)> {
   final bool isComplex;
   final CustomPainter? background;
   final Size size;
-  final Painter painter;
+  final CustomPainter Function(Path Function(Size size)) painter;
 
   MamablePainter(
     BetweenPath<T> value, {
