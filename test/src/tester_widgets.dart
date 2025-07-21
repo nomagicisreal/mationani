@@ -13,7 +13,6 @@ class _TestFabExpandableState extends State<TestFabExpandable> {
 
   void _onPressed({bool update = true}) {
     count++;
-    context.showSnackBarMessage(count.toString());
   }
 
   @override

@@ -31,7 +31,7 @@ class _AnimationMatalue<T> extends Animation<T>
 
 sealed class Matalue<T> extends Animatable<T> {
   final T Function(double value) onLerp;
-  final CurveFR? curve;
+  final (Curve, Curve)? curve;
 
   const Matalue({required this.onLerp, this.curve});
 
@@ -45,11 +45,14 @@ sealed class Matalue<T> extends Animatable<T> {
   Animation<T> animate(Animation<double> parent) => _AnimationMatalue(
         CurvedAnimation(
           parent: parent,
-          curve: curve?.forward ?? Curves.fastOutSlowIn,
-          reverseCurve: curve?.reverse ?? Curves.fastOutSlowIn,
+          curve: curve?.$1 ?? Curves.fastOutSlowIn,
+          reverseCurve: curve?.$2 ?? Curves.fastOutSlowIn,
         ),
         this,
       );
+
+  static const double _radian_angle360 = math.pi * 2;
+  static const double _radian_angle90 = math.pi / 2;
 
   ///
   ///
@@ -57,13 +60,13 @@ sealed class Matalue<T> extends Animatable<T> {
   static Matalue<double> doubleRadianFromRound(Animatable<double> round) =>
       switch (round) {
         Between<double>() => Between(
-            begin: round.begin * DoubleExtension.radian_angle360,
-            end: round.end * DoubleExtension.radian_angle360,
+            begin: round.begin * _radian_angle360,
+            end: round.end * _radian_angle360,
             curve: round.curve,
           ),
         Amplitude<double>() => Amplitude(
-            from: round.from * DoubleExtension.radian_angle360,
-            value: round.value * DoubleExtension.radian_angle360,
+            from: round.from * _radian_angle360,
+            value: round.value * _radian_angle360,
             times: round.times,
             curving: round.curving,
             curve: round.curve,
@@ -113,9 +116,32 @@ class Between<T> extends Matalue<T> {
   ///
   static T Function(double value) lerperOf<T>(T begin, T end) =>
       switch (begin) {
-        double _ => DoubleExtension.lerp(begin, end as double),
-        Point3 _ => Point3.lerp(begin, end as Point3),
-        Point2 _ => Point2.lerp(begin, end as Point2),
+        double _ => () {
+            end as double;
+            return (t) => begin * (1.0 - t) + end * t;
+          }(),
+        (double, double) _ => () {
+            end as (double, double);
+            final p1 = begin.$1;
+            final p2 = begin.$1;
+            final q1 = end.$1;
+            final q2 = end.$2;
+            return (t) => (p1 * (1.0 - t) + q1 * t, p2 * (1.0 - t) + q2 * t);
+          }(),
+        (double, double, double) _ => () {
+            end as (double, double, double);
+            final p1 = begin.$1;
+            final p2 = begin.$1;
+            final p3 = begin.$3;
+            final q1 = end.$1;
+            final q2 = end.$2;
+            final q3 = end.$3;
+            return (t) => (
+                  p1 * (1.0 - t) + q1 * t,
+                  p2 * (1.0 - t) + q2 * t,
+                  p3 * (1.0 - t) + q3 * t
+                );
+          }(),
         Path Function(Size size) _ =>
           throw StateError('Plz use BetweenPath instead'),
 
@@ -168,7 +194,7 @@ class Amplitude<T> extends Matalue<T> {
   final T from;
   final T value;
   final double times;
-  final Curving curving;
+  final double Function(double value) curving;
 
   const Amplitude.constant({
     required this.from,
@@ -190,10 +216,9 @@ class Amplitude<T> extends Matalue<T> {
             final transform = Between(
               begin: from,
               end: value,
-              curve: CurveFR.linear,
+              curve: (Curves.linear, Curves.linear),
             ).transform;
-            final curved = curving.transformInternal;
-            return (t) => transform(curved(t));
+            return (t) => transform(curving(t));
           }(),
         );
 }
@@ -243,9 +268,9 @@ class BetweenSpline2D extends Between<Offset> {
   }) {
     if (begin == end) return (_) => begin;
 
-    final center = begin.middleTo(end);
+    final center = begin * 0.5 + end * 0.5;
     final radianBegin = begin.direction - center.direction;
-    final r = DoubleExtension.radian_angle180 * (clockwise ? 1 : -1);
+    final r = math.pi * (clockwise ? 1 : -1);
     final radius = (begin - end).distance / 2;
 
     return (t) => center + Offset.fromDirection(radianBegin + r * t, radius);
@@ -261,11 +286,11 @@ class BetweenSpline2D extends Between<Offset> {
   }) {
     final vector1 = controlPoint - begin;
     final vector2 = end - controlPoint;
-    return (t) => OffsetExtension.parallelOffsetOf(
-          begin + vector1 * t,
-          controlPoint + vector2 * t,
-          t,
-        );
+    return (t) {
+      final a1 = begin + vector1 * t;
+      final b1 = controlPoint + vector2 * t;
+      return a1 + (b1 - a1) * t;
+    };
   }
 
   static Offset Function(double value) lerpBezierQuadraticSymmetry({
@@ -276,11 +301,7 @@ class BetweenSpline2D extends Between<Offset> {
       lerpBezierQuadratic(
         begin: begin,
         end: end,
-        controlPoint: OffsetExtension.perpendicularOffsetUnitFromCenterOf(
-          begin,
-          end,
-          dPerpendicular,
-        ),
+        controlPoint: (begin, end)._centerPerpendicularOf(dPerpendicular),
       );
 
   /// bezier cubic
@@ -294,12 +315,12 @@ class BetweenSpline2D extends Between<Offset> {
     final vector2 = c2 - c1;
     final vector3 = end - c2;
     return (t) {
-      final middle = c1 + vector2 * t;
-      return OffsetExtension.parallelOffsetOf(
-        OffsetExtension.parallelOffsetOf(begin + vector1 * t, middle, t),
-        OffsetExtension.parallelOffsetOf(middle, c2 + vector3 * t, t),
-        t,
-      );
+      final o = c1 + vector2 * t;
+      final a1 = begin + vector1 * t;
+      final a2 = a1 + (o - a1) * t;
+      final b1 = c2 + vector3 * t;
+      final b2 = o + (b1 - o) * t;
+      return a2 + (b2 - a2) * t;
     };
   }
 
@@ -309,8 +330,8 @@ class BetweenSpline2D extends Between<Offset> {
     double dPerpendicular = 10,
     double dParallel = 1,
   }) {
-    final list = [begin, end].symmetryInsert(dPerpendicular, dParallel);
-    return lerpBezierCubic(begin: begin, end: end, c1: list[1], c2: list[2]);
+    final s = (begin, end)._symmetryInsert(dPerpendicular, dParallel);
+    return lerpBezierCubic(begin: begin, end: end, c1: s.$1, c2: s.$2);
   }
 
   ///
@@ -337,13 +358,15 @@ class BetweenSpline2D extends Between<Offset> {
     double tension = 0.0,
     Offset? startHandle,
     Offset? endHandle,
-  }) =>
-      lerpCatmullRom(
-        controlPoints: [begin, end].symmetryInsert(dPerpendicular, dParallel),
-        tension: tension,
-        startHandle: startHandle,
-        endHandle: endHandle,
-      );
+  }) {
+    final s = (begin, end)._symmetryInsert(dPerpendicular, dParallel);
+    return lerpCatmullRom(
+      controlPoints: [begin, end, s.$1, s.$2],
+      tension: tension,
+      startHandle: startHandle,
+      endHandle: endHandle,
+    );
+  }
 }
 
 ///
@@ -377,15 +400,23 @@ class BetweenPath<T> extends Between<Path Function(Size size)> {
   ) =>
       (t) => onAnimate(onLerp(t));
 
+  static Rect _full(Size size) => Offset.zero & size;
+
   static Path Function(Size size) Function(ShapeBorder border)
       onAnimateShapeBorder({
     bool outerPath = true,
     TextDirection? textDirection,
-    Rect Function(Size size) sizingRect = FSizingRect.full,
+    Rect Function(Size size) sizingRect = _full,
   }) {
     final shaping = outerPath
-        ? (s) => FSizingPath.shapeBorderOuter(s, sizingRect, textDirection)
-        : (s) => FSizingPath.shapeBorderInner(s, sizingRect, textDirection);
+        ? (ShapeBorder shape) => (size) => shape.getOuterPath(
+              sizingRect(size),
+              textDirection: textDirection,
+            )
+        : (ShapeBorder shape) => (size) => shape.getInnerPath(
+              sizingRect(size),
+              textDirection: textDirection,
+            );
     return (shape) => shaping(shape);
   }
 }

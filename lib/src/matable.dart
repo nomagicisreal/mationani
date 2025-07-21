@@ -49,7 +49,7 @@ abstract final class Matable {}
 abstract final class Mamable implements Matable {
   Widget _perform(
     Animation<double> parent,
-    CurveFR? curve,
+    (Curve, Curve)? curve,
     covariant Widget child,
   );
 }
@@ -57,7 +57,7 @@ abstract final class Mamable implements Matable {
 abstract final class Manable implements Matable {
   List<Widget> _perform(
     Animation<double> parent,
-    CurveFR? curve,
+    (Curve, Curve)? curve,
     covariant List<Widget> children,
   );
 }
@@ -67,7 +67,8 @@ abstract final class Manable implements Matable {
 ///
 final class MamableSingle<T> extends _MatableDriver<T> implements Mamable {
   @override
-  Widget _perform(Animation<double> parent, CurveFR? curve, Widget child) =>
+  Widget _perform(
+          Animation<double> parent, (Curve, Curve)? curve, Widget child) =>
       ListenableBuilder(
         listenable: parent,
         builder: (_, __) => _builder(_drive(parent, curve), child),
@@ -80,7 +81,7 @@ final class ManableSync<T> extends _MatableDriver<T> implements Manable {
   @override
   List<Widget> _perform(
     Animation<double> parent,
-    CurveFR? curve,
+    (Curve, Curve)? curve,
     covariant List<Widget> children,
   ) {
     final animation = _drive(parent, curve);
@@ -112,7 +113,8 @@ final class MamableSet<A extends MamableSingle> implements Mamable {
   const MamableSet(this.ables);
 
   @override
-  Widget _perform(Animation<double> parent, CurveFR? curve, Widget child) =>
+  Widget _perform(
+          Animation<double> parent, (Curve, Curve)? curve, Widget child) =>
       ables.fold(
         child,
         (child, able) => able._builder(able._drive(parent, curve), child),
@@ -133,18 +135,18 @@ final class MamableTransition extends MamableSingle {
   }) : super(value, _fromFade(alwaysIncludeSemantics));
 
   MamableTransition.fadeIn({
-    CurveFR? curve,
+    (Curve, Curve)? curve,
     bool alwaysIncludeSemantics = false,
   }) : this.fade(Between(begin: 0.0, end: 1.0, curve: curve));
 
   MamableTransition.fadeInTo(
     double opacity, {
-    CurveFR? curve,
+    (Curve, Curve)? curve,
     bool alwaysIncludeSemantics = false,
   }) : this.fade(Between(begin: 0.0, end: opacity, curve: curve));
 
   MamableTransition.fadeOut({
-    CurveFR? curve,
+    (Curve, Curve)? curve,
     bool alwaysIncludeSemantics = false,
   }) : this.fade(Between(begin: 1.0, end: 0.0, curve: curve));
 
@@ -351,7 +353,7 @@ final class MamableClipper<T> extends MamableSingle<Path Function(Size size)> {
           (animation, child) => ListenableBuilder(
             listenable: animation,
             builder: (_, __) => ClipPath(
-              clipper: Clipping.reclipWhenUpdate(animation.value),
+              clipper: _Clipping(animation.value),
               clipBehavior: clipBehavior,
               child: child,
             ),
@@ -391,26 +393,30 @@ final class MamablePainter<T> extends MamableSingle<Path Function(Size size)> {
 
   MamablePainter.paintFrom(
     BetweenPath<T> value, {
-    required PaintFrom paintFrom,
+    required Paint Function(Canvas canvas, Size size) paintFrom,
   }) : this(
           value,
           isComplex: false,
           size: Size.zero,
           background: null,
-          painter: FPainter.of(paintFrom),
+          painter: (sizingPath) => _Painting(
+            paintingPath: (canvas, paint, path) => canvas.drawPath(path, paint),
+            sizingPath: sizingPath,
+            paintFrom: paintFrom,
+          ),
         );
 }
 
 ///
 ///
 ///
-final class MamableTransform extends MamableSingle<Point3> {
-  final Companion<Matrix4, Point3> onAnimate;
+final class MamableTransform extends MamableSingle<(double, double, double)> {
+  final Matrix4 Function(Matrix4 m, (double, double, double) vector) onAnimate;
   AlignmentGeometry? alignment;
   Matrix4 host;
 
   MamableTransform(
-    Matalue<Point3> value, {
+    Matalue<(double, double, double)> value, {
     required this.alignment,
     required this.host,
     required this.onAnimate,
@@ -430,7 +436,7 @@ final class MamableTransform extends MamableSingle<Point3> {
   ///
   ///
   MamableTransform.translation({
-    required Matalue<Point3> translate,
+    required Matalue<(double, double, double)> translate,
     AlignmentGeometry? alignment,
     Matrix4? host,
   }) : this(
@@ -441,7 +447,7 @@ final class MamableTransform extends MamableSingle<Point3> {
         );
 
   MamableTransform.rotation({
-    required Matalue<Point3> rotate,
+    required Matalue<(double, double, double)> rotate,
     AlignmentGeometry? alignment,
     Matrix4? host,
   }) : this(
@@ -452,7 +458,7 @@ final class MamableTransform extends MamableSingle<Point3> {
         );
 
   MamableTransform.scale({
-    required Matalue<Point3> scale,
+    required Matalue<(double, double, double)> scale,
     AlignmentGeometry? alignment,
     Matrix4? host,
   }) : this(
@@ -462,18 +468,19 @@ final class MamableTransform extends MamableSingle<Point3> {
           onAnimate: MamableTransform._scaling,
         );
 
-  static Matrix4 _translating(Matrix4 matrix4, Point3 p) =>
-      matrix4..translate(v64.Vector3(p.x, p.y, p.z));
+  static Matrix4 _translating(Matrix4 matrix4, (double, double, double) p) =>
+      matrix4..translate(p.$1, p.$2, p.$3);
 
-  static Matrix4 _rotating(Matrix4 matrix4, Point3 p) => matrix4
-    ..setRotation((Matrix4.identity()
-          ..rotateX(p.x)
-          ..rotateY(p.y)
-          ..rotateZ(p.z))
-        .getRotation());
+  static Matrix4 _rotating(Matrix4 matrix4, (double, double, double) p) =>
+      matrix4
+        ..setRotation((Matrix4.identity()
+              ..rotateX(p.$1)
+              ..rotateY(p.$2)
+              ..rotateZ(p.$3))
+            .getRotation());
 
-  static Matrix4 _scaling(Matrix4 matrix4, Point3 p) =>
-      matrix4.scaled(p.x, p.y, p.z);
+  static Matrix4 _scaling(Matrix4 matrix4, (double, double, double) p) =>
+      matrix4.scaled(p.$1, p.$2, p.$3);
 }
 
 ///
@@ -487,9 +494,9 @@ abstract final class ManableSet implements Manable {
   const factory ManableSet.syncAlsoParent(MamableSet model) =
       _ManableParentSetSync.also;
 
-  const factory ManableSet.each(Iterable<MamableSingle> each) = _ManableSetEach;
+  const factory ManableSet.each(List<MamableSingle> each) = _ManableSetEach;
 
-  const factory ManableSet.respectively(Iterable<MamableSet> children) =
+  const factory ManableSet.respectively(List<MamableSet> children) =
       _ManableSetRespectively;
 
   const factory ManableSet.selected(Map<int, MamableSet> selected) =
@@ -503,12 +510,12 @@ abstract final class ManableSet implements Manable {
 
   const factory ManableSet.eachAndParent({
     required Mamable parent,
-    required Iterable<MamableSingle> each,
+    required List<MamableSingle> each,
   }) = _ManableParentSetEach;
 
   const factory ManableSet.respectivelyAndParent({
     required Mamable parent,
-    required Iterable<MamableSet> children,
+    required List<MamableSet> children,
   }) = _ManableParentRespectively;
 
   const factory ManableSet.selectedAndParent({

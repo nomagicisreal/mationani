@@ -1,4 +1,3 @@
-import 'package:datter/datter.dart';
 import 'package:flutter/material.dart';
 import 'package:mationani/mationani.dart';
 
@@ -15,14 +14,20 @@ class _OldWayState extends State<OldWay> with SingleTickerProviderStateMixin {
 
   void _onPressed({bool update = true}) {
     count++;
-    context.showSnackBarMessage('$toggle on $count');
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+          content: Center(
+        child: Text('$toggle on $count'),
+      )),
+    );
     toggle
         ? controller.forward().then((_) => toggle = !toggle)
         : controller.reverse().then((_) => toggle = !toggle);
   }
 
   late final AnimationController controller;
-  late final Animation<SizingPath> animation;
+  late final Animation<Path Function(Size size)> animation;
 
   @override
   void initState() {
@@ -34,7 +39,8 @@ class _OldWayState extends State<OldWay> with SingleTickerProviderStateMixin {
     animation = controller.drive(
       BetweenPath(
         Between(begin: 10.0, end: 50.0),
-        onAnimate: (value) => FSizingPath.circle(Offset.zero, value),
+        onAnimate: (value) => (_) => Path()
+          ..addOval(Rect.fromCircle(center: Offset.zero, radius: value)),
       ),
     );
   }
@@ -57,7 +63,7 @@ class _OldWayState extends State<OldWay> with SingleTickerProviderStateMixin {
               listenable: animation,
               builder: (context, child) {
                 return ClipPath(
-                  clipper: Clipping.reclipWhenUpdate(animation.value),
+                  clipper: _Clipping(animation.value),
                   child: ColoredBox(color: Colors.red.shade200),
                 );
               }),
@@ -68,18 +74,15 @@ class _OldWayState extends State<OldWay> with SingleTickerProviderStateMixin {
   }
 }
 
+class _Clipping extends CustomClipper<Path> {
+  final Path Function(Size size) sizingPath;
 
+  @override
+  Path getClip(Size size) => sizingPath(size);
 
-///
-/// the 'axis' below is from 'coordinate-axis-negative' to 'coordinate-axis-positive'.
-/// it's easier to understand them with animated [Transform] widget with [Matrix4] instance continued setState,
-/// or just using [MamableTransformDelegate] wrapped in [Mationani] widget with [Ani.initRepeat].
-///
-/// translation x axis comes from [Direction3DIn6.left] to [Direction3DIn6.right]
-/// translation y axis comes from [Direction3DIn6.top] to [Direction3DIn6.bottom]
-/// translation z axis comes from [Direction3DIn6.front] to [Direction3DIn6.back]
-/// direction x axis is [Direction3DIn6.left] -> [Direction3DIn6.right] ([Matrix4.rotationX]),
-/// direction y axis is [Direction3DIn6.top] -> [Direction3DIn6.bottom] ([Matrix4.rotationY]),
-/// direction z axis is [Direction3DIn6.front] -> [Direction3DIn6.back] ([Matrix4.rotationZ], [Offset.direction]),
-///
-///
+  @override
+  bool shouldReclip(_Clipping oldClipper) =>
+      sizingPath != oldClipper.sizingPath;
+
+  const _Clipping(this.sizingPath);
+}

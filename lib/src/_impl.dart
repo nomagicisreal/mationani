@@ -2,19 +2,57 @@ part of '../mationani.dart';
 
 ///
 ///
+/// implementation for this file
+/// * [_ListWidget]
+///
 /// implementation for `matalue.dart`
 /// * [_ShapeDecoration]
+/// * [_ListOffset]
 ///
 /// implementation for `animation.dart`
-/// * [_AnimationControllerExtension]
+/// * [_AnimationController]
 /// * [_AnimationStyleExtension]
 ///
 /// implementation for `matable.dart`
-/// * [AnimationBuilder]
+/// * [_Clipping]
+/// * [_Painting]
 /// * [_MatableDriver], and more ...
 ///
 ///
 ///
+
+///
+///
+///
+extension _ListWidget on List<Widget> {
+  List<Widget> _attachList<T>(
+    List<T> animations,
+    Widget Function(Widget child, T value) companion,
+  ) {
+    if (length != animations.length) {
+      throw StateError(
+        'size(${animations.length}) not equal to children size($length)',
+      );
+    }
+    var children = <Widget>[];
+    for (var i = 0; i < length; i++) {
+      children.add(companion(this[i], animations[i]));
+    }
+    return children;
+  }
+
+  List<Widget> _attachMap<T>(
+    Map<int, T> selected,
+    Widget Function(Widget child, T value) companion,
+  ) {
+    final list = <Widget>[];
+    for (var i = 0; i < length; i++) {
+      final animation = selected[i];
+      list.add(animation == null ? this[i] : companion(this[i], animation));
+    }
+    return list;
+  }
+}
 
 ///
 ///
@@ -24,10 +62,27 @@ extension _ShapeDecoration on ShapeDecoration {
       shape is CircleBorder || shape is RoundedRectangleBorder;
 }
 
+extension _OffsetOffset on (Offset, Offset) {
+  Offset _centerPerpendicularOf([double distance = 1]) =>
+      this.$1 * 0.5 +
+      this.$2 * 0.5 +
+      Offset.fromDirection(
+        (this.$2 - this.$1).direction + Matalue._radian_angle90,
+        distance,
+      );
+
+  (Offset, Offset) _symmetryInsert(double dPerpendicular, dParallel) {
+    final v = this.$2 - this.$1;
+    final vUnit = v / v.distance;
+    final u = _centerPerpendicularOf(dPerpendicular);
+    return (u - vUnit * dParallel, u + vUnit * dParallel);
+  }
+}
+
 ///
 ///
 ///
-extension _AnimationControllerExtension on AnimationController {
+extension _AnimationController on AnimationController {
   void addStatusListenerIfNotNull(AnimationStatusListener? statusListener) {
     if (statusListener != null) addStatusListener(statusListener);
   }
@@ -68,6 +123,53 @@ extension _AnimationStyleExtension on AnimationStyle? {
 ///
 ///
 ///
+class _Clipping extends CustomClipper<Path> {
+  final Path Function(Size size) sizingPath;
+
+  @override
+  Path getClip(Size size) => sizingPath(size);
+
+  @override
+  bool shouldReclip(_Clipping oldClipper) =>
+      sizingPath != oldClipper.sizingPath;
+
+  const _Clipping(this.sizingPath);
+}
+
+class _Painting extends CustomPainter {
+  final bool Function(_Painting oldP, _Painting p) shouldRePaint;
+  final Path Function(Size size) sizingPath;
+  final Paint Function(Canvas canvas, Size size) paintFrom;
+  final void Function(Canvas canvas, Paint paint, Path path) paintingPath;
+
+  ///
+  ///
+  ///
+  @override
+  void paint(Canvas canvas, Size size) {
+    final path = sizingPath(size);
+    final paint = paintFrom(canvas, size);
+    paintingPath(canvas, paint, path);
+  }
+
+  @override
+  bool shouldRepaint(_Painting oldDelegate) => shouldRePaint(oldDelegate, this);
+
+  static bool _rePaintWhenUpdate(_Painting oldP, _Painting p) => true;
+
+  ///
+  ///
+  ///
+  const _Painting({
+    required this.paintingPath,
+    required this.sizingPath,
+    required this.paintFrom,
+  }) : shouldRePaint = _rePaintWhenUpdate;
+}
+
+///
+///
+///
 abstract final class _MatableDriver<T> {
   final Matalue<T> value;
 
@@ -83,12 +185,12 @@ abstract final class _MatableDriver<T> {
 
   const _MatableDriver(this.value, this._builder);
 
-  Animation _drive(Animation<double> parent, CurveFR? curve) {
+  Animation _drive(Animation<double> parent, (Curve, Curve)? curve) {
     if (curve == null) return value.animate(parent);
     return value.animate(CurvedAnimation(
       parent: parent,
-      curve: curve.forward,
-      reverseCurve: curve.reverse,
+      curve: curve.$1,
+      reverseCurve: curve.$2,
     ));
   }
 }
@@ -108,7 +210,7 @@ final class _ManableSetSync extends ManableSet {
   @override
   List<Widget> _perform(
     Animation<double> parent,
-    CurveFR? curve,
+    (Curve, Curve)? curve,
     covariant List<Widget> children,
   ) =>
       List.of(
@@ -123,23 +225,19 @@ final class _ManableSetSync extends ManableSet {
 }
 
 final class _ManableSetEach extends ManableSet {
-  final Iterable<MamableSingle> each;
+  final List<MamableSingle> each;
 
   const _ManableSetEach(this.each);
 
   @override
   List<Widget> _perform(
     Animation<double> parent,
-    CurveFR? curve,
+    (Curve, Curve)? curve,
     covariant List<Widget> children,
   ) =>
-      children.foldWith(
+      children._attachList(
         each,
-        [],
-        (output, child, solo) => output
-          ..add(
-            solo._builder(solo._drive(parent, curve), child),
-          ),
+        (child, solo) => solo._builder(solo._drive(parent, curve), child),
       );
 }
 
@@ -147,26 +245,22 @@ final class _ManableSetEach extends ManableSet {
 ///
 ///
 final class _ManableSetRespectively extends ManableSet {
-  final Iterable<MamableSet> children;
+  final List<MamableSet> children;
 
   const _ManableSetRespectively(this.children);
 
   @override
   List<Widget> _perform(
     Animation<double> parent,
-    CurveFR? curve,
+    (Curve, Curve)? curve,
     covariant List<Widget> children,
   ) =>
-      children.foldWith(
+      children._attachList(
         this.children,
-        [],
-        (output, child, matable) => output
-          ..add(
-            matable.ables.fold(
-              child,
-              (c, able) => able._builder(able._drive(parent, curve), c),
-            ),
-          ),
+        (child, animation) => animation.ables.fold(
+          child,
+          (child, able) => able._builder(able._drive(parent, curve), child),
+        ),
       );
 }
 
@@ -178,18 +272,15 @@ final class _ManableSetSelected extends ManableSet {
   @override
   List<Widget> _perform(
     Animation<double> parent,
-    CurveFR? curve,
+    (Curve, Curve)? curve,
     covariant List<Widget> children,
   ) =>
-      children.iterator.mapToListByIndex(
-        (child, i) {
-          final select = selected[i];
-          if (select == null) return child;
-          return select.ables.fold(
-            child,
-            (widget, able) => able._builder(able._drive(parent, curve), widget),
-          );
-        },
+      children._attachMap(
+        selected,
+        (child, animation) => animation.ables.fold(
+          child,
+          (c, able) => able._builder(able._drive(parent, curve), c),
+        ),
       );
 }
 
@@ -236,7 +327,7 @@ final class _ManableParentSetEach extends _ManableSetEach
   final Mamable parent;
 
   const _ManableParentSetEach(
-      {required this.parent, required Iterable<MamableSingle> each})
+      {required this.parent, required List<MamableSingle> each})
       : super(each);
 }
 
@@ -248,7 +339,7 @@ final class _ManableParentRespectively extends _ManableSetRespectively
 
   const _ManableParentRespectively({
     required this.parent,
-    required Iterable<MamableSet> children,
+    required List<MamableSet> children,
   }) : super(children);
 }
 
