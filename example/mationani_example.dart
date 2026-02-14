@@ -35,10 +35,10 @@ class _MyHomeState extends State<MyHome> {
 
   void _onPressed({bool update = true}) {
     setState(() => toggle = !toggle);
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Center(
-      child: Text(toggle.toString()),
-    )));
+    // ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+    //     content: Center(
+    //   child: Text(toggle.toString()),
+    // )));
   }
 
   @override
@@ -137,21 +137,14 @@ class _MyHomeState extends State<MyHome> {
                   ],
                 ),
               ),
-              onAnimate: (value) => (size) => Path()
+              onAnimate: (p) => (size) => Path()
                 ..addOval(
-                  Rect.fromCircle(center: center, radius: 35),
+                  Rect.fromCircle(center: p, radius: 35),
                 ),
               curve: (Curves.linear, Curves.linear),
             ),
           ),
-          MamableTransition.fade(
-            Amplitude(
-              from: 1,
-              value: 0.6,
-              times: 2,
-              curving: (value) => math.sin(math.pi * 2 * value),
-            ),
-          ),
+          MamableTransition.fade(Deviate(around: 0.6, amplitude: 0.4)),
         ]),
         4: MamableSet([
           MamablePainter.paintFrom(
