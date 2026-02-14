@@ -108,6 +108,7 @@ abstract class Between<T> extends Matalue<T> {
         ///
         Path Function(Size size) _ =>
           throw StateError('Plz use BetweenPath instead'),
+        Offset _ => _BetweenOffset(begin, end as Offset, curve),
         Size _ => _BetweenSize(begin, end as Size, curve),
         Rect _ => _BetweenRect(begin, end as Rect, curve),
         Color _ => _BetweenColor(begin, end as Color, curve),
@@ -119,16 +120,16 @@ abstract class Between<T> extends Matalue<T> {
         Decoration _ => switch (begin) {
             BoxDecoration _ => begin.shape == (end as BoxDecoration).shape
                 ? _BetweenBoxDecoration(begin, end, curve)
-                : _errorUnimplement_lerp(begin, end),
+                : throw _errorUnimplement(begin, end),
             ShapeDecoration _ => switch (end) {
                 ShapeDecoration _ => begin.shape == end.shape
                     ? _BetweenShapeDecoration(begin, end, curve)
                     : begin.isRounded && end.isRounded
                         ? _BetweenDecoration(begin, end, curve)
-                        : _errorUnimplement_lerp(begin, end),
-                _ => _errorUnimplement_lerp(begin.shape, end!),
+                        : throw _errorUnimplement(begin, end),
+                _ => throw _errorUnimplement(begin.shape, end!),
               },
-            _ => _errorUnimplement_lerp(begin, end!),
+            _ => throw _errorUnimplement(begin, end!),
           },
         ShapeBorder _ => switch (begin) {
             BoxBorder _ => _BetweenBoxBorder(begin, end as BoxBorder, curve),
@@ -136,15 +137,13 @@ abstract class Between<T> extends Matalue<T> {
               _BetweenShapeBorder(begin, end as InputBorder, curve),
             OutlinedBorder _ =>
               _BetweenOutlinedBorder(begin, end as OutlinedBorder, curve),
-            _ => _errorUnimplement_lerp(begin, end!),
+            _ => throw _errorUnimplement(begin, end!),
           },
-        _ => Tween<T>(begin: begin, end: end).transform,
+        _ => throw _errorUnimplement(begin, end),
       } as Between<T>;
 
-  static void _errorUnimplement_lerp(Object begin, Object end) =>
-      throw UnimplementedError(
-        'no implementation for lerp($begin, $end)',
-      );
+  static Error _errorUnimplement(Object? begin, Object? end) =>
+      UnimplementedError('no implementation for lerp($begin, $end)');
 }
 
 class _BetweenConstant<T> extends Between<T> {
@@ -197,6 +196,16 @@ class _BetweenDoubleDoubleDouble extends Between<(double, double, double)> {
       b3 * (1.0 - t) + e3 * t
     );
   }
+}
+
+///
+///
+///
+class _BetweenOffset extends Between<Offset> {
+  const _BetweenOffset(super.begin, super.end, super.curve) : super._();
+
+  @override
+  Offset transform(double t) => Offset.lerp(begin, end, t)!;
 }
 
 class _BetweenSize extends Between<Size> {
@@ -289,10 +298,10 @@ class _BetweenOutlinedBorder extends Between<OutlinedBorder> {
 ///
 ///
 ///
-abstract class _BetweenLerp<L> extends Between<L> {
+abstract class BetweenDepend<L> extends Between<L> {
   final L Function(double) onLerp;
 
-  _BetweenLerp({required this.onLerp, BiCurve? curve})
+  BetweenDepend({required this.onLerp, BiCurve? curve})
       : super._(onLerp(0), onLerp(1), curve);
 
   @override
@@ -306,7 +315,7 @@ abstract class _BetweenLerp<L> extends Between<L> {
 /// [BetweenSpline2D.lerpBezierCubic], ...
 /// [BetweenSpline2D.lerpCatmullRom], ...
 ///
-class BetweenSpline2D extends _BetweenLerp<Offset> {
+class BetweenSpline2D extends BetweenDepend<Offset> {
   BetweenSpline2D({required super.onLerp, super.curve});
 
   ///
@@ -445,7 +454,7 @@ class BetweenSpline2D extends _BetweenLerp<Offset> {
 ///
 ///
 ///
-class BetweenPath<T> extends _BetweenLerp<Path Function(Size size)> {
+class BetweenPath<T> extends BetweenDepend<Path Function(Size size)> {
   final Path Function(Size size) Function(T value) onAnimate;
 
   BetweenPath.fixed({
