@@ -3,20 +3,17 @@ part of '../mationani.dart';
 ///
 /// .
 ///     --[Deviate]
-///     |   | [_DeviateDouble], [_DeviateOffset]
+///     |   --[_DeviateDouble], [_DeviateOffset]
 ///     |
 /// * [Matalue] * [_AnimationMatalue]
 ///     |
 ///     --[Between]
-///         | [_BetweenConstant]
-///         | [_BetweenDouble], [_BetweenDoubleDouble], [_BetweenDoubleDoubleDouble]
-///         | [_BetweenSize], [_BetweenRect], [_BetweenColor]
-///         | [_BetweenEdgeInsets], [_BetweenRelativeRect], [_BetweenAlignmentGeometry]
-///         | [_BetweenDecoration], [_BetweenBoxDecoration], [_BetweenShapeDecoration]
-///         | [_BetweenBoxBorder], [_BetweenShapeBorder], [_BetweenOutlinedBorder]
-///         |
-///         --[BetweenSpline2D]
-///         --[BetweenPath]
+///         --[_BetweenConstant]
+///         --[_BetweenDouble], [_BetweenDoubleDouble], [_BetweenDoubleDoubleDouble]
+///         --[_BetweenSize], [_BetweenRect], [_BetweenColor]
+///         --[_BetweenEdgeInsets], [_BetweenRelativeRect], [_BetweenAlignmentGeometry]
+///         --[_BetweenDecoration], [_BetweenBoxDecoration], [_BetweenShapeDecoration]
+///         --[_BetweenBoxBorder], [_BetweenShapeBorder], [_BetweenOutlinedBorder]
 ///
 ///
 
@@ -297,31 +294,22 @@ class _BetweenOutlinedBorder extends Between<OutlinedBorder> {
 
 ///
 ///
+/// [BetweenDepend.offsetArcOval], ...
+/// [BetweenDepend.offsetBezierQuadratic], ...
+/// [BetweenDepend.offsetBezierCubic], ...
+/// [BetweenDepend.offsetCatmullRom], ...
 ///
-abstract class BetweenDepend<L> extends Between<L> {
+class BetweenDepend<L> extends Between<L> {
   final L Function(double) onLerp;
 
-  BetweenDepend({required this.onLerp, BiCurve? curve})
+  BetweenDepend(this.onLerp, {BiCurve? curve})
       : super._(onLerp(0), onLerp(1), curve);
 
   @override
   L transform(double t) => onLerp(t);
-}
 
-///
-/// static methods:
-/// [BetweenSpline2D.lerpArcOval], ...
-/// [BetweenSpline2D.lerpBezierQuadratic], ...
-/// [BetweenSpline2D.lerpBezierCubic], ...
-/// [BetweenSpline2D.lerpCatmullRom], ...
-///
-class BetweenSpline2D extends BetweenDepend<Offset> {
-  BetweenSpline2D({required super.onLerp, super.curve});
-
-  ///
-  ///
-  ///
-  static Offset Function(double value) lerpArcOval({
+  /// arc
+  static Offset Function(double value) offsetArcOval({
     required Offset origin,
     required Between<double> direction,
     required Between<double> radius,
@@ -332,18 +320,18 @@ class BetweenSpline2D extends BetweenDepend<Offset> {
     return origin == Offset.zero ? onLerp : (t) => origin + onLerp(t);
   }
 
-  static Offset Function(double value) lerpArcCircle({
+  static Offset Function(double value) offsetArcCircle({
     required Offset origin,
     required double radius,
     required Between<double> direction,
   }) =>
-      lerpArcOval(
+      offsetArcOval(
         origin: origin,
         direction: direction,
         radius: Between.of(radius),
       );
 
-  static Offset Function(double value) lerpArcCircleSemi({
+  static Offset Function(double value) offsetArcCircleSemi({
     required Offset begin,
     required Offset end,
     required bool clockwise,
@@ -358,10 +346,8 @@ class BetweenSpline2D extends BetweenDepend<Offset> {
     return (t) => center + Offset.fromDirection(radianBegin + r * t, radius);
   }
 
-  ///
-  ///
-  ///
-  static Offset Function(double value) lerpBezierQuadratic({
+  /// bezier quadratic
+  static Offset Function(double value) offsetBezierQuadratic({
     required Offset begin,
     required Offset end,
     required Offset controlPoint,
@@ -375,19 +361,19 @@ class BetweenSpline2D extends BetweenDepend<Offset> {
     };
   }
 
-  static Offset Function(double value) lerpBezierQuadraticSymmetry({
+  static Offset Function(double value) offsetBezierQuadraticSymmetry({
     required Offset begin,
     required Offset end,
     double dPerpendicular = 5, // distance perpendicular
   }) =>
-      lerpBezierQuadratic(
+      offsetBezierQuadratic(
         begin: begin,
         end: end,
         controlPoint: (begin, end)._centerPerpendicularOf(dPerpendicular),
       );
 
   /// bezier cubic
-  static Offset Function(double value) lerpBezierCubic({
+  static Offset Function(double value) offsetBezierCubic({
     required Offset begin,
     required Offset end,
     required Offset c1,
@@ -406,20 +392,18 @@ class BetweenSpline2D extends BetweenDepend<Offset> {
     };
   }
 
-  static Offset Function(double value) lerpBezierCubicSymmetry({
+  static Offset Function(double value) offsetBezierCubicSymmetry({
     required Offset begin,
     required Offset end,
     double dPerpendicular = 10,
     double dParallel = 1,
   }) {
     final s = (begin, end)._symmetryInsert(dPerpendicular, dParallel);
-    return lerpBezierCubic(begin: begin, end: end, c1: s.$1, c2: s.$2);
+    return offsetBezierCubic(begin: begin, end: end, c1: s.$1, c2: s.$2);
   }
 
-  ///
-  ///
-  ///
-  static Offset Function(double value) lerpCatmullRom({
+  /// catmull rom
+  static Offset Function(double value) offsetCatmullRom({
     required List<Offset> controlPoints,
     double tension = 0.0,
     Offset? startHandle,
@@ -432,7 +416,7 @@ class BetweenSpline2D extends BetweenDepend<Offset> {
         endHandle: endHandle,
       ).transform;
 
-  static Offset Function(double value) lerpCatmullRomSymmetry({
+  static Offset Function(double value) offsetCatmullRomSymmetry({
     required Offset begin,
     required Offset end,
     double dPerpendicular = 5,
@@ -442,58 +426,33 @@ class BetweenSpline2D extends BetweenDepend<Offset> {
     Offset? endHandle,
   }) {
     final s = (begin, end)._symmetryInsert(dPerpendicular, dParallel);
-    return lerpCatmullRom(
+    return offsetCatmullRom(
       controlPoints: [begin, end, s.$1, s.$2],
       tension: tension,
       startHandle: startHandle,
       endHandle: endHandle,
     );
   }
-}
 
-///
-///
-///
-class BetweenPath<T> extends BetweenDepend<Path Function(Size size)> {
-  final Path Function(Size size) Function(T value) onAnimate;
-
-  BetweenPath.fixed({
-    required super.onLerp,
-    required this.onAnimate,
-    super.curve,
-  }) : super();
-
-  BetweenPath(
-    Between<T> between, {
-    required this.onAnimate,
-    super.curve,
-  }) : super(onLerp: _animateOf(onAnimate, between.transform));
-
-  static Path Function(Size size) Function(double value) _animateOf<T>(
-    Path Function(Size size) Function(T value) onAnimate,
-    T Function(double value) onLerp,
-  ) =>
-      (t) => onAnimate(onLerp(t));
-
+  ///
+  ///
+  ///
   static Rect _full(Size size) => Offset.zero & size;
 
-  static Path Function(Size size) Function(ShapeBorder border)
-      onAnimateShapeBorder({
+  static Path Function(Size) Function(ShapeBorder) sizingPathShapeBorder({
     bool outerPath = true,
     TextDirection? textDirection,
     Rect Function(Size size) sizingRect = _full,
-  }) {
-    final shaping = outerPath
-        ? (ShapeBorder shape) => (size) => shape.getOuterPath(
-              sizingRect(size),
-              textDirection: textDirection,
-            )
-        : (ShapeBorder shape) => (size) => shape.getInnerPath(
-              sizingRect(size),
-              textDirection: textDirection,
-            );
-    return (shape) => shaping(shape);
-  }
+  }) =>
+      outerPath
+          ? (shape) => (size) => shape.getOuterPath(
+                sizingRect(size),
+                textDirection: textDirection,
+              )
+          : (shape) => (size) => shape.getInnerPath(
+                sizingRect(size),
+                textDirection: textDirection,
+              );
 }
 
 ///

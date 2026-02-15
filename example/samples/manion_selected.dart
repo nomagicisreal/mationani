@@ -65,11 +65,26 @@ class SampleCabinet extends StatelessWidget {
         _height10,
       ];
 
+  //
+  static Offset Function(double) offsetOnSpline2D = BetweenDepend(
+    BetweenDepend.offsetCatmullRom(
+      controlPoints: [
+        const Offset(0, 50),
+        Offset.zero,
+        const Offset(50, 0),
+        center * 2,
+      ],
+    ),
+  ).transform;
+
+  static double Function(double) doubleOnBetween =
+      Between<double>(begin: -math.pi * 0.2, end: math.pi * 1.75).transform;
+
   Map<int, MamableSet> get children_mamable => {
         0: MamableSet([
           MamableTransition.slide(
-            BetweenSpline2D(
-              onLerp: BetweenSpline2D.lerpArcCircle(
+            BetweenDepend<Offset>(
+              BetweenDepend.offsetArcCircle(
                 origin: const Offset(0.5, 0),
                 radius: 0.5,
                 direction: Between(begin: 0.0, end: math.pi),
@@ -86,20 +101,10 @@ class SampleCabinet extends StatelessWidget {
         ]),
         2: MamableSet([
           MamableClipper(
-            BetweenPath(
-              BetweenSpline2D(
-                onLerp: BetweenSpline2D.lerpCatmullRom(
-                  controlPoints: [
-                    const Offset(0, 50),
-                    Offset.zero,
-                    const Offset(50, 0),
-                    center * 2,
-                  ],
-                ),
-              ),
-              onAnimate: (p) => (size) => Path()
+            BetweenDepend<Path Function(Size)>(
+              (t) => (size) => Path()
                 ..addOval(
-                  Rect.fromCircle(center: p, radius: 35),
+                  Rect.fromCircle(center: offsetOnSpline2D(t), radius: 35),
                 ),
               curve: (Curves.linear, Curves.linear),
             ),
@@ -108,13 +113,12 @@ class SampleCabinet extends StatelessWidget {
         ]),
         4: MamableSet([
           MamablePainter.paintFrom(
-            BetweenPath(
-              Between<double>(begin: -math.pi * 0.2, end: math.pi * 1.75),
-              onAnimate: (value) => (size) => Path()
+            BetweenDepend<Path Function(Size)>(
+              (t) => (size) => Path()
                 ..moveTo(center.dx, center.dy)
                 ..lineTo(
-                  center.dx + Offset.fromDirection(value, 30).dx,
-                  center.dy + Offset.fromDirection(value, 30).dy,
+                  center.dx + Offset.fromDirection(doubleOnBetween(t), 30).dx,
+                  center.dy + Offset.fromDirection(doubleOnBetween(t), 30).dy,
                 ),
             ),
             paintFrom: (_, __) => Paint()

@@ -340,11 +340,11 @@ final class MamableTransition extends MamableSingle {
 ///
 ///
 ///
-final class MamableClipper<T> extends MamableSingle<Path Function(Size size)> {
+final class MamableClipper extends MamableSingle<Path Function(Size)> {
   final Clip clipBehavior;
 
   MamableClipper(
-    BetweenPath<T> value, {
+    BetweenDepend<Path Function(Size)> value, {
     this.clipBehavior = Clip.antiAlias,
   }) : super(
           value,
@@ -362,14 +362,14 @@ final class MamableClipper<T> extends MamableSingle<Path Function(Size size)> {
 ///
 ///
 ///
-final class MamablePainter<T> extends MamableSingle<Path Function(Size size)> {
+final class MamablePainter extends MamableSingle<Path Function(Size)> {
   final bool isComplex;
   final CustomPainter? background;
   final Size size;
   final CustomPainter Function(Path Function(Size size)) painter;
 
   MamablePainter(
-    BetweenPath<T> value, {
+    BetweenDepend<Path Function(Size)> value, {
     this.isComplex = false,
     this.size = Size.zero,
     required this.background,
@@ -390,7 +390,7 @@ final class MamablePainter<T> extends MamableSingle<Path Function(Size size)> {
         );
 
   MamablePainter.paintFrom(
-    BetweenPath<T> value, {
+    BetweenDepend<Path Function(Size)> value, {
     required Paint Function(Canvas canvas, Size size) paintFrom,
   }) : this(
           value,
