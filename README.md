@@ -90,4 +90,5 @@ Hopes there are more implementation in the future!\
 Here is the sample that only build in a widget with only one field.\
 Come and check it out: https://github.com/nomagicisreal/mationani/blob/main/example/mationani_example.dart
 
-<img src="https://github.com/nomagicisreal/mationani/blob/main/example/mationani_example.gif?raw=true" alt="Example">
+<img src="https://github.com/nomagicisreal/mationani/blob/main/example/sample_cabinet.gif?raw=true" alt="Example">
+<img src="https://github.com/nomagicisreal/mationani/blob/main/example/sample_cutting.gif?raw=true" alt="Example">

@@ -138,7 +138,7 @@ final class Ani {
         ..addStatusListenerIfNotNull(initialStatusListener)
         ..addListenerIfNotNull(initialListener);
 
-  (Curve, Curve)? get curve {
+  BiCurve? get curve {
     final style = this.style;
     if (style == null) return null;
     if (style.curve == null || style.reverseCurve == null) return null;
@@ -443,7 +443,7 @@ abstract base class Mation<A extends Matable, C> {
   // static methods as constructor is not referenced well in android studio.
   const Mation({required this.matable, required this.child});
 
-  Widget plan(Animation<double> parent, (Curve, Curve)? curve);
+  Widget plan(Animation<double> parent, BiCurve? curve);
 
   @override
   String toString() => 'Mation($matable)';
@@ -457,7 +457,7 @@ final class _Mamion extends Mation<Mamable, Widget> {
       : super(matable: mamable);
 
   @override
-  Widget plan(Animation<double> parent, (Curve, Curve)? curve) =>
+  Widget plan(Animation<double> parent, BiCurve? curve) =>
       matable._perform(parent, curve, child);
 }
 
@@ -475,7 +475,7 @@ final class _Manion
   }) : super(matable: manable);
 
   @override
-  Widget plan(Animation<double> parent, (Curve, Curve)? curve) =>
+  Widget plan(Animation<double> parent, BiCurve? curve) =>
       matable is _ManableParent
           ? (matable as _ManableParent).parent._perform(
                 parent,

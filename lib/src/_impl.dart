@@ -185,7 +185,7 @@ abstract final class _MatableDriver<T> {
 
   const _MatableDriver(this.value, this._builder);
 
-  Animation _drive(Animation<double> parent, (Curve, Curve)? curve) {
+  Animation _drive(Animation<double> parent, BiCurve? curve) {
     if (curve == null) return value.animate(parent);
     return value.animate(CurvedAnimation(
       parent: parent,
@@ -210,7 +210,7 @@ final class _ManableSetSync extends ManableSet {
   @override
   List<Widget> _perform(
     Animation<double> parent,
-    (Curve, Curve)? curve,
+    BiCurve? curve,
     covariant List<Widget> children,
   ) =>
       List.of(
@@ -232,7 +232,7 @@ final class _ManableSetEach extends ManableSet {
   @override
   List<Widget> _perform(
     Animation<double> parent,
-    (Curve, Curve)? curve,
+    BiCurve? curve,
     covariant List<Widget> children,
   ) =>
       children._attachList(
@@ -252,7 +252,7 @@ final class _ManableSetRespectively extends ManableSet {
   @override
   List<Widget> _perform(
     Animation<double> parent,
-    (Curve, Curve)? curve,
+    BiCurve? curve,
     covariant List<Widget> children,
   ) =>
       children._attachList(
@@ -272,7 +272,7 @@ final class _ManableSetSelected extends ManableSet {
   @override
   List<Widget> _perform(
     Animation<double> parent,
-    (Curve, Curve)? curve,
+    BiCurve? curve,
     covariant List<Widget> children,
   ) =>
       children._attachMap(

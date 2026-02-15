@@ -49,7 +49,7 @@ abstract final class Matable {}
 abstract final class Mamable implements Matable {
   Widget _perform(
     Animation<double> parent,
-    (Curve, Curve)? curve,
+    BiCurve? curve,
     covariant Widget child,
   );
 }
@@ -57,7 +57,7 @@ abstract final class Mamable implements Matable {
 abstract final class Manable implements Matable {
   List<Widget> _perform(
     Animation<double> parent,
-    (Curve, Curve)? curve,
+    BiCurve? curve,
     covariant List<Widget> children,
   );
 }
@@ -67,8 +67,7 @@ abstract final class Manable implements Matable {
 ///
 final class MamableSingle<T> extends _MatableDriver<T> implements Mamable {
   @override
-  Widget _perform(
-          Animation<double> parent, (Curve, Curve)? curve, Widget child) =>
+  Widget _perform(Animation<double> parent, BiCurve? curve, Widget child) =>
       ListenableBuilder(
         listenable: parent,
         builder: (_, __) => _builder(_drive(parent, curve), child),
@@ -81,7 +80,7 @@ final class ManableSync<T> extends _MatableDriver<T> implements Manable {
   @override
   List<Widget> _perform(
     Animation<double> parent,
-    (Curve, Curve)? curve,
+    BiCurve? curve,
     covariant List<Widget> children,
   ) {
     final animation = _drive(parent, curve);
@@ -113,8 +112,7 @@ final class MamableSet<A extends MamableSingle> implements Mamable {
   const MamableSet(this.ables);
 
   @override
-  Widget _perform(
-          Animation<double> parent, (Curve, Curve)? curve, Widget child) =>
+  Widget _perform(Animation<double> parent, BiCurve? curve, Widget child) =>
       ables.fold(
         child,
         (child, able) => able._builder(able._drive(parent, curve), child),
@@ -135,18 +133,18 @@ final class MamableTransition extends MamableSingle {
   }) : super(value, _fromFade(alwaysIncludeSemantics));
 
   MamableTransition.fadeIn({
-    (Curve, Curve)? curve,
+    BiCurve? curve,
     bool alwaysIncludeSemantics = false,
   }) : this.fade(Between(begin: 0.0, end: 1.0, curve: curve));
 
   MamableTransition.fadeInTo(
     double opacity, {
-    (Curve, Curve)? curve,
+    BiCurve? curve,
     bool alwaysIncludeSemantics = false,
   }) : this.fade(Between(begin: 0.0, end: opacity, curve: curve));
 
   MamableTransition.fadeOut({
-    (Curve, Curve)? curve,
+    BiCurve? curve,
     bool alwaysIncludeSemantics = false,
   }) : this.fade(Between(begin: 1.0, end: 0.0, curve: curve));
 
@@ -469,7 +467,7 @@ final class MamableTransform extends MamableSingle<(double, double, double)> {
         );
 
   static Matrix4 _translating(Matrix4 matrix4, (double, double, double) p) =>
-      matrix4..translate(p.$1, p.$2, p.$3);
+      matrix4..translateByDouble(p.$1, p.$2, p.$3, 1.0);
 
   static Matrix4 _rotating(Matrix4 matrix4, (double, double, double) p) =>
       matrix4
@@ -480,7 +478,7 @@ final class MamableTransform extends MamableSingle<(double, double, double)> {
             .getRotation());
 
   static Matrix4 _scaling(Matrix4 matrix4, (double, double, double) p) =>
-      matrix4.scaled(p.$1, p.$2, p.$3);
+      matrix4.scaledByDouble(p.$1, p.$2, p.$3, 1.0);
 }
 
 ///
