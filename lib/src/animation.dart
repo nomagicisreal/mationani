@@ -25,7 +25,7 @@ final class Mationani extends StatefulWidget {
     super.key,
     required this.ani,
     required Mamable mamable,
-    required Widget child,
+    Widget child = const SizedBox.shrink(),
   }) : mation = _Mamion(mamable: mamable, child: child);
 
   // create animation for children
@@ -196,6 +196,16 @@ final class Ani {
     void Function(AnimationController controller) onAnimating =
         Ani.consumeNothing,
   }) : updating = Ani._consumeUpdate(onAnimating, onNotAnimating);
+
+  Ani.updateForwardReset({
+    this.initialListener,
+    this.initialStatusListener,
+    this.initialConsumeSetStateCallback,
+    this.initializer = Ani._initialize,
+    this.style,
+    void Function(AnimationController controller) onAnimating =
+        Ani.consumeNothing,
+  }) : updating = Ani._consumeUpdate(onAnimating, Ani.consumeForwardReset);
 
   Ani.updateForwardOrReverse({
     this.initialListener,
@@ -424,9 +434,9 @@ final class Ani {
 }
 
 ///
-/// below is an approximate flow illustrating how [Mation] works, take [MamableClipper] as example.
+/// below is an approximate flow illustrating how [Mation] works, take [MamableClipAdjust] as example.
 /// .
-///                           [MamableClipper] <  <  [MamableSingle._perform]
+///                           [MamableClipAdjust] <  <  [MamableSingle._perform]
 ///                                      v               ^
 /// [_Mamion.matable] < [Mation.matable]  v               ^    [_MatableDriver._drive]
 ///                  [Mationani.mation]  v               ^    [_MatableDriver._builder]

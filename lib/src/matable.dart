@@ -5,8 +5,8 @@ part of '../mationani.dart';
 ///     --[MamableSet]
 ///     |
 ///     |   --[MamableTransform]
-///     |   --[MamableClipper]
-///     |   --[MamablePainter]
+///     |   --[MamableClip]
+///     |   --[MamablePaint]
 ///     |   --[MamableTransition]
 ///     --[MamableSingle]--
 ///     |                 |             * [AnimationBuilder]
@@ -36,6 +36,8 @@ part of '../mationani.dart';
 ///
 ///
 ///
+typedef BiCurve = (Curve, Curve);
+
 typedef AnimationBuilder<T> = Widget Function(
   Animation<T> animation,
   Widget child,
@@ -65,15 +67,30 @@ abstract final class Manable implements Matable {
 ///
 ///
 ///
-final class MamableSingle<T> extends _MatableDriver<T> implements Mamable {
+sealed class MamableSingle<T> extends _MatableDriver<T> implements Mamable {
   @override
   Widget _perform(Animation<double> parent, BiCurve? curve, Widget child) =>
-      ListenableBuilder(
-        listenable: parent,
-        builder: (_, __) => _builder(_drive(parent, curve), child),
-      );
+      switch (this) {
+        MamableTransition() ||
+        MamableTransform() =>
+          _builder(_drive(parent, curve), child),
+        _MamableSingle() ||
+        MamableClip() ||
+        MamablePaint() =>
+          ListenableBuilder(
+            listenable: parent,
+            builder: (_, __) => _builder(_drive(parent, curve), child),
+          ),
+      };
 
-  const MamableSingle(super.value, super._builder);
+  const MamableSingle._(super.value, super._builder);
+
+  const factory MamableSingle(Matalue<T> value, AnimationBuilder builder) =
+      _MamableSingle;
+}
+
+final class _MamableSingle<T> extends MamableSingle<T> {
+  const _MamableSingle(super.value, super.builder) : super._();
 }
 
 final class ManableSync<T> extends _MatableDriver<T> implements Manable {
@@ -130,7 +147,7 @@ final class MamableTransition extends MamableSingle {
   MamableTransition.fade(
     Matalue<double> value, {
     bool alwaysIncludeSemantics = false,
-  }) : super(value, _fromFade(alwaysIncludeSemantics));
+  }) : super._(value, _fromFade(alwaysIncludeSemantics));
 
   MamableTransition.fadeIn({
     BiCurve? curve,
@@ -151,7 +168,7 @@ final class MamableTransition extends MamableSingle {
   MamableTransition.silverFade(
     Matalue<double> value, {
     bool alwaysIncludeSemantics = false,
-  }) : super(value, _fromFadeSliver(alwaysIncludeSemantics));
+  }) : super._(value, _fromFadeSliver(alwaysIncludeSemantics));
 
   ///
   ///
@@ -160,14 +177,14 @@ final class MamableTransition extends MamableSingle {
     Matalue<double> value, {
     Alignment alignment = Alignment.topLeft,
     FilterQuality? filterQuality,
-  }) : super(value, _fromFadeScale(alignment, filterQuality));
+  }) : super._(value, _fromFadeScale(alignment, filterQuality));
 
   MamableTransition.size(
     Matalue<double> value, {
     Axis axis = Axis.vertical,
     double axisAlignment = 0.0,
     double? fixedCrossAxisSizeFactor,
-  }) : super(value, _fromSize(axis, axisAlignment, fixedCrossAxisSizeFactor));
+  }) : super._(value, _fromSize(axis, axisAlignment, fixedCrossAxisSizeFactor));
 
   ///
   ///
@@ -176,7 +193,7 @@ final class MamableTransition extends MamableSingle {
     Matalue<double> value, {
     Alignment alignment = Alignment.topLeft,
     FilterQuality? filterQuality,
-  }) : super(value, _fromRotate(alignment, filterQuality));
+  }) : super._(value, _fromRotate(alignment, filterQuality));
 
   MamableTransition.rotateInRadian(
     Matalue<double> value, {
@@ -190,21 +207,21 @@ final class MamableTransition extends MamableSingle {
     Matalue<Offset> value, {
     bool transformHitTests = true,
     TextDirection? textDirection,
-  }) : super(value, _fromSlide(transformHitTests, textDirection));
+  }) : super._(value, _fromSlide(transformHitTests, textDirection));
 
   MamableTransition.positioned(Matalue<RelativeRect> value)
-      : super(value, _fromPositioned);
+      : super._(value, _fromPositioned);
 
   MamableTransition.relativePositioned(
     Matalue<double> value, {
     required Size size,
-  }) : super(value, _fromPositionedRelative(size));
+  }) : super._(value, _fromPositionedRelative(size));
 
   MamableTransition.align(
     Matalue<AlignmentGeometry> value, {
     double? widthFactor,
     double? heightFactor,
-  }) : super(value, _fromAlign(widthFactor, heightFactor));
+  }) : super._(value, _fromAlign(widthFactor, heightFactor));
 
   ///
   ///
@@ -212,7 +229,7 @@ final class MamableTransition extends MamableSingle {
   MamableTransition.decoration(
     Matalue<Decoration> value, {
     DecorationPosition position = DecorationPosition.background,
-  }) : super(value, _fromDecoration(position));
+  }) : super._(value, _fromDecoration(position));
 
   MamableTransition.defaultTextStyle(
     Matalue<TextStyle> value, {
@@ -220,7 +237,7 @@ final class MamableTransition extends MamableSingle {
     bool softWrap = true,
     TextOverflow overflow = TextOverflow.clip,
     int? maxLines,
-  }) : super(value, _fromTextStyle(textAlign, softWrap, overflow, maxLines));
+  }) : super._(value, _fromTextStyle(textAlign, softWrap, overflow, maxLines));
 
   ///
   ///
@@ -340,21 +357,28 @@ final class MamableTransition extends MamableSingle {
 ///
 ///
 ///
-final class MamableClipper extends MamableSingle<Path Function(Size)> {
-  final Clip clipBehavior;
-
-  MamableClipper(
-    BetweenDepend<Path Function(Size)> value, {
-    this.clipBehavior = Clip.antiAlias,
-  }) : super(
+final class MamableClip extends MamableSingle {
+  MamableClip(
+    Matalue<Path> value, {
+    Clip clipBehavior = Clip.antiAlias,
+  }) : super._(
           value,
-          (animation, child) => ListenableBuilder(
-            listenable: animation,
-            builder: (_, __) => ClipPath(
-              clipper: _Clipping(animation.value),
-              clipBehavior: clipBehavior,
-              child: child,
-            ),
+          (animation, child) => ClipPath(
+            clipper: _Clipper(animation.value),
+            clipBehavior: clipBehavior,
+            child: child,
+          ),
+        );
+
+  MamableClip.adjust(
+    Matalue<Path Function(Size)> value, {
+    Clip clipBehavior = Clip.antiAlias,
+  }) : super._(
+          value,
+          (animation, child) => ClipPath(
+            clipper: _ClipperAdjust(animation.value),
+            clipBehavior: clipBehavior,
+            child: child,
           ),
         );
 }
@@ -362,45 +386,51 @@ final class MamableClipper extends MamableSingle<Path Function(Size)> {
 ///
 ///
 ///
-final class MamablePainter extends MamableSingle<Path Function(Size)> {
-  final bool isComplex;
-  final CustomPainter? background;
-  final Size size;
-  final CustomPainter Function(Path Function(Size size)) painter;
+final class MamablePaint extends MamableSingle {
+  static void draw(Canvas canvas, Paint paint, Path path) =>
+      canvas.drawPath(path, paint);
 
-  MamablePainter(
-    BetweenDepend<Path Function(Size)> value, {
-    this.isComplex = false,
-    this.size = Size.zero,
-    required this.background,
-    required this.painter,
-  }) : super(
+  MamablePaint(
+    Matalue<Path> value, {
+    bool isComplex = false,
+    Size size = Size.zero,
+    CustomPainter? background,
+    required Paint Function(Canvas canvas, Size size) paintFrom,
+  }) : super._(
           value,
-          (animation, child) => ListenableBuilder(
-            listenable: animation,
-            builder: (_, __) => CustomPaint(
-              willChange: true,
-              painter: background,
-              foregroundPainter: painter(animation.value),
-              size: size,
-              isComplex: isComplex,
-              child: child,
+          (animation, child) => CustomPaint(
+            willChange: true,
+            painter: background,
+            foregroundPainter: _Painter(
+              path: animation.value,
+              paintingPath: draw,
+              paintFrom: paintFrom,
             ),
+            size: size,
+            isComplex: isComplex,
+            child: child,
           ),
         );
 
-  MamablePainter.paintFrom(
-    BetweenDepend<Path Function(Size)> value, {
+  MamablePaint.adjust(
+    Matalue<Path Function(Size)> value, {
+    bool isComplex = false,
+    Size size = Size.zero,
+    CustomPainter? background,
     required Paint Function(Canvas canvas, Size size) paintFrom,
-  }) : this(
+  }) : super._(
           value,
-          isComplex: false,
-          size: Size.zero,
-          background: null,
-          painter: (sizingPath) => _Painting(
-            paintingPath: (canvas, paint, path) => canvas.drawPath(path, paint),
-            sizingPath: sizingPath,
-            paintFrom: paintFrom,
+          (animation, child) => CustomPaint(
+            willChange: true,
+            painter: background,
+            foregroundPainter: _PainterAdjust(
+              adjust: animation.value,
+              paintingPath: draw,
+              paintFrom: paintFrom,
+            ),
+            size: size,
+            isComplex: isComplex,
+            child: child,
           ),
         );
 }
@@ -418,7 +448,7 @@ final class MamableTransform extends MamableSingle<(double, double, double)> {
     required this.alignment,
     required this.host,
     required this.onAnimate,
-  }) : super(
+  }) : super._(
           value,
           (animation, child) => ListenableBuilder(
             listenable: animation,

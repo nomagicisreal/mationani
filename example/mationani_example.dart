@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:mationani/mationani.dart';
 
+import 'samples/mamion_path.dart';
 import 'samples/manion_respectively.dart';
 import 'samples/manion_selected.dart';
 
@@ -47,8 +48,13 @@ class _MyHomeState extends State<MyHome> {
     return Scaffold(
       backgroundColor: Colors.black45,
       body: Center(
-        child: SampleCabinet(toggle: toggle),
-        // child: SampleCutting(),
+        child: SizedBox(
+          height: 300,
+          width: 100,
+          // child: SampleCabinet(toggle: toggle),
+          // child: SampleCutting(),
+          child: SamplePath(),
+        ),
       ),
       floatingActionButton: FloatingActionButton(onPressed: _onPressed),
     );

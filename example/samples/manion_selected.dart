@@ -9,33 +9,29 @@ class SampleCabinet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 300,
-      width: 100,
-      child: Mationani.manion(
-        ani: Ani.updateForwardOrReverseWhen(
-          toggle,
-          style: AnimationStyle(
-            duration: const Duration(seconds: 3),
-            reverseDuration: const Duration(seconds: 2),
+    return Mationani.manion(
+      ani: Ani.updateForwardOrReverseWhen(
+        toggle,
+        style: AnimationStyle(
+          duration: const Duration(seconds: 3),
+          reverseDuration: const Duration(seconds: 2),
+        ),
+      ),
+      manable: ManableSet.selectedAndParent(
+        parent: MamableSingle(
+          Between(begin: Colors.red.shade200, end: Colors.green.shade200),
+          (animation, child) => ColoredBox(
+            color: animation.value,
+            child: child,
           ),
         ),
-        manable: ManableSet.selectedAndParent(
-          parent: MamableSingle(
-            Between(begin: Colors.red.shade200, end: Colors.green.shade200),
-            (animation, child) => ColoredBox(
-              color: animation.value,
-              child: child,
-            ),
-          ),
-          selected: children_mamable,
-        ),
-        parenting: (children) => Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: children,
-        ),
+        selected: children_mamable,
+      ),
+      parenting: (children) => Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: children,
       ),
+      children: children,
     );
   }
 
@@ -100,9 +96,9 @@ class SampleCabinet extends StatelessWidget {
           )
         ]),
         2: MamableSet([
-          MamableClipper(
-            BetweenDepend<Path Function(Size)>(
-              (t) => (size) => Path()
+          MamableClip(
+            BetweenDepend<Path>(
+              (t) => Path()
                 ..addOval(
                   Rect.fromCircle(center: offsetOnSpline2D(t), radius: 35),
                 ),
@@ -112,9 +108,9 @@ class SampleCabinet extends StatelessWidget {
           MamableTransition.fade(Deviate(around: 0.6, amplitude: 0.4)),
         ]),
         4: MamableSet([
-          MamablePainter.paintFrom(
-            BetweenDepend<Path Function(Size)>(
-              (t) => (size) => Path()
+          MamablePaint(
+            BetweenDepend<Path>(
+              (t) => Path()
                 ..moveTo(center.dx, center.dy)
                 ..lineTo(
                   center.dx + Offset.fromDirection(doubleOnBetween(t), 30).dx,

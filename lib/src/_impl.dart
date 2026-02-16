@@ -7,16 +7,21 @@ part of '../mationani.dart';
 ///
 /// implementation for `matalue.dart`
 /// * [_ShapeDecoration]
-/// * [_ListOffset]
+/// * [_OffsetOffset]
+/// * [_BetweenConstant], ...
+/// * [_DeviateDouble], ...
 ///
 /// implementation for `animation.dart`
 /// * [_AnimationController]
 /// * [_AnimationStyleExtension]
 ///
 /// implementation for `matable.dart`
-/// * [_Clipping]
-/// * [_Painting]
-/// * [_MatableDriver], and more ...
+/// * [_ClipperAdjust]
+/// * [_PainterAdjust]
+/// * [_MatableDriver]
+/// * [_ManableSetSync], ...
+/// * [_ManableParent], ...
+///
 ///
 ///
 ///
@@ -82,6 +87,174 @@ extension _OffsetOffset on (Offset, Offset) {
 ///
 ///
 ///
+class _BetweenConstant<T> extends Between<T> {
+  const _BetweenConstant(T value, [BiCurve? curve])
+      : super._(value, value, curve);
+
+  @override
+  T transform(double t) => begin;
+}
+
+class _BetweenDouble extends Between<double> {
+  const _BetweenDouble(super.begin, super.end, super.curve) : super._();
+
+  @override
+  double transform(double t) => begin * (1.0 - t) + end * t;
+}
+
+class _BetweenDoubleDouble extends Between<(double, double)> {
+  const _BetweenDoubleDouble(super.begin, super.end, super.curve) : super._();
+
+  @override
+  (double, double) transform(double t) {
+    final begin = this.begin,
+        end = this.end,
+        b1 = begin.$1,
+        b2 = begin.$2,
+        e1 = end.$1,
+        e2 = end.$2;
+    return (b1 * (1.0 - t) + e1 * t, b2 * (1.0 - t) + e2 * t);
+  }
+}
+
+class _BetweenDoubleDoubleDouble extends Between<(double, double, double)> {
+  const _BetweenDoubleDoubleDouble(super.begin, super.end, super.curve)
+      : super._();
+
+  @override
+  (double, double, double) transform(double t) {
+    final begin = this.begin,
+        end = this.end,
+        b1 = begin.$1,
+        b2 = begin.$1,
+        b3 = begin.$3,
+        e1 = end.$1,
+        e2 = end.$2,
+        e3 = end.$3;
+    return (
+      b1 * (1.0 - t) + e1 * t,
+      b2 * (1.0 - t) + e2 * t,
+      b3 * (1.0 - t) + e3 * t
+    );
+  }
+}
+
+class _BetweenOffset extends Between<Offset> {
+  const _BetweenOffset(super.begin, super.end, super.curve) : super._();
+
+  @override
+  Offset transform(double t) => Offset.lerp(begin, end, t)!;
+}
+
+class _BetweenSize extends Between<Size> {
+  const _BetweenSize(super.begin, super.end, super.curve) : super._();
+
+  @override
+  Size transform(double t) => Size.lerp(begin, end, t)!;
+}
+
+class _BetweenRect extends Between<Rect> {
+  const _BetweenRect(super.begin, super.end, super.curve) : super._();
+
+  @override
+  Rect transform(double t) => Rect.lerp(begin, end, t)!;
+}
+
+class _BetweenColor extends Between<Color> {
+  const _BetweenColor(super.begin, super.end, super.curve) : super._();
+
+  @override
+  Color transform(double t) => Color.lerp(begin, end, t)!;
+}
+
+class _BetweenEdgeInsets extends Between<EdgeInsets> {
+  const _BetweenEdgeInsets(super.begin, super.end, super.curve) : super._();
+
+  @override
+  EdgeInsets transform(double t) => EdgeInsets.lerp(begin, end, t)!;
+}
+
+class _BetweenRelativeRect extends Between<RelativeRect> {
+  const _BetweenRelativeRect(super.begin, super.end, super.curve) : super._();
+
+  @override
+  RelativeRect transform(double t) => RelativeRect.lerp(begin, end, t)!;
+}
+
+class _BetweenAlignmentGeometry extends Between<AlignmentGeometry> {
+  const _BetweenAlignmentGeometry(super.begin, super.end, super.curve)
+      : super._();
+
+  @override
+  AlignmentGeometry transform(double t) =>
+      AlignmentGeometry.lerp(begin, end, t)!;
+}
+
+class _BetweenDecoration extends Between<Decoration> {
+  const _BetweenDecoration(super.begin, super.end, super.curve) : super._();
+
+  @override
+  Decoration transform(double t) => Decoration.lerp(begin, end, t)!;
+}
+
+class _BetweenBoxDecoration extends Between<BoxDecoration> {
+  const _BetweenBoxDecoration(super.begin, super.end, super.curve) : super._();
+
+  @override
+  BoxDecoration transform(double t) => BoxDecoration.lerp(begin, end, t)!;
+}
+
+class _BetweenShapeDecoration extends Between<ShapeDecoration> {
+  const _BetweenShapeDecoration(super.begin, super.end, super.curve)
+      : super._();
+
+  @override
+  ShapeDecoration transform(double t) => ShapeDecoration.lerp(begin, end, t)!;
+}
+
+class _BetweenBoxBorder extends Between<BoxBorder> {
+  const _BetweenBoxBorder(super.begin, super.end, super.curve) : super._();
+
+  @override
+  BoxBorder transform(double t) => BoxBorder.lerp(begin, end, t)!;
+}
+
+class _BetweenShapeBorder extends Between<ShapeBorder> {
+  const _BetweenShapeBorder(super.begin, super.end, super.curve) : super._();
+
+  @override
+  ShapeBorder transform(double t) => ShapeBorder.lerp(begin, end, t)!;
+}
+
+class _BetweenOutlinedBorder extends Between<OutlinedBorder> {
+  const _BetweenOutlinedBorder(super.begin, super.end, super.curve) : super._();
+
+  @override
+  OutlinedBorder transform(double t) => OutlinedBorder.lerp(begin, end, t)!;
+}
+
+///
+///
+///
+class _DeviateDouble extends Deviate<double> {
+  const _DeviateDouble(super.around, super.amplitude, super.curve) : super._();
+
+  @override
+  double transform(double t) =>
+      around + amplitude * math.sin(Deviate.rRound * t);
+}
+
+class _DeviateOffset extends Deviate<Offset> {
+  const _DeviateOffset(super.around, super.amplitude, super.curve) : super._();
+
+  @override
+  Offset transform(double t) =>
+      around + amplitude * math.sin(Deviate.rRound * t);
+}
+
+///
+///
+///
 extension _AnimationController on AnimationController {
   void addStatusListenerIfNotNull(AnimationStatusListener? statusListener) {
     if (statusListener != null) addStatusListener(statusListener);
@@ -123,48 +296,74 @@ extension _AnimationStyleExtension on AnimationStyle? {
 ///
 ///
 ///
-class _Clipping extends CustomClipper<Path> {
-  final Path Function(Size size) sizingPath;
+class _Clipper extends CustomClipper<Path> {
+  final Path path;
 
   @override
-  Path getClip(Size size) => sizingPath(size);
+  Path getClip(Size size) => path;
 
   @override
-  bool shouldReclip(_Clipping oldClipper) =>
-      sizingPath != oldClipper.sizingPath;
+  bool shouldReclip(_Clipper oldClipper) => path != oldClipper.path;
 
-  const _Clipping(this.sizingPath);
+  const _Clipper(this.path);
 }
 
-class _Painting extends CustomPainter {
-  final bool Function(_Painting oldP, _Painting p) shouldRePaint;
-  final Path Function(Size size) sizingPath;
-  final Paint Function(Canvas canvas, Size size) paintFrom;
-  final void Function(Canvas canvas, Paint paint, Path path) paintingPath;
+class _ClipperAdjust extends CustomClipper<Path> {
+  final Path Function(Size size) adjust;
 
-  ///
-  ///
-  ///
+  @override
+  Path getClip(Size size) => adjust(size);
+
+  @override
+  bool shouldReclip(_ClipperAdjust oldClipper) => adjust != oldClipper.adjust;
+
+  const _ClipperAdjust(this.adjust);
+}
+
+///
+///
+///
+class _Painter extends CustomPainter {
+  final Path path;
+  final Paint Function(Canvas, Size) paintFrom;
+  final void Function(Canvas, Paint, Path) paintingPath;
+
   @override
   void paint(Canvas canvas, Size size) {
-    final path = sizingPath(size);
     final paint = paintFrom(canvas, size);
     paintingPath(canvas, paint, path);
   }
 
   @override
-  bool shouldRepaint(_Painting oldDelegate) => shouldRePaint(oldDelegate, this);
+  bool shouldRepaint(_Painter oldDelegate) => true;
 
-  static bool _rePaintWhenUpdate(_Painting oldP, _Painting p) => true;
-
-  ///
-  ///
-  ///
-  const _Painting({
+  const _Painter({
     required this.paintingPath,
-    required this.sizingPath,
+    required this.path,
     required this.paintFrom,
-  }) : shouldRePaint = _rePaintWhenUpdate;
+  });
+}
+
+class _PainterAdjust extends CustomPainter {
+  final Path Function(Size) adjust;
+  final Paint Function(Canvas, Size) paintFrom;
+  final void Function(Canvas, Paint, Path) paintingPath;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final path = adjust(size);
+    final paint = paintFrom(canvas, size);
+    paintingPath(canvas, paint, path);
+  }
+
+  @override
+  bool shouldRepaint(_PainterAdjust oldDelegate) => true;
+
+  const _PainterAdjust({
+    required this.paintingPath,
+    required this.adjust,
+    required this.paintFrom,
+  });
 }
 
 ///
@@ -193,10 +392,6 @@ abstract final class _MatableDriver<T> {
       reverseCurve: curve.$2,
     ));
   }
-}
-
-abstract final class _ManableParent {
-  Mamable get parent;
 }
 
 ///
@@ -287,6 +482,10 @@ final class _ManableSetSelected extends ManableSet {
 ///
 ///
 ///
+abstract final class _ManableParent {
+  Mamable get parent;
+}
+
 final class _ManableParentSyncAlso<T> extends ManableSync<T>
     implements _ManableParent {
   @override

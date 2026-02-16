@@ -12,28 +12,24 @@ class SampleCutting extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 300,
-      width: 100,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          _ScatteredOut.cut2(
-            ani: Ani.updateForwardOrReverse(),
-            child: ColoredBox(
-              color: Colors.purple,
-              child: SizedBox.square(dimension: 100),
-            ),
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        _ScatteredOut.cut2(
+          ani: Ani.updateForwardOrReverse(),
+          child: ColoredBox(
+            color: Colors.purple,
+            child: SizedBox.square(dimension: 100),
           ),
-          _ScatteredOut.cut3(
-            ani: Ani.updateForwardOrReverse(),
-            child: ColoredBox(
-              color: Colors.amber,
-              child: SizedBox.square(dimension: 100),
-            ),
+        ),
+        _ScatteredOut.cut3(
+          ani: Ani.updateForwardOrReverse(),
+          child: ColoredBox(
+            color: Colors.amber,
+            child: SizedBox.square(dimension: 100),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

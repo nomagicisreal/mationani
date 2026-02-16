@@ -5,7 +5,7 @@ part of '../mationani.dart';
 ///     --[Deviate]
 ///     |   --[_DeviateDouble], [_DeviateOffset]
 ///     |
-/// * [Matalue] * [_AnimationMatalue]
+/// * [Matalue] * [_AnimationMatalue] * [Animation]
 ///     |
 ///     --[Between]
 ///         --[_BetweenConstant]
@@ -14,6 +14,8 @@ part of '../mationani.dart';
 ///         --[_BetweenEdgeInsets], [_BetweenRelativeRect], [_BetweenAlignmentGeometry]
 ///         --[_BetweenDecoration], [_BetweenBoxDecoration], [_BetweenShapeDecoration]
 ///         --[_BetweenBoxBorder], [_BetweenShapeBorder], [_BetweenOutlinedBorder]
+///         |
+///         --[BetweenDepend]
 ///
 ///
 
@@ -32,8 +34,6 @@ class _AnimationMatalue<T> extends Animation<T>
   @override
   T get value => animatable.evaluate(parent);
 }
-
-typedef BiCurve = (Curve, Curve);
 
 abstract class Matalue<T> extends Animatable<T> {
   final BiCurve? curve;
@@ -66,11 +66,11 @@ abstract class Matalue<T> extends Animatable<T> {
             end: round.end * _radian_angle360,
             curve: round.curve,
           ),
-        // Deviate<double>() => Deviate(
-        //     around: round.around * _radian_angle360,
-        //     amplitude: round.amplitude * _radian_angle360,
-        //     curve: round.curve,
-        //   ),
+        Deviate<double>() => Deviate(
+            around: round.around * _radian_angle360,
+            amplitude: round.amplitude * _radian_angle360,
+            curve: round.curve,
+          ),
         Animatable<double>() => throw UnimplementedError(),
       };
 }
@@ -141,155 +141,6 @@ abstract class Between<T> extends Matalue<T> {
 
   static Error _errorUnimplement(Object? begin, Object? end) =>
       UnimplementedError('no implementation for lerp($begin, $end)');
-}
-
-class _BetweenConstant<T> extends Between<T> {
-  const _BetweenConstant(T value, [BiCurve? curve])
-      : super._(value, value, curve);
-
-  @override
-  T transform(double t) => begin;
-}
-
-class _BetweenDouble extends Between<double> {
-  const _BetweenDouble(super.begin, super.end, super.curve) : super._();
-
-  @override
-  double transform(double t) => begin * (1.0 - t) + end * t;
-}
-
-class _BetweenDoubleDouble extends Between<(double, double)> {
-  const _BetweenDoubleDouble(super.begin, super.end, super.curve) : super._();
-
-  @override
-  (double, double) transform(double t) {
-    final begin = this.begin,
-        end = this.end,
-        b1 = begin.$1,
-        b2 = begin.$2,
-        e1 = end.$1,
-        e2 = end.$2;
-    return (b1 * (1.0 - t) + e1 * t, b2 * (1.0 - t) + e2 * t);
-  }
-}
-
-class _BetweenDoubleDoubleDouble extends Between<(double, double, double)> {
-  const _BetweenDoubleDoubleDouble(super.begin, super.end, super.curve)
-      : super._();
-
-  @override
-  (double, double, double) transform(double t) {
-    final begin = this.begin,
-        end = this.end,
-        b1 = begin.$1,
-        b2 = begin.$1,
-        b3 = begin.$3,
-        e1 = end.$1,
-        e2 = end.$2,
-        e3 = end.$3;
-    return (
-      b1 * (1.0 - t) + e1 * t,
-      b2 * (1.0 - t) + e2 * t,
-      b3 * (1.0 - t) + e3 * t
-    );
-  }
-}
-
-///
-///
-///
-class _BetweenOffset extends Between<Offset> {
-  const _BetweenOffset(super.begin, super.end, super.curve) : super._();
-
-  @override
-  Offset transform(double t) => Offset.lerp(begin, end, t)!;
-}
-
-class _BetweenSize extends Between<Size> {
-  const _BetweenSize(super.begin, super.end, super.curve) : super._();
-
-  @override
-  Size transform(double t) => Size.lerp(begin, end, t)!;
-}
-
-class _BetweenRect extends Between<Rect> {
-  const _BetweenRect(super.begin, super.end, super.curve) : super._();
-
-  @override
-  Rect transform(double t) => Rect.lerp(begin, end, t)!;
-}
-
-class _BetweenColor extends Between<Color> {
-  const _BetweenColor(super.begin, super.end, super.curve) : super._();
-
-  @override
-  Color transform(double t) => Color.lerp(begin, end, t)!;
-}
-
-class _BetweenEdgeInsets extends Between<EdgeInsets> {
-  const _BetweenEdgeInsets(super.begin, super.end, super.curve) : super._();
-
-  @override
-  EdgeInsets transform(double t) => EdgeInsets.lerp(begin, end, t)!;
-}
-
-class _BetweenRelativeRect extends Between<RelativeRect> {
-  const _BetweenRelativeRect(super.begin, super.end, super.curve) : super._();
-
-  @override
-  RelativeRect transform(double t) => RelativeRect.lerp(begin, end, t)!;
-}
-
-class _BetweenAlignmentGeometry extends Between<AlignmentGeometry> {
-  const _BetweenAlignmentGeometry(super.begin, super.end, super.curve)
-      : super._();
-
-  @override
-  AlignmentGeometry transform(double t) =>
-      AlignmentGeometry.lerp(begin, end, t)!;
-}
-
-class _BetweenDecoration extends Between<Decoration> {
-  const _BetweenDecoration(super.begin, super.end, super.curve) : super._();
-
-  @override
-  Decoration transform(double t) => Decoration.lerp(begin, end, t)!;
-}
-
-class _BetweenBoxDecoration extends Between<BoxDecoration> {
-  const _BetweenBoxDecoration(super.begin, super.end, super.curve) : super._();
-
-  @override
-  BoxDecoration transform(double t) => BoxDecoration.lerp(begin, end, t)!;
-}
-
-class _BetweenShapeDecoration extends Between<ShapeDecoration> {
-  const _BetweenShapeDecoration(super.begin, super.end, super.curve)
-      : super._();
-
-  @override
-  ShapeDecoration transform(double t) => ShapeDecoration.lerp(begin, end, t)!;
-}
-
-class _BetweenBoxBorder extends Between<BoxBorder> {
-  const _BetweenBoxBorder(super.begin, super.end, super.curve) : super._();
-
-  @override
-  BoxBorder transform(double t) => BoxBorder.lerp(begin, end, t)!;
-}
-
-class _BetweenShapeBorder extends Between<ShapeBorder> {
-  const _BetweenShapeBorder(super.begin, super.end, super.curve) : super._();
-
-  @override
-  ShapeBorder transform(double t) => ShapeBorder.lerp(begin, end, t)!;
-}
-
-class _BetweenOutlinedBorder extends Between<OutlinedBorder> {
-  const _BetweenOutlinedBorder(super.begin, super.end, super.curve) : super._();
-
-  @override
-  OutlinedBorder transform(double t) => OutlinedBorder.lerp(begin, end, t)!;
 }
 
 ///
@@ -439,7 +290,7 @@ class BetweenDepend<L> extends Between<L> {
   ///
   static Rect _full(Size size) => Offset.zero & size;
 
-  static Path Function(Size) Function(ShapeBorder) sizingPathShapeBorder({
+  static Path Function(Size) Function(ShapeBorder) pathAdjustShapeBorder({
     bool outerPath = true,
     TextDirection? textDirection,
     Rect Function(Size size) sizingRect = _full,
@@ -453,6 +304,79 @@ class BetweenDepend<L> extends Between<L> {
                 sizingRect(size),
                 textDirection: textDirection,
               );
+}
+
+///
+/// [_line]
+/// [BetweenPath.line]
+/// [BetweenPath.linePoly]
+///
+///
+class BetweenPath extends BetweenDepend<Path> {
+  BetweenPath(super.onLerp, {super.curve});
+
+  BetweenPath.line(
+    Offset begin,
+    Offset end,
+    double strokeWidth, {
+    super.curve,
+    StrokeCap strokeCap = StrokeCap.round,
+  })  : assert(strokeCap != StrokeCap.square),
+        super(_line(begin, end, strokeWidth, strokeCap));
+
+  ///
+  ///
+  ///
+  static const double _r90 = math.pi / 2;
+
+  static Path Function(double) _line(
+    Offset begin,
+    Offset end,
+    double width,
+    StrokeCap cap,
+  ) {
+    final direction = math.atan2(end.dy - begin.dy, end.dx - begin.dx),
+        dTop = direction - _r90,
+        dBottom = direction + _r90,
+        radius = Radius.circular(width),
+        pTop = begin + Offset.fromDirection(dTop, width),
+        pBottom = begin + Offset.fromDirection(dBottom, width),
+        lerpTop = Between(
+          begin: pTop,
+          end: end + Offset.fromDirection(dTop, width),
+        ).transform,
+        lerpBottom = Between(
+          begin: pBottom,
+          end: end + Offset.fromDirection(dBottom, width),
+        ).transform;
+
+    // StrokeCap.round
+    if (cap == StrokeCap.round) {
+      final clockwise = direction.abs() < _r90,
+          beginPath = Path()
+            ..moveTo(pBottom.dx, pBottom.dy)
+            ..arcToPoint(pTop, radius: radius, clockwise: clockwise);
+      return (t) {
+        final tTop = lerpTop(t);
+        return Path.from(beginPath)
+          ..lineTo(tTop.dx, tTop.dy)
+          ..arcToPoint(lerpBottom(t), radius: radius, clockwise: clockwise)
+          ..close();
+      };
+    }
+
+    // StrokeCap.butt
+    final beginPath = Path()
+      ..moveTo(pBottom.dx, pBottom.dy)
+      ..lineTo(pTop.dx, pTop.dy);
+    return (t) {
+      final tTop = lerpTop(t), tBottom = lerpBottom(t);
+      return Path.from(beginPath)
+        ..lineTo(tTop.dx, tTop.dy)
+        ..lineTo(tBottom.dx, tBottom.dy)
+        ..close();
+    };
+  }
 }
 
 ///
@@ -472,20 +396,4 @@ abstract class Deviate<T> extends Matalue<T> {
       } as Deviate<T>;
 
   static const double rRound = math.pi * 2;
-}
-
-class _DeviateDouble extends Deviate<double> {
-  const _DeviateDouble(super.around, super.amplitude, super.curve) : super._();
-
-  @override
-  double transform(double t) =>
-      around + amplitude * math.sin(Deviate.rRound * t);
-}
-
-class _DeviateOffset extends Deviate<Offset> {
-  const _DeviateOffset(super.around, super.amplitude, super.curve) : super._();
-
-  @override
-  Offset transform(double t) =>
-      around + amplitude * math.sin(Deviate.rRound * t);
 }
