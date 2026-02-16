@@ -71,16 +71,11 @@ sealed class MamableSingle<T> extends _MatableDriver<T> implements Mamable {
   @override
   Widget _perform(Animation<double> parent, BiCurve? curve, Widget child) =>
       switch (this) {
-        MamableTransition() ||
-        MamableTransform() =>
-          _builder(_drive(parent, curve), child),
-        _MamableSingle() ||
-        MamableClip() ||
-        MamablePaint() =>
-          ListenableBuilder(
+        _MamableSingle() => ListenableBuilder(
             listenable: parent,
             builder: (_, __) => _builder(_drive(parent, curve), child),
           ),
+        _ => _builder(_drive(parent, curve), child),
       };
 
   const MamableSingle._(super.value, super._builder);
@@ -358,81 +353,86 @@ final class MamableTransition extends MamableSingle {
 ///
 ///
 final class MamableClip extends MamableSingle {
+  MamableClip._(
+    Matalue<dynamic> value,
+    CustomClipper<Path> Function(dynamic) clipping,
+    Clip clipBehavior,
+  ) : super._(
+          value,
+          (animation, child) => ListenableBuilder(
+            listenable: animation,
+            builder: (_, __) => ClipPath(
+              clipper: clipping(animation.value),
+              clipBehavior: clipBehavior,
+              child: child,
+            ),
+          ),
+        );
+
   MamableClip(
     Matalue<Path> value, {
     Clip clipBehavior = Clip.antiAlias,
-  }) : super._(
-          value,
-          (animation, child) => ClipPath(
-            clipper: _Clipper(animation.value),
-            clipBehavior: clipBehavior,
-            child: child,
-          ),
-        );
+  }) : this._(value, (path) => _Clipper(path), clipBehavior);
 
   MamableClip.adjust(
     Matalue<Path Function(Size)> value, {
     Clip clipBehavior = Clip.antiAlias,
-  }) : super._(
-          value,
-          (animation, child) => ClipPath(
-            clipper: _ClipperAdjust(animation.value),
-            clipBehavior: clipBehavior,
-            child: child,
-          ),
-        );
+  }) : this._(value, (adjust) => _ClipperAdjust(adjust), clipBehavior);
 }
 
 ///
 ///
 ///
 final class MamablePaint extends MamableSingle {
-  static void draw(Canvas canvas, Paint paint, Path path) =>
-      canvas.drawPath(path, paint);
-
-  MamablePaint(
-    Matalue<Path> value, {
+  MamablePaint._(
+    Matalue<dynamic> value,
+    CustomPainter Function(dynamic) painting, {
     bool isComplex = false,
     Size size = Size.zero,
     CustomPainter? background,
-    required Paint Function(Canvas canvas, Size size) paintFrom,
   }) : super._(
           value,
-          (animation, child) => CustomPaint(
-            willChange: true,
-            painter: background,
-            foregroundPainter: _Painter(
-              path: animation.value,
-              paintingPath: draw,
-              paintFrom: paintFrom,
+          (animation, child) => ListenableBuilder(
+            listenable: animation,
+            builder: (_, __) => CustomPaint(
+              willChange: true,
+              painter: background,
+              foregroundPainter: painting(animation.value),
+              size: size,
+              isComplex: isComplex,
+              child: child,
             ),
-            size: size,
-            isComplex: isComplex,
-            child: child,
+          ),
+        );
+
+  MamablePaint(
+    Matalue<Path> value, {
+    void Function(Canvas, Paint, Path) paintingPath = draw,
+    required Paint Function(Canvas canvas, Size size) paintFrom,
+  }) : this._(
+          value,
+          (path) => _Painter(
+            path: path,
+            paintingPath: draw,
+            paintFrom: paintFrom,
           ),
         );
 
   MamablePaint.adjust(
     Matalue<Path Function(Size)> value, {
-    bool isComplex = false,
-    Size size = Size.zero,
-    CustomPainter? background,
+    void Function(Canvas, Paint, Path) paintingPath = draw,
     required Paint Function(Canvas canvas, Size size) paintFrom,
-  }) : super._(
+  }) : this._(
           value,
-          (animation, child) => CustomPaint(
-            willChange: true,
-            painter: background,
-            foregroundPainter: _PainterAdjust(
-              adjust: animation.value,
-              paintingPath: draw,
-              paintFrom: paintFrom,
-            ),
-            size: size,
-            isComplex: isComplex,
-            child: child,
+          (adjust) => _PainterAdjust(
+            adjust: adjust,
+            paintingPath: draw,
+            paintFrom: paintFrom,
           ),
         );
+
+  static void draw(Canvas canvas, Paint paint, Path path) =>
+      canvas.drawPath(path, paint);
 }
 
 ///

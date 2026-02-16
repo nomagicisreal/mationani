@@ -7,6 +7,7 @@ part of '../mationani.dart';
 ///
 /// implementation for `matalue.dart`
 /// * [_ShapeDecoration]
+/// * [_OffsetExtension]
 /// * [_OffsetOffset]
 /// * [_BetweenConstant], ...
 /// * [_DeviateDouble], ...
@@ -66,6 +67,16 @@ extension _ShapeDecoration on ShapeDecoration {
   bool get isRounded =>
       shape is CircleBorder || shape is RoundedRectangleBorder;
 }
+
+extension _OffsetExtension on Offset {
+  Offset parallelOffsetOf(Offset q, double t) => this + (q - this) * t;
+
+  Offset parallelOffsetUnitOf(Offset q, double t) {
+    final offset = q - this;
+    return this + offset / offset.distance * t;
+  }
+}
+
 
 extension _OffsetOffset on (Offset, Offset) {
   Offset _centerPerpendicularOf([double distance = 1]) =>

@@ -16,8 +16,11 @@ part of '../mationani.dart';
 ///         --[_BetweenBoxBorder], [_BetweenShapeBorder], [_BetweenOutlinedBorder]
 ///         |
 ///         --[BetweenDepend]
+///             --[BetweenPath]
 ///
 ///
+
+typedef CubicOffset = (Offset, Offset, Offset, Offset);
 
 ///
 ///
@@ -309,7 +312,7 @@ class BetweenDepend<L> extends Between<L> {
 ///
 /// [_line]
 /// [BetweenPath.line]
-/// [BetweenPath.linePoly]
+/// [BetweenPath.regularPolygonCubicOnEdge]
 ///
 ///
 class BetweenPath extends BetweenDepend<Path> {
@@ -377,6 +380,74 @@ class BetweenPath extends BetweenDepend<Path> {
         ..close();
     };
   }
+
+  ///
+  ///
+  BetweenPath.regularPolygonCubicOnEdge(
+    int n,
+    double rCircumscribe, {
+    Offset center = Offset.zero,
+    Between<double> edgeVectorTimes = const Between.of(0.0),
+    Between<double> cornerRadius = const Between.of(0.0),
+    CubicOffset Function(CubicOffset) cubicSwitch = switch_1342,
+    super.curve,
+  }) : super(() {
+          final lerpRadius = cornerRadius.transform,
+              lerpTimes = edgeVectorTimes.transform,
+              iLast = n - 1,
+              rStep = math.pi * 2 / n,
+              corners = List.generate(
+                n,
+                (i) => center + Offset.fromDirection(rStep * i, rCircumscribe),
+                growable: false,
+              ),
+              tangent = math.tan(math.pi / n);
+
+          return (t) {
+            final timesUnit = lerpRadius(t) * tangent,
+                times = lerpTimes(t),
+                points = <CubicOffset>[];
+
+            // find all 4 cubic points for each corners
+            for (var i = 0; i < n; i++) {
+              final current = corners[i];
+              final previous = current.parallelOffsetUnitOf(
+                i == 0 ? corners[iLast] : corners[i - 1],
+                timesUnit,
+              );
+              final next = current.parallelOffsetUnitOf(
+                i == iLast ? corners[0] : corners[i + 1],
+                timesUnit,
+              );
+              points.add(cubicSwitch((
+                previous,
+                next,
+                previous.parallelOffsetOf(current, times),
+                current.parallelOffsetOf(next, times),
+              )));
+            }
+
+            // create path
+            final it = points.iterator;
+            var path = Path();
+            if (it.moveNext()) {
+              final p = it.current, pA = p.$1, pB = p.$2, pC = p.$3, pD = p.$4;
+              path = path
+                ..moveTo(pA.dx, pA.dy)
+                ..cubicTo(pB.dx, pB.dy, pC.dx, pC.dy, pD.dx, pD.dy);
+            }
+            while (it.moveNext()) {
+              final p = it.current, pA = p.$1, pB = p.$2, pC = p.$3, pD = p.$4;
+              path = path
+                ..lineTo(pA.dx, pA.dy)
+                ..cubicTo(pB.dx, pB.dy, pC.dx, pC.dy, pD.dx, pD.dy);
+            }
+            return path..close();
+          };
+        }());
+
+  static CubicOffset switch_1342(CubicOffset cubic) =>
+      (cubic.$1, cubic.$3, cubic.$4, cubic.$2);
 }
 
 ///
