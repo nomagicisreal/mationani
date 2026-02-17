@@ -19,7 +19,7 @@ class SampleCabinet extends StatelessWidget {
       ),
       manable: ManableSet.selectedAndParent(
         parent: MamableSingle(
-          Between(begin: Colors.red.shade200, end: Colors.green.shade200),
+          Between(Colors.red.shade200, Colors.green.shade200),
           (animation, child) => ColoredBox(
             color: animation.value,
             child: child,
@@ -74,7 +74,7 @@ class SampleCabinet extends StatelessWidget {
   ).transform;
 
   static double Function(double) doubleOnBetween =
-      Between<double>(begin: -math.pi * 0.2, end: math.pi * 1.75).transform;
+      Between<double>(-math.pi * 0.2, math.pi * 1.75).transform;
 
   Map<int, MamableSet> get children_mamable => {
         0: MamableSet([
@@ -83,16 +83,13 @@ class SampleCabinet extends StatelessWidget {
               BetweenDepend.offsetArcCircle(
                 origin: const Offset(0.5, 0),
                 radius: 0.5,
-                direction: Between(begin: 0.0, end: math.pi),
+                direction: Between(0.0, math.pi),
               ),
               curve: (Curves.fastOutSlowIn, Curves.fastOutSlowIn),
             ),
           ),
           MamableTransition.scale(
-            Between(
-                begin: 1,
-                end: 0.7,
-                curve: (Curves.bounceOut, Curves.bounceOut)),
+            Between(1, 0.7, (Curves.bounceOut, Curves.bounceOut)),
           )
         ]),
         2: MamableSet([
@@ -127,8 +124,8 @@ class SampleCabinet extends StatelessWidget {
         6: MamableSet([
           MamableTransform.rotation(
             rotate: Between(
-              begin: (0, 0, 0),
-              end: (
+              (0, 0, 0),
+              (
                 math.pi * 1.75,
                 math.pi * 0.5,
                 math.pi * 0.2,

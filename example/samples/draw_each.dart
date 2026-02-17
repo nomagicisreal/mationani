@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:mationani/mationani.dart';
 
-class SamplePath extends StatelessWidget {
-  const SamplePath({super.key});
+class SampleDraw extends StatelessWidget {
+  const SampleDraw({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -13,7 +13,7 @@ class SamplePath extends StatelessWidget {
           BetweenPath.regularPolygonCubicOnEdge(
             5,
             40,
-            cornerRadius: Between(begin: 0, end: 120),
+            cornerRadius: Between(0, 120),
           ),
           paintFrom: (canvas, size) => Paint()
             ..style = PaintingStyle.fill
@@ -23,7 +23,9 @@ class SamplePath extends StatelessWidget {
           BetweenPath.line(Offset(1, 1), Offset(100, 300), 3),
           paintFrom: (_, __) => Paint()..color = Colors.deepOrange.shade100,
         ),
-        MamableClip(BetweenPath.line(Offset(5, 200), Offset(50, 50), 5)),
+        MamableClip(
+          BetweenPath.line(Offset(5, 200), Offset(50, 50), 5),
+        ),
       ]),
       parenting: (children) => Stack(children: children),
       children: [

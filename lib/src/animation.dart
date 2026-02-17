@@ -25,7 +25,7 @@ final class Mationani extends StatefulWidget {
     super.key,
     required this.ani,
     required Mamable mamable,
-    Widget child = const SizedBox.shrink(),
+    required Widget child,
   }) : mation = _Mamion(mamable: mamable, child: child);
 
   // create animation for children

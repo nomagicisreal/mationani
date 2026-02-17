@@ -7,10 +7,11 @@ part of '../mationani.dart';
 ///
 /// implementation for `matalue.dart`
 /// * [_ShapeDecoration]
-/// * [_OffsetExtension]
+/// * [_E]
 /// * [_OffsetOffset]
 /// * [_BetweenConstant], ...
 /// * [_DeviateDouble], ...
+/// * [_CurveSegment]
 ///
 /// implementation for `animation.dart`
 /// * [_AnimationController]
@@ -63,20 +64,30 @@ extension _ListWidget on List<Widget> {
 ///
 ///
 ///
-extension _ShapeDecoration on ShapeDecoration {
-  bool get isRounded =>
-      shape is CircleBorder || shape is RoundedRectangleBorder;
-}
+extension _E on Offset {
+  static double _doublePlus(double a, double b) => a + b;
 
-extension _OffsetExtension on Offset {
-  Offset parallelOffsetOf(Offset q, double t) => this + (q - this) * t;
+  static Rect _rectFull(Size size) => Offset.zero & size;
 
-  Offset parallelOffsetUnitOf(Offset q, double t) {
+  static double _gen1(int i) => 1;
+
+  static BiCurve _genLinear(int i) => (Curves.linear, Curves.linear);
+
+  static Animatable<T> _between<T>(T begin, T end, BiCurve? curve) =>
+      Between(begin, end, curve);
+
+  Offset _parallelOffsetOf(Offset q, double t) => this + (q - this) * t;
+
+  Offset _parallelOffsetUnitOf(Offset q, double t) {
     final offset = q - this;
     return this + offset / offset.distance * t;
   }
 }
 
+extension _ShapeDecoration on ShapeDecoration {
+  bool get isRounded =>
+      shape is CircleBorder || shape is RoundedRectangleBorder;
+}
 
 extension _OffsetOffset on (Offset, Offset) {
   Offset _centerPerpendicularOf([double distance = 1]) =>
@@ -261,6 +272,23 @@ class _DeviateOffset extends Deviate<Offset> {
   @override
   Offset transform(double t) =>
       around + amplitude * math.sin(Deviate.rRound * t);
+}
+
+class _CurveSegment extends Curve {
+  final double Function(double) origin;
+  final double begin;
+  final double end;
+
+  const _CurveSegment(this.origin, this.begin, this.end)
+      : assert(begin >= 0 && end <= 1);
+
+  @override
+  double transformInternal(double t) => origin(begin * (1 - t) + end * t);
+
+  static BiCurve apply(BiCurve curve, double begin, double end) => (
+        _CurveSegment(curve.$1.transform, begin, end),
+        _CurveSegment(curve.$2.transform, begin, end),
+      );
 }
 
 ///

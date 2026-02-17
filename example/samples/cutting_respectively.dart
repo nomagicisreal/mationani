@@ -74,13 +74,13 @@ class _ScatteredOut extends StatelessWidget {
 
   static MamableSet _generator2Mamable(int index) => MamableSet([
         MamableTransition.rotate(
-          Between(begin: 0, end: index == 0 ? 1 / 12 : -1 / 12),
+          Between(0,  index == 0 ? 1 / 12 : -1 / 12),
           alignment: Alignment.topLeft,
         ),
         MamableTransition.slide(
           Between(
-            begin: Offset.zero,
-            end: index == 0 ? const Offset(-0.2, 0) : const Offset(0.2, 0),
+            Offset.zero,
+             index == 0 ? const Offset(-0.2, 0) : const Offset(0.2, 0),
           ),
         ),
       ]);
@@ -108,7 +108,7 @@ class _ScatteredOut extends StatelessWidget {
 
   static MamableSet _generator3Mamable(int index) => MamableSet([
         MamableTransition.scale(
-          Between(begin: 1, end: index == 1 ? 0.8 : 0.3),
+          Between(1,  index == 1 ? 0.8 : 0.3),
           alignment: switch (index) {
             0 => Alignment(-0.2, 0),
             1 => Alignment.center,
@@ -118,8 +118,8 @@ class _ScatteredOut extends StatelessWidget {
         ),
         MamableTransition.slide(
           Between(
-            begin: Offset.zero,
-            end: switch (index) {
+            Offset.zero,
+             switch (index) {
               0 => const Offset(-0.3, 0),
               1 => Offset.zero,
               2 => const Offset(0.3, 0),

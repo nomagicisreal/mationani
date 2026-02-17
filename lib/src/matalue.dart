@@ -65,9 +65,9 @@ abstract class Matalue<T> extends Animatable<T> {
   static Matalue<double> doubleRadianFromRound(Animatable<double> round) =>
       switch (round) {
         Between<double>() => Between(
-            begin: round.begin * _radian_angle360,
-            end: round.end * _radian_angle360,
-            curve: round.curve,
+            round.begin * _radian_angle360,
+            round.end * _radian_angle360,
+            round.curve,
           ),
         Deviate<double>() => Deviate(
             around: round.around * _radian_angle360,
@@ -95,8 +95,7 @@ abstract class Between<T> extends Matalue<T> {
   ///
   ///
   ///
-  factory Between({required T begin, required T end, BiCurve? curve}) =>
-      switch (begin) {
+  factory Between(T begin, T end, [BiCurve? curve]) => switch (begin) {
         double _ => _BetweenDouble(begin, end as double, curve),
         (double, double) _ =>
           _BetweenDoubleDouble(begin, end as (double, double), curve),
@@ -106,8 +105,6 @@ abstract class Between<T> extends Matalue<T> {
         ///
         ///
         ///
-        Path Function(Size size) _ =>
-          throw StateError('Plz use BetweenPath instead'),
         Offset _ => _BetweenOffset(begin, end as Offset, curve),
         Size _ => _BetweenSize(begin, end as Size, curve),
         Rect _ => _BetweenRect(begin, end as Rect, curve),
@@ -120,16 +117,16 @@ abstract class Between<T> extends Matalue<T> {
         Decoration _ => switch (begin) {
             BoxDecoration _ => begin.shape == (end as BoxDecoration).shape
                 ? _BetweenBoxDecoration(begin, end, curve)
-                : throw _errorUnimplement(begin, end),
+                : throw _error(begin, end),
             ShapeDecoration _ => switch (end) {
                 ShapeDecoration _ => begin.shape == end.shape
                     ? _BetweenShapeDecoration(begin, end, curve)
                     : begin.isRounded && end.isRounded
                         ? _BetweenDecoration(begin, end, curve)
-                        : throw _errorUnimplement(begin, end),
-                _ => throw _errorUnimplement(begin.shape, end!),
+                        : throw _error(begin, end),
+                _ => throw _error(begin.shape, end!),
               },
-            _ => throw _errorUnimplement(begin, end!),
+            _ => throw _error(begin, end!),
           },
         ShapeBorder _ => switch (begin) {
             BoxBorder _ => _BetweenBoxBorder(begin, end as BoxBorder, curve),
@@ -137,30 +134,80 @@ abstract class Between<T> extends Matalue<T> {
               _BetweenShapeBorder(begin, end as InputBorder, curve),
             OutlinedBorder _ =>
               _BetweenOutlinedBorder(begin, end as OutlinedBorder, curve),
-            _ => throw _errorUnimplement(begin, end!),
+            _ => throw _error(begin, end),
           },
-        _ => throw _errorUnimplement(begin, end),
+        _ => throw _error(begin, end),
       } as Between<T>;
 
-  static Error _errorUnimplement(Object? begin, Object? end) =>
-      UnimplementedError('no implementation for lerp($begin, $end)');
+  static Error _error(Object? begin, Object? end) => UnimplementedError(
+        'lerp($begin, $end) no defined in Between, try using BetweenDepend',
+      );
 }
 
 ///
+/// constructors, factories:
+/// [BetweenDepend.sequence]
 ///
+/// static methods:
 /// [BetweenDepend.offsetArcOval], ...
 /// [BetweenDepend.offsetBezierQuadratic], ...
 /// [BetweenDepend.offsetBezierCubic], ...
 /// [BetweenDepend.offsetCatmullRom], ...
 ///
-class BetweenDepend<L> extends Between<L> {
-  final L Function(double) onLerp;
+class BetweenDepend<T> extends Between<T> {
+  final T Function(double) onLerp;
+
+  @override
+  T transform(double t) => onLerp(t);
 
   BetweenDepend(this.onLerp, {BiCurve? curve})
       : super._(onLerp(0), onLerp(1), curve);
 
-  @override
-  L transform(double t) => onLerp(t);
+  ///
+  /// see also [TweenSequence]
+  ///
+  factory BetweenDepend.sequence({
+    BiCurve curve = (Curves.linear, Curves.linear),
+    List<BiCurve>? segments,
+    List<double>? weights,
+    required List<T> sequence,
+    Animatable<T> Function(T begin, T end, BiCurve? curve)? construct,
+  }) {
+    final steps = sequence.length;
+    assert(weights == null || weights.length + 1 == steps);
+    assert(segments == null || segments.length + 1 == steps);
+
+    final items = <TweenSequenceItem<T>>[],
+        addition = items.add,
+        wTotal = weights?.reduce(_E._doublePlus) ?? steps,
+        instance = construct ?? _E._between,
+        iLast = steps - 2,
+        w = weights ?? List.generate(steps, _E._gen1, growable: false),
+        c = segments ?? List.generate(steps, _E._genLinear, growable: false);
+    var i = 0, begin = 0.0, previous = sequence[0];
+
+    try {
+      do {
+        final next = sequence[i + 1],
+            weight = w[i],
+            end = begin + weight / wTotal;
+        addition(TweenSequenceItem(
+          tween: instance(
+            previous,
+            next,
+            _CurveSegment.apply(c[i], begin, end),
+          ),
+          weight: weight,
+        ));
+        begin = end;
+        previous = next;
+        i++;
+      } while (i <= iLast);
+    } on UnimplementedError catch (e) {
+      throw StateError('unknow how to sequence $sequence,\n${e.message}');
+    }
+    return BetweenDepend(TweenSequence(items).transform, curve: curve);
+  }
 
   /// arc
   static Offset Function(double value) offsetArcOval({
@@ -291,12 +338,10 @@ class BetweenDepend<L> extends Between<L> {
   ///
   ///
   ///
-  static Rect _full(Size size) => Offset.zero & size;
-
   static Path Function(Size) Function(ShapeBorder) pathAdjustShapeBorder({
     bool outerPath = true,
     TextDirection? textDirection,
-    Rect Function(Size size) sizingRect = _full,
+    Rect Function(Size size) sizingRect = _E._rectFull,
   }) =>
       outerPath
           ? (shape) => (size) => shape.getOuterPath(
@@ -345,12 +390,12 @@ class BetweenPath extends BetweenDepend<Path> {
         pTop = begin + Offset.fromDirection(dTop, width),
         pBottom = begin + Offset.fromDirection(dBottom, width),
         lerpTop = Between(
-          begin: pTop,
-          end: end + Offset.fromDirection(dTop, width),
+          pTop,
+          end + Offset.fromDirection(dTop, width),
         ).transform,
         lerpBottom = Between(
-          begin: pBottom,
-          end: end + Offset.fromDirection(dBottom, width),
+          pBottom,
+          end + Offset.fromDirection(dBottom, width),
         ).transform;
 
     // StrokeCap.round
@@ -411,19 +456,19 @@ class BetweenPath extends BetweenDepend<Path> {
             // find all 4 cubic points for each corners
             for (var i = 0; i < n; i++) {
               final current = corners[i];
-              final previous = current.parallelOffsetUnitOf(
+              final previous = current._parallelOffsetUnitOf(
                 i == 0 ? corners[iLast] : corners[i - 1],
                 timesUnit,
               );
-              final next = current.parallelOffsetUnitOf(
+              final next = current._parallelOffsetUnitOf(
                 i == iLast ? corners[0] : corners[i + 1],
                 timesUnit,
               );
               points.add(cubicSwitch((
                 previous,
                 next,
-                previous.parallelOffsetOf(current, times),
-                current.parallelOffsetOf(next, times),
+                previous._parallelOffsetOf(current, times),
+                current._parallelOffsetOf(next, times),
               )));
             }
 
