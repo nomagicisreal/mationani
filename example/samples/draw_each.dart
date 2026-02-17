@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:mationani/mationani.dart';
 
@@ -9,7 +10,7 @@ class SampleDraw extends StatelessWidget {
     return Mationani.manion(
       ani: Ani.updateForwardOrReverse(),
       manable: ManableSet.each([
-        MamablePaint(
+        MamablePaint.path(
           BetweenPath.regularPolygonCubicOnEdge(
             5,
             40,
@@ -20,21 +21,32 @@ class SampleDraw extends StatelessWidget {
             ..color = Colors.brown,
         ),
         MamablePaint(
-          BetweenPath.line(Offset(1, 1), Offset(100, 300), 3),
-          paintFrom: (_, __) => Paint()..color = Colors.deepOrange.shade100,
+          Path()
+            ..moveTo(5, 50)
+            ..lineTo(100, 120),
+          (canvas, size) => Paint()
+            ..style = PaintingStyle.stroke
+            ..color = Colors.red.shade100
+            ..strokeWidth = 4,
         ),
         MamableClip(
-          BetweenPath.line(Offset(5, 200), Offset(50, 50), 5),
+          Path()
+            ..moveTo(70, 150)
+            ..lineTo(80, 150 - 10 * math.sqrt(3))
+            ..arcToPoint(
+              Offset(80, 150 + 10 * math.sqrt(3)),
+              radius: Radius.circular(40),
+              clockwise: false,
+              largeArc: true,
+            )
+            ..close(),
         ),
       ]),
       parenting: (children) => Stack(children: children),
       children: [
         SizedBox.expand(),
         SizedBox.expand(),
-        ColoredBox(
-          color: Colors.blue.shade100,
-          child: SizedBox.expand(),
-        )
+        SizedBox.expand(child: ColoredBox(color: Colors.blue.shade100)),
       ],
     );
   }

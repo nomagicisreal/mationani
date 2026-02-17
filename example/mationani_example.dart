@@ -38,10 +38,6 @@ class _MyHomeState extends State<MyHome> {
 
   void _onPressed({bool update = true}) {
     setState(() => toggle = !toggle);
-    // ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-    //     content: Center(
-    //   child: Text(toggle.toString()),
-    // )));
   }
 
   @override
@@ -52,8 +48,9 @@ class _MyHomeState extends State<MyHome> {
         child: SizedBox(
           height: 300,
           width: 100,
-          child: SampleSlide(),
-          // child: SampleDraw(),
+
+          // child: SampleSlide(),
+          child: SampleDraw(),
           // child: SampleCabinet(toggle: toggle),
           // child: SampleCutting(),
         ),

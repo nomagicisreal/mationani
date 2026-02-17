@@ -65,6 +65,9 @@ extension _ListWidget on List<Widget> {
 ///
 ///
 extension _E on Offset {
+  static void _draw(Canvas canvas, Paint paint, Path path) =>
+      canvas.drawPath(path, paint);
+
   static double _doublePlus(double a, double b) => a + b;
 
   static Rect _rectFull(Size size) => Offset.zero & size;
@@ -424,6 +427,8 @@ abstract final class _MatableDriver<T> {
   const _MatableDriver(this.value, this._builder);
 
   Animation _drive(Animation<double> parent, BiCurve? curve) {
+    // ignore: unrelated_type_equality_checks
+    if (value == Matalue.normal) return parent;
     if (curve == null) return value.animate(parent);
     return value.animate(CurvedAnimation(
       parent: parent,

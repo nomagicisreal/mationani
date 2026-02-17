@@ -93,8 +93,8 @@ class SampleCabinet extends StatelessWidget {
           )
         ]),
         2: MamableSet([
-          MamableClip(
-            BetweenDepend<Path>(
+          MamableClip.path(
+            BetweenDepend(
               (t) => Path()
                 ..addOval(
                   Rect.fromCircle(center: offsetOnSpline2D(t), radius: 35),
@@ -105,8 +105,8 @@ class SampleCabinet extends StatelessWidget {
           MamableTransition.fade(Deviate(around: 0.6, amplitude: 0.4)),
         ]),
         4: MamableSet([
-          MamablePaint(
-            BetweenDepend<Path>(
+          MamablePaint.path(
+            BetweenDepend(
               (t) => Path()
                 ..moveTo(center.dx, center.dy)
                 ..lineTo(

@@ -43,6 +43,8 @@ abstract class Matalue<T> extends Animatable<T> {
 
   const Matalue(this.curve);
 
+  static const Between<double> normal = _BetweenDouble(0, 1, null);
+
   @override
   T evaluate(Animation<double> animation) => transform(animation.value);
 

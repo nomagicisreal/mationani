@@ -244,9 +244,7 @@ final class MamableTransition extends MamableSingle {
             child: child,
           );
 
-  static AnimationBuilder _fromFadeSliver(
-    bool alwaysIncludeSemantics,
-  ) =>
+  static AnimationBuilder _fromFadeSliver(bool alwaysIncludeSemantics) =>
       (animation, child) => SliverFadeTransition(
             opacity: animation as Animation<double>,
             alwaysIncludeSemantics: alwaysIncludeSemantics,
@@ -299,10 +297,7 @@ final class MamableTransition extends MamableSingle {
             child: child,
           );
 
-  static Widget _fromPositioned(
-    Animation animation,
-    Widget child,
-  ) =>
+  static Widget _fromPositioned(Animation animation, Widget child) =>
       PositionedTransition(
         rect: animation as Animation<RelativeRect>,
         child: child,
@@ -369,12 +364,18 @@ final class MamableClip extends MamableSingle {
           ),
         );
 
-  MamableClip(
-    Matalue<Path> value, {
-    Clip clipBehavior = Clip.antiAlias,
-  }) : this._(value, (path) => _Clipper(path), clipBehavior);
+  MamableClip(Path path, {Clip clipBehavior = Clip.antiAlias})
+      : this._(Matalue.normal, () {
+          final metric = path.computeMetrics().first,
+              extract = metric.extractPath,
+              length = metric.length;
+          return (value) => _Clipper(extract(0.0, length * value));
+        }(), clipBehavior);
 
-  MamableClip.adjust(
+  MamableClip.path(Matalue<Path> value, {Clip clipBehavior = Clip.antiAlias})
+      : this._(value, (path) => _Clipper(path), clipBehavior);
+
+  MamableClip.pathAdjust(
     Matalue<Path Function(Size)> value, {
     Clip clipBehavior = Clip.antiAlias,
   }) : this._(value, (adjust) => _ClipperAdjust(adjust), clipBehavior);
@@ -406,33 +407,47 @@ final class MamablePaint extends MamableSingle {
         );
 
   MamablePaint(
+    Path path,
+    Paint Function(Canvas canvas, Size size) paintFrom,
+  ) : this._(
+          Matalue.normal,
+          () {
+            final matric = path.computeMetrics().first,
+                extract = matric.extractPath,
+                length = matric.length;
+            return (value) => _Painter(
+                  path: extract(0.0, length * value),
+                  paintingPath: _E._draw,
+                  paintFrom: paintFrom,
+                );
+          }(),
+        );
+
+  MamablePaint.path(
     Matalue<Path> value, {
-    void Function(Canvas, Paint, Path) paintingPath = draw,
+    void Function(Canvas, Paint, Path) paintingPath = _E._draw,
     required Paint Function(Canvas canvas, Size size) paintFrom,
   }) : this._(
           value,
           (path) => _Painter(
             path: path,
-            paintingPath: draw,
+            paintingPath: _E._draw,
             paintFrom: paintFrom,
           ),
         );
 
-  MamablePaint.adjust(
+  MamablePaint.pathAdjust(
     Matalue<Path Function(Size)> value, {
-    void Function(Canvas, Paint, Path) paintingPath = draw,
+    void Function(Canvas, Paint, Path) paintingPath = _E._draw,
     required Paint Function(Canvas canvas, Size size) paintFrom,
   }) : this._(
           value,
           (adjust) => _PainterAdjust(
             adjust: adjust,
-            paintingPath: draw,
+            paintingPath: _E._draw,
             paintFrom: paintFrom,
           ),
         );
-
-  static void draw(Canvas canvas, Paint paint, Path path) =>
-      canvas.drawPath(path, paint);
 }
 
 ///
