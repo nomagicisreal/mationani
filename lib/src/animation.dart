@@ -48,8 +48,8 @@ final class Mationani extends StatefulWidget {
   State<Mationani> createState() => _MationaniState();
 
   static bool dismissUpdateBuilder(Mationani oldWidget, Mationani widget) =>
-      oldWidget.mation == widget.mation &&
-      oldWidget.ani.style.isCurveEqualTo(widget.ani.style);
+      oldWidget.mation.matable == widget.mation.matable &&
+      oldWidget.ani == widget.ani;
 }
 
 class _MationaniState extends State<Mationani>
@@ -57,16 +57,17 @@ class _MationaniState extends State<Mationani>
   late final AnimationController controller;
   late Widget child;
 
-  Widget get planForChild => widget.mation.plan(
-        controller,
-        widget.ani.curve,
-      );
+  Widget get planForChild {
+    final widget = this.widget;
+    return widget.mation.plan(controller);
+  }
 
   @override
   void initState() {
     super.initState();
-    widget.ani.initialConsumeSetStateCallback?.call(() => setState(() {}));
-    controller = widget.ani.initializing(this);
+    final ani = widget.ani;
+    ani.setStateProvider?.call(() => setState(() {}));
+    controller = ani.initializing(this);
     child = planForChild;
   }
 
@@ -80,12 +81,13 @@ class _MationaniState extends State<Mationani>
   /// If we called [setState] function in parent widget,
   /// it triggers [_MationaniState.didUpdateWidget] no matter [Mationani] configuration changed or not.
   /// Instead of performing the expensive [setState] function in parent,
-  /// we can also received [_MationaniState.setState] callback by [Ani.initialConsumeSetStateCallback] in parent,
+  /// we can also received [_MationaniState.setState] callback by [Ani.setStateProvider] in parent,
   ///
   @override
   void didUpdateWidget(covariant Mationani oldWidget) {
     super.didUpdateWidget(oldWidget);
-    widget.ani.updating(controller, oldWidget, widget);
+    final widget = this.widget;
+    widget.ani.updater(controller, oldWidget, widget);
     if (Mationani.dismissUpdateBuilder(widget, oldWidget)) return;
     child = planForChild;
   }
@@ -104,8 +106,8 @@ class _MationaniState extends State<Mationani>
 ///   3. trigger animation be in the right place ([State.initState], [State.didUpdateWidget], [State.setState])
 /// With [Ani], 1 and 2 are prevented, 3 is easier. It implement the chance we changed state in [_MationaniState]
 /// [_MationaniState.initState], there is [initializing] function for configuration.
-/// [_MationaniState.didUpdateWidget], there is [updating] to be defined
-/// [_MationaniState.setState], there is [initialConsumeSetStateCallback] passing callback to parent widget
+/// [_MationaniState.didUpdateWidget], there is [updater] to be defined
+/// [_MationaniState.setState], there is [setStateProvider] passing callback to parent widget
 ///
 ///
 
@@ -123,27 +125,43 @@ class _MationaniState extends State<Mationani>
 /// [Ani.decideForward], ...
 ///
 final class Ani {
-  final AnimationStyle? style;
-  final void Function(VoidCallback call)? initialConsumeSetStateCallback;
+  final (Duration?, Duration?) duration;
+  final void Function(VoidCallback call)? setStateProvider;
   final VoidCallback? initialListener;
   final AnimationStatusListener? initialStatusListener;
   final AnimationControllerInitializer initializer;
-  final AnimationUpdater updating;
+  final AnimationUpdater updater;
+
+  @override
+  int get hashCode => Object.hash(duration.hashCode, setStateProvider,
+      initialListener, initialStatusListener, initializer, updater);
+
+  @override
+  bool operator ==(covariant Ani other) =>
+      duration == other.duration &&
+      setStateProvider == other.setStateProvider &&
+      initialListener == other.initialListener &&
+      initialStatusListener == other.initialStatusListener &&
+      initializer == other.initializer &&
+      updater == other.updater;
+
+  @override
+  String toString() => 'Ani('
+      '\n$duration,'
+      '\n$setStateProvider,'
+      '\n$initialListener,'
+      '\n$initialStatusListener,'
+      '\n$initializer,'
+      '\n$updater,'
+      '\n)\n';
 
   AnimationController initializing(TickerProvider ticker) => initializer(
         ticker,
-        style?.duration ?? const Duration(milliseconds: 500),
-        style?.reverseDuration ?? const Duration(milliseconds: 500),
+        duration.$1 ?? const Duration(milliseconds: 500),
+        duration.$2 ?? const Duration(milliseconds: 500),
       )
         ..addStatusListenerIfNotNull(initialStatusListener)
         ..addListenerIfNotNull(initialListener);
-
-  BiCurve? get curve {
-    final style = this.style;
-    if (style == null) return null;
-    if (style.curve == null || style.reverseCurve == null) return null;
-    return (style.curve!, style.reverseCurve!);
-  }
 
   ///
   ///
@@ -151,35 +169,35 @@ final class Ani {
   const Ani({
     this.initialListener,
     this.initialStatusListener,
-    this.initialConsumeSetStateCallback,
+    this.setStateProvider,
     this.initializer = Ani._initialize,
-    this.updating = Ani._updateNothing,
-    this.style,
+    this.updater = Ani._updateNothing,
+    this.duration = const (null, null),
   });
 
   const Ani.initForward({
     this.initialListener,
     this.initialStatusListener,
-    this.initialConsumeSetStateCallback,
-    this.updating = Ani._updateNothing,
-    this.style,
+    this.setStateProvider,
+    this.updater = Ani._updateNothing,
+    this.duration = const (null, null),
   }) : initializer = Ani.initializeForward;
 
   const Ani.initForwardReset({
     this.initialListener,
     this.initialStatusListener,
-    this.initialConsumeSetStateCallback,
-    this.updating = Ani._updateNothing,
-    this.style,
+    this.setStateProvider,
+    this.updater = Ani._updateNothing,
+    this.duration = const (null, null),
   }) : initializer = Ani.initializeForwardReset;
 
   const Ani.initRepeat({
     bool reversable = false,
     this.initialListener,
     this.initialStatusListener,
-    this.initialConsumeSetStateCallback,
-    this.updating = Ani._updateNothing,
-    this.style,
+    this.setStateProvider,
+    this.updater = Ani._updateNothing,
+    this.duration = const (null, null),
   }) : initializer =
             reversable ? Ani.initializeRepeatReverse : Ani.initializeRepeat;
 
@@ -189,33 +207,33 @@ final class Ani {
   Ani.update({
     this.initialListener,
     this.initialStatusListener,
-    this.initialConsumeSetStateCallback,
+    this.setStateProvider,
     this.initializer = Ani._initialize,
-    this.style,
+    this.duration = const (null, null),
     required void Function(AnimationController controller) onNotAnimating,
     void Function(AnimationController controller) onAnimating =
         Ani.consumeNothing,
-  }) : updating = Ani._consumeUpdate(onAnimating, onNotAnimating);
+  }) : updater = Ani._consumeUpdate(onAnimating, onNotAnimating);
 
   Ani.updateForwardReset({
     this.initialListener,
     this.initialStatusListener,
-    this.initialConsumeSetStateCallback,
+    this.setStateProvider,
     this.initializer = Ani._initialize,
-    this.style,
+    this.duration = const (null, null),
     void Function(AnimationController controller) onAnimating =
         Ani.consumeNothing,
-  }) : updating = Ani._consumeUpdate(onAnimating, Ani.consumeForwardReset);
+  }) : updater = Ani._consumeUpdate(onAnimating, Ani.consumeForwardReset);
 
   Ani.updateForwardOrReverse({
     this.initialListener,
     this.initialStatusListener,
-    this.initialConsumeSetStateCallback,
+    this.setStateProvider,
     this.initializer = Ani._initialize,
-    this.style,
+    this.duration = const (null, null),
     void Function(AnimationController controller) onAnimating =
         Ani.consumeNothing,
-  }) : updating = Ani._consumeUpdate(onAnimating, Ani.consumeForwardOrReverse);
+  }) : updater = Ani._consumeUpdate(onAnimating, Ani.consumeForwardOrReverse);
 
   ///
   ///
@@ -224,26 +242,13 @@ final class Ani {
     bool trigger, {
     this.initialListener,
     this.initialStatusListener,
-    this.initialConsumeSetStateCallback,
+    this.setStateProvider,
     this.initializer = Ani._initialize,
     required Duration duration,
-  })  : style = AnimationStyle(duration: duration, reverseDuration: duration),
-        updating = Ani._consumeUpdate(
+  })  : duration = (duration, duration),
+        updater = Ani._consumeUpdate(
           Ani.consumeNothing,
           Ani.decideForward(trigger),
-        );
-
-  Ani.updateSequencingWhen(
-    bool? trigger, {
-    this.initialListener,
-    this.initialStatusListener,
-    this.initialConsumeSetStateCallback,
-    this.initializer = Ani._initialize,
-    required Duration duration,
-  })  : style = AnimationStyle(duration: duration, reverseDuration: duration),
-        updating = Ani._consumeUpdate(
-          Ani.consumeNothing,
-          Ani.decideForwardOrReverse(trigger),
         );
 
   Ani.updateForwardOrReverseWhen(
@@ -252,10 +257,10 @@ final class Ani {
     bool onNotAnimating = true,
     this.initialListener,
     this.initialStatusListener,
-    this.initialConsumeSetStateCallback,
+    this.setStateProvider,
     this.initializer = Ani._initialize,
-    this.style,
-  }) : updating = Ani._consumeUpdate(
+    this.duration = const (null, null),
+  }) : updater = Ani._consumeUpdate(
           onAnimating
               ? Ani.decideForwardOrReverse(trigger)
               : Ani.consumeNothing,
@@ -271,12 +276,12 @@ final class Ani {
     bool trigger, {
     this.initialListener,
     this.initialStatusListener,
-    this.initialConsumeSetStateCallback,
+    this.setStateProvider,
     bool onAnimating = false,
     bool onNotAnimating = true,
-    this.style,
+    this.duration = const (null, null),
   })  : initializer = Ani.initializeForward,
-        updating = Ani._consumeUpdate(
+        updater = Ani._consumeUpdate(
           onAnimating ? Ani.decideReverse(trigger) : Ani.consumeNothing,
           onNotAnimating ? Ani.decideReverse(trigger) : Ani.consumeNothing,
         );
@@ -284,12 +289,12 @@ final class Ani {
   Ani.initForwardAndWaitUpdateReverseTo(
     bool trigger, {
     this.initialListener,
-    this.initialConsumeSetStateCallback,
+    this.setStateProvider,
     required VoidCallback dismissedCall,
-    this.style,
+    this.duration = const (null, null),
   })  : initialStatusListener = Ani.statusListenDismissed(dismissedCall),
         initializer = Ani.initializeForward,
-        updating = Ani._consumeUpdate(
+        updater = Ani._consumeUpdate(
           Ani.consumeNothing,
           Ani.decideReverse(trigger),
         );
@@ -453,7 +458,9 @@ abstract base class Mation<A extends Matable, C> {
   // static methods as constructor is not referenced well in android studio.
   const Mation({required this.matable, required this.child});
 
-  Widget plan(Animation<double> parent, BiCurve? curve);
+  Widget plan(
+    Animation<double> parent,
+  );
 
   @override
   String toString() => 'Mation($matable)';
@@ -467,8 +474,7 @@ final class _Mamion extends Mation<Mamable, Widget> {
       : super(matable: mamable);
 
   @override
-  Widget plan(Animation<double> parent, BiCurve? curve) =>
-      matable._perform(parent, curve, child);
+  Widget plan(Animation<double> parent) => matable._perform(parent, child);
 }
 
 ///
@@ -485,14 +491,12 @@ final class _Manion
   }) : super(matable: manable);
 
   @override
-  Widget plan(Animation<double> parent, BiCurve? curve) =>
-      matable is _ManableParent
-          ? (matable as _ManableParent).parent._perform(
-                parent,
-                curve,
-                child(matable._perform(parent, curve, grandChildren)),
-              )
-          : child(matable._perform(parent, curve, grandChildren));
+  Widget plan(Animation<double> parent) => matable is _ManableParent
+      ? (matable as _ManableParent).parent._perform(
+            parent,
+            child(matable._perform(parent, grandChildren)),
+          )
+      : child(matable._perform(parent, grandChildren));
 }
 
 ///

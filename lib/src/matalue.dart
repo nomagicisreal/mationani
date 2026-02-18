@@ -49,14 +49,14 @@ abstract class Matalue<T> extends Animatable<T> {
   T evaluate(Animation<double> animation) => transform(animation.value);
 
   @override
-  Animation<T> animate(Animation<double> parent) => _AnimationMatalue(
-        CurvedAnimation(
-          parent: parent,
-          curve: curve?.$1 ?? Curves.fastOutSlowIn,
-          reverseCurve: curve?.$2 ?? Curves.fastOutSlowIn,
-        ),
-        this,
-      );
+  Animation<T> animate(Animation<double> parent) {
+    final curve = this.curve;
+    if (curve == null) return _AnimationMatalue(parent, this);
+    return _AnimationMatalue(
+      CurvedAnimation(parent: parent, curve: curve.$1, reverseCurve: curve.$2),
+      this,
+    );
+  }
 
   static const double _radian_angle360 = math.pi * 2;
   static const double _radian_angle90 = math.pi / 2;
@@ -93,6 +93,16 @@ abstract class Between<T> extends Matalue<T> {
 
   @override
   String toString() => 'Between($begin, $end, $curve)';
+
+  @override
+  int get hashCode => Object.hash(begin, end, curve?.$1, curve?.$2);
+
+  @override
+  bool operator ==(covariant Between<T> other) =>
+      begin == other.begin &&
+      end == other.end &&
+      curve?.$1 == other.curve?.$1 &&
+      curve?.$2 == other.curve?.$2;
 
   ///
   ///
@@ -278,9 +288,9 @@ class BetweenDepend<T> extends Between<T> {
   /// bezier cubic
   static Offset Function(double value) offsetBezierCubic({
     required Offset begin,
-    required Offset end,
     required Offset c1,
     required Offset c2,
+    required Offset end,
   }) {
     final vector1 = c1 - begin;
     final vector2 = c2 - c1;
@@ -513,5 +523,15 @@ abstract class Deviate<T> extends Matalue<T> {
         _ => throw UnimplementedError('$around, $amplitude, $curve'),
       } as Deviate<T>;
 
-  static const double rRound = math.pi * 2;
+  @override
+  String toString() => 'Deviate($around, $amplitude, $curve)';
+
+  @override
+  int get hashCode => Object.hash(around, amplitude, curve?.$1, curve?.$2);
+
+  @override
+  bool operator ==(covariant Deviate<T> other) =>
+      around == other.around &&
+      amplitude == other.amplitude &&
+      curve == other.curve;
 }

@@ -262,11 +262,13 @@ class _BetweenOutlinedBorder extends Between<OutlinedBorder> {
 ///
 ///
 class _DeviateDouble extends Deviate<double> {
+  static const double rRound = math.pi * 2;
+
   const _DeviateDouble(super.around, super.amplitude, super.curve) : super._();
 
   @override
   double transform(double t) =>
-      around + amplitude * math.sin(Deviate.rRound * t);
+      around + amplitude * math.sin(_DeviateDouble.rRound * t);
 }
 
 class _DeviateOffset extends Deviate<Offset> {
@@ -274,10 +276,10 @@ class _DeviateOffset extends Deviate<Offset> {
 
   @override
   Offset transform(double t) =>
-      around + amplitude * math.sin(Deviate.rRound * t);
+      around + amplitude * math.sin(_DeviateDouble.rRound * t);
 }
 
-class _CurveSegment extends Curve {
+final class _CurveSegment extends Curve {
   final double Function(double) origin;
   final double begin;
   final double end;
@@ -313,25 +315,12 @@ extension _AnimationController on AnimationController {
     ..forward(from: from);
 
   void updateDurationIfNew(Mationani oldWidget, Mationani widget) {
-    final style = widget.ani.style;
-    final styleOld = oldWidget.ani.style;
-    if (styleOld?.duration != style?.duration) duration = style?.duration;
-    if (styleOld?.reverseDuration != style?.reverseDuration) {
-      reverseDuration = style?.reverseDuration;
-    }
-  }
-}
-
-///
-///
-///
-extension _AnimationStyleExtension on AnimationStyle? {
-  bool isCurveEqualTo(AnimationStyle? another) {
-    final style = this;
-    if (style == null) return another == null;
-    if (another == null) return false;
-    return style.curve == another.curve &&
-        style.reverseCurve == another.reverseCurve;
+    final duration = widget.ani.duration,
+        durationOld = oldWidget.ani.duration,
+        df = duration.$1,
+        dr = duration.$2;
+    if (durationOld.$1 != df) this.duration = df;
+    if (durationOld.$2 != dr) reverseDuration = dr;
   }
 }
 
@@ -426,15 +415,10 @@ abstract final class _MatableDriver<T> {
 
   const _MatableDriver(this.value, this._builder);
 
-  Animation _drive(Animation<double> parent, BiCurve? curve) {
+  Animation _drive(Animation<double> parent) {
     // ignore: unrelated_type_equality_checks
     if (value == Matalue.normal) return parent;
-    if (curve == null) return value.animate(parent);
-    return value.animate(CurvedAnimation(
-      parent: parent,
-      curve: curve.$1,
-      reverseCurve: curve.$2,
-    ));
+    return value.animate(parent);
   }
 }
 
@@ -449,14 +433,13 @@ final class _ManableSetSync extends ManableSet {
   @override
   List<Widget> _perform(
     Animation<double> parent,
-    BiCurve? curve,
     covariant List<Widget> children,
   ) =>
       List.of(
         children.map(
           (child) => matable.ables.fold(
             child,
-            (child, able) => able._builder(able._drive(parent, curve), child),
+            (child, able) => able._builder(able._drive(parent), child),
           ),
         ),
         growable: false,
@@ -471,12 +454,11 @@ final class _ManableSetEach extends ManableSet {
   @override
   List<Widget> _perform(
     Animation<double> parent,
-    BiCurve? curve,
     covariant List<Widget> children,
   ) =>
       children._attachList(
         each,
-        (child, solo) => solo._builder(solo._drive(parent, curve), child),
+        (child, solo) => solo._builder(solo._drive(parent), child),
       );
 }
 
@@ -491,14 +473,13 @@ final class _ManableSetRespectively extends ManableSet {
   @override
   List<Widget> _perform(
     Animation<double> parent,
-    BiCurve? curve,
     covariant List<Widget> children,
   ) =>
       children._attachList(
         this.children,
         (child, animation) => animation.ables.fold(
           child,
-          (child, able) => able._builder(able._drive(parent, curve), child),
+          (child, able) => able._builder(able._drive(parent), child),
         ),
       );
 }
@@ -511,14 +492,13 @@ final class _ManableSetSelected extends ManableSet {
   @override
   List<Widget> _perform(
     Animation<double> parent,
-    BiCurve? curve,
     covariant List<Widget> children,
   ) =>
       children._attachMap(
         selected,
         (child, animation) => animation.ables.fold(
           child,
-          (c, able) => able._builder(able._drive(parent, curve), c),
+          (c, able) => able._builder(able._drive(parent), c),
         ),
       );
 }

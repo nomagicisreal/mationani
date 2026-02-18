@@ -51,7 +51,6 @@ abstract final class Matable {}
 abstract final class Mamable implements Matable {
   Widget _perform(
     Animation<double> parent,
-    BiCurve? curve,
     covariant Widget child,
   );
 }
@@ -59,7 +58,6 @@ abstract final class Mamable implements Matable {
 abstract final class Manable implements Matable {
   List<Widget> _perform(
     Animation<double> parent,
-    BiCurve? curve,
     covariant List<Widget> children,
   );
 }
@@ -69,13 +67,12 @@ abstract final class Manable implements Matable {
 ///
 sealed class MamableSingle<T> extends _MatableDriver<T> implements Mamable {
   @override
-  Widget _perform(Animation<double> parent, BiCurve? curve, Widget child) =>
-      switch (this) {
+  Widget _perform(Animation<double> parent, Widget child) => switch (this) {
         _MamableSingle() => ListenableBuilder(
             listenable: parent,
-            builder: (_, __) => _builder(_drive(parent, curve), child),
+            builder: (_, __) => _builder(_drive(parent), child),
           ),
-        _ => _builder(_drive(parent, curve), child),
+        _ => _builder(_drive(parent), child),
       };
 
   const MamableSingle._(super.value, super._builder);
@@ -92,10 +89,9 @@ final class ManableSync<T> extends _MatableDriver<T> implements Manable {
   @override
   List<Widget> _perform(
     Animation<double> parent,
-    BiCurve? curve,
     covariant List<Widget> children,
   ) {
-    final animation = _drive(parent, curve);
+    final animation = _drive(parent);
     final builder = _builder;
     return List.of(
       children.map((child) => builder(animation, child)),
@@ -124,10 +120,9 @@ final class MamableSet<A extends MamableSingle> implements Mamable {
   const MamableSet(this.ables);
 
   @override
-  Widget _perform(Animation<double> parent, BiCurve? curve, Widget child) =>
-      ables.fold(
+  Widget _perform(Animation<double> parent, Widget child) => ables.fold(
         child,
-        (child, able) => able._builder(able._drive(parent, curve), child),
+        (child, able) => able._builder(able._drive(parent), child),
       );
 }
 

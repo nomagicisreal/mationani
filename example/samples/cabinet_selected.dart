@@ -12,10 +12,7 @@ class SampleCabinet extends StatelessWidget {
     return Mationani.manion(
       ani: Ani.updateForwardOrReverseWhen(
         toggle,
-        style: AnimationStyle(
-          duration: const Duration(seconds: 3),
-          reverseDuration: const Duration(seconds: 2),
-        ),
+        duration: (Duration(seconds: 3), Duration(seconds: 2)),
       ),
       manable: ManableSet.selectedAndParent(
         parent: MamableSingle(
