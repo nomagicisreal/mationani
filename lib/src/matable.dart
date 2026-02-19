@@ -53,6 +53,62 @@ abstract final class Mamable implements Matable {
     Animation<double> parent,
     covariant Widget child,
   );
+
+  ///
+  /// todo: implement AniSequence for forward/reverse step by step (onAnimating -> next) or all steps
+  /// except animation controller repeats forward-reverse-forward... (0.0 ~ 1.0 ~ 0.0 ~ 1.0 ...)
+  /// return (durationForward, durationReverse, curveForward, curveReverse, mamable)
+  ///
+  static List<(Duration, Duration, T, T, BiCurve)> sequencing<T>({
+    Duration dDefault = _durationDefault,
+    List<AnimationStyle>? styles,
+    required List<T> steps,
+  }) {
+    late final int count;
+    late final List<(Duration, Duration, Curve, Curve)> times;
+    if (styles == null) {
+      count = steps.length - 1;
+      times = List.filled(count, (
+        dDefault,
+        dDefault,
+        Curves.fastOutSlowIn,
+        Curves.fastOutSlowIn,
+      ));
+    } else {
+      count = styles.length;
+      times = List.of(
+        [
+          ...styles.map(
+            (style) => (
+              style.duration ?? dDefault,
+              style.reverseDuration ?? dDefault,
+              style.curve ?? Curves.fastOutSlowIn,
+              style.reverseCurve ?? Curves.fastOutSlowIn
+            ),
+          )
+        ],
+        growable: false,
+      );
+      assert(count + 1 == steps.length);
+    }
+
+    final elements = <(Duration, Duration, T, T, BiCurve)>[];
+    var previous = steps[0];
+    for (var i = 0; i < count; i++) {
+      final next = steps[i + 1], fr = times[i];
+
+      // controller is forward(0.0 ~ 1.0) when i % 2 == 0
+      // controller is reverse(1.0 ~ 0.0) when i % 2 == 1
+      elements.add(
+        i % 2 == 0
+            ? (fr.$1, fr.$2, previous, next, (fr.$3, fr.$4))
+            : (fr.$2, fr.$1, next, previous, (fr.$4, fr.$3)),
+      );
+      previous = next;
+    }
+
+    return elements;
+  }
 }
 
 abstract final class Manable implements Matable {
@@ -75,14 +131,14 @@ sealed class MamableSingle<T> extends _MatableDriver<T> implements Mamable {
         _ => _builder(_drive(parent), child),
       };
 
-  const MamableSingle._(super.value, super._builder);
+  const MamableSingle._(super.matalue, super._builder);
 
-  const factory MamableSingle(Matalue<T> value, AnimationBuilder builder) =
+  const factory MamableSingle(Matalue<T>? matalue, AnimationBuilder builder) =
       _MamableSingle;
 }
 
 final class _MamableSingle<T> extends MamableSingle<T> {
-  const _MamableSingle(super.value, super.builder) : super._();
+  const _MamableSingle(super.matalue, super.builder) : super._();
 }
 
 final class ManableSync<T> extends _MatableDriver<T> implements Manable {
@@ -99,13 +155,13 @@ final class ManableSync<T> extends _MatableDriver<T> implements Manable {
     );
   }
 
-  const ManableSync(super.value, super._builder);
+  const ManableSync(super.matalue, super._builder);
 
-  factory ManableSync.alsoParent(Matalue<T> value, AnimationBuilder builder) =
+  factory ManableSync.alsoParent(Matalue<T> matalue, AnimationBuilder builder) =
       _ManableParentSyncAlso<T>;
 
   factory ManableSync.andParent({
-    required Matalue<T> value,
+    required Matalue<T> matalue,
     required AnimationBuilder builder,
     required Mamable mamable,
   }) = _ManableParentSyncAnd<T>;
@@ -135,9 +191,9 @@ final class MamableSet<A extends MamableSingle> implements Mamable {
 ///
 final class MamableTransition extends MamableSingle {
   MamableTransition.fade(
-    Matalue<double> value, {
+    Matalue<double> matalue, {
     bool alwaysIncludeSemantics = false,
-  }) : super._(value, _fromFade(alwaysIncludeSemantics));
+  }) : super._(matalue, _fromFade(alwaysIncludeSemantics));
 
   MamableTransition.fadeIn({
     BiCurve? curve,
@@ -156,78 +212,81 @@ final class MamableTransition extends MamableSingle {
   }) : this.fade(Between(1.0, 0.0, curve));
 
   MamableTransition.silverFade(
-    Matalue<double> value, {
+    Matalue<double> matalue, {
     bool alwaysIncludeSemantics = false,
-  }) : super._(value, _fromFadeSliver(alwaysIncludeSemantics));
+  }) : super._(matalue, _fromFadeSliver(alwaysIncludeSemantics));
 
   ///
   ///
   ///
   MamableTransition.scale(
-    Matalue<double> value, {
+    Matalue<double> matalue, {
     Alignment alignment = Alignment.topLeft,
     FilterQuality? filterQuality,
-  }) : super._(value, _fromFadeScale(alignment, filterQuality));
+  }) : super._(matalue, _fromFadeScale(alignment, filterQuality));
 
   MamableTransition.size(
-    Matalue<double> value, {
+    Matalue<double> matalue, {
     Axis axis = Axis.vertical,
     double axisAlignment = 0.0,
     double? fixedCrossAxisSizeFactor,
-  }) : super._(value, _fromSize(axis, axisAlignment, fixedCrossAxisSizeFactor));
+  }) : super._(
+            matalue, _fromSize(axis, axisAlignment, fixedCrossAxisSizeFactor));
 
   ///
   ///
   ///
   MamableTransition.rotate(
-    Matalue<double> value, {
+    Matalue<double> matalue, {
     Alignment alignment = Alignment.topLeft,
     FilterQuality? filterQuality,
-  }) : super._(value, _fromRotate(alignment, filterQuality));
+  }) : super._(matalue, _fromRotate(alignment, filterQuality));
 
   MamableTransition.rotateInRadian(
-    Matalue<double> value, {
+    Matalue<double> matalue, {
     Alignment alignment = Alignment.topLeft,
-  }) : this.rotate(Matalue.doubleRadianFromRound(value), alignment: alignment);
+  }) : this.rotate(Matalue.doubleRadianFromRound(matalue),
+            alignment: alignment);
 
   ///
   ///
   ///
   MamableTransition.slide(
-    Matalue<Offset> value, {
+    Matalue<Offset> matalue, {
     bool transformHitTests = true,
     TextDirection? textDirection,
-  }) : super._(value, _fromSlide(transformHitTests, textDirection));
+  }) : super._(matalue, _fromSlide(transformHitTests, textDirection));
 
-  MamableTransition.positioned(Matalue<RelativeRect> value)
-      : super._(value, _fromPositioned);
+  MamableTransition.positioned(Matalue<RelativeRect> matalue)
+      : super._(matalue, _fromPositioned);
 
   MamableTransition.relativePositioned(
-    Matalue<double> value, {
+    Matalue<double> matalue, {
     required Size size,
-  }) : super._(value, _fromPositionedRelative(size));
+  }) : super._(matalue, _fromPositionedRelative(size));
 
   MamableTransition.align(
-    Matalue<AlignmentGeometry> value, {
+    Matalue<AlignmentGeometry> matalue, {
     double? widthFactor,
     double? heightFactor,
-  }) : super._(value, _fromAlign(widthFactor, heightFactor));
+  }) : super._(matalue, _fromAlign(widthFactor, heightFactor));
 
   ///
   ///
   ///
   MamableTransition.decoration(
-    Matalue<Decoration> value, {
+    Matalue<Decoration> matalue, {
     DecorationPosition position = DecorationPosition.background,
-  }) : super._(value, _fromDecoration(position));
+  }) : super._(matalue, _fromDecoration(position));
 
   MamableTransition.defaultTextStyle(
-    Matalue<TextStyle> value, {
+    Matalue<TextStyle> matalue, {
     TextAlign? textAlign,
     bool softWrap = true,
     TextOverflow overflow = TextOverflow.clip,
     int? maxLines,
-  }) : super._(value, _fromTextStyle(textAlign, softWrap, overflow, maxLines));
+  }) : super._(
+            matalue, _fromTextStyle(textAlign, softWrap, overflow, maxLines));
 
   ///
   ///
@@ -344,11 +403,11 @@ final class MamableTransition extends MamableSingle {
 ///
 final class MamableClip extends MamableSingle {
   MamableClip._(
-    Matalue<dynamic> value,
     CustomClipper<Path> Function(dynamic) clipping,
-    Clip clipBehavior,
-  ) : super._(
-          value,
+    Clip clipBehavior, {
+    required Matalue<dynamic>? matalue,
+  }) : super._(
+          matalue,
           (animation, child) => ListenableBuilder(
             listenable: animation,
             builder: (_, __) => ClipPath(
@@ -359,21 +418,29 @@ final class MamableClip extends MamableSingle {
           ),
         );
 
-  MamableClip(Path path, {Clip clipBehavior = Clip.antiAlias})
-      : this._(Matalue.normal, () {
-          final metric = path.computeMetrics().first,
-              extract = metric.extractPath,
-              length = metric.length;
-          return (value) => _Clipper(extract(0.0, length * value));
-        }(), clipBehavior);
+  MamableClip(Path path, [Clip clipBehavior = Clip.antiAlias])
+      : this._(
+          () {
+            final metric = path.computeMetrics().first,
+                extract = metric.extractPath,
+                length = metric.length;
+            return (value) => _Clipper(extract(0.0, length * value));
+          }(),
+          clipBehavior,
+          matalue: null,
+        );
 
-  MamableClip.path(Matalue<Path> value, {Clip clipBehavior = Clip.antiAlias})
-      : this._(value, (path) => _Clipper(path), clipBehavior);
+  MamableClip.path(Matalue<Path> matalue, [Clip clipBehavior = Clip.antiAlias])
+      : this._((path) => _Clipper(path), clipBehavior, matalue: matalue);
 
   MamableClip.pathAdjust(
-    Matalue<Path Function(Size)> value, {
+    Matalue<Path Function(Size)> matalue, [
     Clip clipBehavior = Clip.antiAlias,
-  }) : this._(value, (adjust) => _ClipperAdjust(adjust), clipBehavior);
+  ]) : this._(
+          (adjust) => _ClipperAdjust(adjust),
+          clipBehavior,
+          matalue: matalue,
+        );
 }
 
 ///
@@ -381,13 +448,13 @@ final class MamableClip extends MamableSingle {
 ///
 final class MamablePaint extends MamableSingle {
   MamablePaint._(
-    Matalue<dynamic> value,
     CustomPainter Function(dynamic) painting, {
+    required Matalue<dynamic>? matalue,
     bool isComplex = false,
     Size size = Size.zero,
     CustomPainter? background,
   }) : super._(
-          value,
+          matalue,
           (animation, child) => ListenableBuilder(
             listenable: animation,
             builder: (_, __) => CustomPaint(
@@ -401,47 +468,41 @@ final class MamablePaint extends MamableSingle {
           ),
         );
 
-  MamablePaint(
-    Path path,
-    Paint Function(Canvas canvas, Size size) paintFrom,
-  ) : this._(
-          Matalue.normal,
+  MamablePaint(Path path, Paint pen)
+      : this._(
           () {
             final matric = path.computeMetrics().first,
                 extract = matric.extractPath,
                 length = matric.length;
             return (value) => _Painter(
                   path: extract(0.0, length * value),
-                  paintingPath: _E._draw,
-                  paintFrom: paintFrom,
+                  painting: _E._draw,
+                  pen: pen,
                 );
           }(),
+          matalue: null,
         );
 
   MamablePaint.path(
-    Matalue<Path> value, {
-    void Function(Canvas, Paint, Path) paintingPath = _E._draw,
-    required Paint Function(Canvas canvas, Size size) paintFrom,
+    Matalue<Path> matalue, {
+    void Function(Canvas, Paint, Path) painting = _E._draw,
+    required Paint pen,
   }) : this._(
-          value,
-          (path) => _Painter(
-            path: path,
-            paintingPath: _E._draw,
-            paintFrom: paintFrom,
-          ),
+          (path) => _Painter(path: path, painting: painting, pen: pen),
+          matalue: matalue,
         );
 
   MamablePaint.pathAdjust(
-    Matalue<Path Function(Size)> value, {
-    void Function(Canvas, Paint, Path) paintingPath = _E._draw,
-    required Paint Function(Canvas canvas, Size size) paintFrom,
+    Matalue<Path Function(Size)> matalue, {
+    void Function(Canvas, Paint, Path) painting = _E._draw,
+    required Paint pen,
   }) : this._(
-          value,
           (adjust) => _PainterAdjust(
             adjust: adjust,
-            paintingPath: _E._draw,
-            paintFrom: paintFrom,
+            painting: painting,
+            pen: pen,
           ),
+          matalue: matalue,
         );
 }
 
@@ -454,12 +515,12 @@ final class MamableTransform extends MamableSingle<(double, double, double)> {
   Matrix4 host;
 
   MamableTransform(
-    Matalue<(double, double, double)> value, {
+    Matalue<(double, double, double)> matalue, {
     required this.alignment,
     required this.host,
     required this.onAnimate,
   }) : super._(
-          value,
+          matalue,
           (animation, child) => ListenableBuilder(
             listenable: animation,
             builder: (_, __) => Transform(

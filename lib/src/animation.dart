@@ -41,6 +41,27 @@ final class Mationani extends StatefulWidget {
           grandChildren: children,
         );
 
+  // // create animation for a child
+  // Mationani.mamion({
+  //   super.key,
+  //   required this.ani,
+  //   required Mamable mamable,
+  //   required Widget child,
+  // }) : mation = _Mamion(mamable: mamable, child: child);
+  //
+  // // create animation for children
+  // Mationani.manion({
+  //   super.key,
+  //   required this.ani,
+  //   required Manable manable,
+  //   required Widget Function(List<Widget> children) parenting,
+  //   required List<Widget> children,
+  // }) : mation = _Manion(
+  //   manable: manable,
+  //   child: parenting,
+  //   grandChildren: children,
+  // );
+
   ///
   ///
   ///
@@ -66,7 +87,7 @@ class _MationaniState extends State<Mationani>
   void initState() {
     super.initState();
     final ani = widget.ani;
-    ani.setStateProvider?.call(() => setState(() {}));
+    ani.setStateProvider?.call(setState);
     controller = ani.initializing(this);
     child = planForChild;
   }
@@ -126,7 +147,7 @@ class _MationaniState extends State<Mationani>
 ///
 final class Ani {
   final (Duration?, Duration?) duration;
-  final void Function(VoidCallback call)? setStateProvider;
+  final void Function(void Function(void Function()))? setStateProvider;
   final VoidCallback? initialListener;
   final AnimationStatusListener? initialStatusListener;
   final AnimationControllerInitializer initializer;
@@ -157,8 +178,8 @@ final class Ani {
 
   AnimationController initializing(TickerProvider ticker) => initializer(
         ticker,
-        duration.$1 ?? const Duration(milliseconds: 500),
-        duration.$2 ?? const Duration(milliseconds: 500),
+        duration.$1 ?? _durationDefault,
+        duration.$2 ?? _durationDefault,
       )
         ..addStatusListenerIfNotNull(initialStatusListener)
         ..addListenerIfNotNull(initialListener);
@@ -458,9 +479,7 @@ abstract base class Mation<A extends Matable, C> {
   // static methods as constructor is not referenced well in android studio.
   const Mation({required this.matable, required this.child});
 
-  Widget plan(
-    Animation<double> parent,
-  );
+  Widget plan(Animation<double> parent);
 
   @override
   String toString() => 'Mation($matable)';
@@ -491,12 +510,15 @@ final class _Manion
   }) : super(matable: manable);
 
   @override
-  Widget plan(Animation<double> parent) => matable is _ManableParent
-      ? (matable as _ManableParent).parent._perform(
-            parent,
-            child(matable._perform(parent, grandChildren)),
-          )
-      : child(matable._perform(parent, grandChildren));
+  Widget plan(Animation<double> parent) {
+    final matable = this.matable;
+    return matable is _ManableParent
+        ? (matable as _ManableParent).parent._perform(
+              parent,
+              child(matable._perform(parent, grandChildren)),
+            )
+        : child(matable._perform(parent, grandChildren));
+  }
 }
 
 ///

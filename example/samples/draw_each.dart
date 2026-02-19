@@ -11,12 +11,14 @@ class SampleDraw extends StatelessWidget {
       ani: Ani.updateForwardOrReverse(),
       manable: ManableSet.each([
         MamablePaint.path(
-          BetweenPath.regularPolygonCubicOnEdge(
-            5,
-            40,
-            cornerRadius: Between(0, 120),
+          BetweenTicks(
+            BetweenTicks.pathRPCOnEdge(
+              5,
+              40,
+              cornerRadius: Between(0, 120),
+            ),
           ),
-          paintFrom: (canvas, size) => Paint()
+          pen: Paint()
             ..style = PaintingStyle.fill
             ..color = Colors.brown,
         ),
@@ -24,7 +26,7 @@ class SampleDraw extends StatelessWidget {
           Path()
             ..moveTo(5, 50)
             ..lineTo(100, 120),
-          (canvas, size) => Paint()
+          Paint()
             ..style = PaintingStyle.stroke
             ..color = Colors.red.shade100
             ..strokeWidth = 4,

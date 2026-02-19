@@ -59,8 +59,8 @@ class SampleCabinet extends StatelessWidget {
       ];
 
   //
-  static Offset Function(double) offsetOnSpline2D = BetweenDepend(
-    BetweenDepend.offsetCatmullRom(
+  static Offset Function(double) offsetOnSpline2D = BetweenTicks(
+    BetweenTicks.offsetCatmullRom(
       controlPoints: [
         const Offset(0, 50),
         Offset.zero,
@@ -76,13 +76,13 @@ class SampleCabinet extends StatelessWidget {
   Map<int, MamableSet> get children_mamable => {
         0: MamableSet([
           MamableTransition.slide(
-            BetweenDepend<Offset>(
-              BetweenDepend.offsetArcCircle(
+            BetweenTicks<Offset>(
+              BetweenTicks.offsetArcCircle(
                 origin: const Offset(0.5, 0),
                 radius: 0.5,
                 direction: Between(0.0, math.pi),
               ),
-              curve: (Curves.fastOutSlowIn, Curves.fastOutSlowIn),
+              (Curves.fastOutSlowIn, Curves.fastOutSlowIn),
             ),
           ),
           MamableTransition.scale(
@@ -91,19 +91,19 @@ class SampleCabinet extends StatelessWidget {
         ]),
         2: MamableSet([
           MamableClip.path(
-            BetweenDepend(
+            BetweenTicks(
               (t) => Path()
                 ..addOval(
                   Rect.fromCircle(center: offsetOnSpline2D(t), radius: 35),
                 ),
-              curve: (Curves.linear, Curves.linear),
+              (Curves.linear, Curves.linear),
             ),
           ),
           MamableTransition.fade(Deviate(around: 0.6, amplitude: 0.4)),
         ]),
         4: MamableSet([
           MamablePaint.path(
-            BetweenDepend(
+            BetweenTicks(
               (t) => Path()
                 ..moveTo(center.dx, center.dy)
                 ..lineTo(
@@ -111,7 +111,7 @@ class SampleCabinet extends StatelessWidget {
                   center.dy + Offset.fromDirection(doubleOnBetween(t), 30).dy,
                 ),
             ),
-            paintFrom: (_, __) => Paint()
+            pen: Paint()
               ..style = PaintingStyle.stroke
               ..strokeCap = StrokeCap.butt
               ..color = Colors.purple

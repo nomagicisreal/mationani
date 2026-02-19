@@ -14,10 +14,12 @@ part of '../mationani.dart';
 /// * [_CurveSegment]
 ///
 /// implementation for `animation.dart`
+/// * [_durationDefault]
 /// * [_AnimationController]
 /// * [_AnimationStyleExtension]
 ///
 /// implementation for `matable.dart`
+/// * [_radian360], ...
 /// * [_ClipperAdjust]
 /// * [_PainterAdjust]
 /// * [_MatableDriver]
@@ -34,7 +36,7 @@ part of '../mationani.dart';
 extension _ListWidget on List<Widget> {
   List<Widget> _attachList<T>(
     List<T> animations,
-    Widget Function(Widget child, T value) companion,
+    Widget Function(Widget, T) companion,
   ) {
     if (length != animations.length) {
       throw StateError(
@@ -50,7 +52,7 @@ extension _ListWidget on List<Widget> {
 
   List<Widget> _attachMap<T>(
     Map<int, T> selected,
-    Widget Function(Widget child, T value) companion,
+    Widget Function(Widget, T) companion,
   ) {
     final list = <Widget>[];
     for (var i = 0; i < length; i++) {
@@ -64,6 +66,9 @@ extension _ListWidget on List<Widget> {
 ///
 ///
 ///
+const double _radian360 = math.pi * 2;
+const double _radian90 = math.pi / 2;
+
 extension _E on Offset {
   static void _draw(Canvas canvas, Paint paint, Path path) =>
       canvas.drawPath(path, paint);
@@ -79,6 +84,12 @@ extension _E on Offset {
   static Animatable<T> _between<T>(T begin, T end, BiCurve? curve) =>
       Between(begin, end, curve);
 
+  static CubicOffset _rpcSwitch_1342(CubicOffset cubic) =>
+      (cubic.$1, cubic.$3, cubic.$4, cubic.$2);
+
+  ///
+  ///
+  ///
   Offset _parallelOffsetOf(Offset q, double t) => this + (q - this) * t;
 
   Offset _parallelOffsetUnitOf(Offset q, double t) {
@@ -97,7 +108,7 @@ extension _OffsetOffset on (Offset, Offset) {
       this.$1 * 0.5 +
       this.$2 * 0.5 +
       Offset.fromDirection(
-        (this.$2 - this.$1).direction + Matalue._radian_angle90,
+        (this.$2 - this.$1).direction + _radian90,
         distance,
       );
 
@@ -113,8 +124,8 @@ extension _OffsetOffset on (Offset, Offset) {
 ///
 ///
 class _BetweenConstant<T> extends Between<T> {
-  const _BetweenConstant(T value, [BiCurve? curve])
-      : super._(value, value, curve);
+  const _BetweenConstant(T matalue, [BiCurve? curve])
+      : super._(matalue, matalue, curve);
 
   @override
   T transform(double t) => begin;
@@ -262,13 +273,11 @@ class _BetweenOutlinedBorder extends Between<OutlinedBorder> {
 ///
 ///
 class _DeviateDouble extends Deviate<double> {
-  static const double rRound = math.pi * 2;
-
   const _DeviateDouble(super.around, super.amplitude, super.curve) : super._();
 
   @override
   double transform(double t) =>
-      around + amplitude * math.sin(_DeviateDouble.rRound * t);
+      around + amplitude * math.sin(_radian360 * t);
 }
 
 class _DeviateOffset extends Deviate<Offset> {
@@ -276,7 +285,7 @@ class _DeviateOffset extends Deviate<Offset> {
 
   @override
   Offset transform(double t) =>
-      around + amplitude * math.sin(_DeviateDouble.rRound * t);
+      around + amplitude * math.sin(_radian360 * t);
 }
 
 final class _CurveSegment extends Curve {
@@ -299,6 +308,8 @@ final class _CurveSegment extends Curve {
 ///
 ///
 ///
+const Duration _durationDefault = Duration(milliseconds: 500);
+
 extension _AnimationController on AnimationController {
   void addStatusListenerIfNotNull(AnimationStatusListener? statusListener) {
     if (statusListener != null) addStatusListener(statusListener);
@@ -355,45 +366,43 @@ class _ClipperAdjust extends CustomClipper<Path> {
 ///
 ///
 class _Painter extends CustomPainter {
+  final Paint pen;
   final Path path;
-  final Paint Function(Canvas, Size) paintFrom;
-  final void Function(Canvas, Paint, Path) paintingPath;
+  final void Function(Canvas, Paint, Path) painting;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = paintFrom(canvas, size);
-    paintingPath(canvas, paint, path);
+    painting(canvas, pen, path);
   }
 
   @override
   bool shouldRepaint(_Painter oldDelegate) => true;
 
   const _Painter({
-    required this.paintingPath,
+    required this.painting,
     required this.path,
-    required this.paintFrom,
+    required this.pen,
   });
 }
 
 class _PainterAdjust extends CustomPainter {
+  final Paint pen;
   final Path Function(Size) adjust;
-  final Paint Function(Canvas, Size) paintFrom;
-  final void Function(Canvas, Paint, Path) paintingPath;
+  final void Function(Canvas, Paint, Path) painting;
 
   @override
   void paint(Canvas canvas, Size size) {
     final path = adjust(size);
-    final paint = paintFrom(canvas, size);
-    paintingPath(canvas, paint, path);
+    painting(canvas, pen, path);
   }
 
   @override
   bool shouldRepaint(_PainterAdjust oldDelegate) => true;
 
   const _PainterAdjust({
-    required this.paintingPath,
+    required this.painting,
     required this.adjust,
-    required this.paintFrom,
+    required this.pen,
   });
 }
 
@@ -401,7 +410,7 @@ class _PainterAdjust extends CustomPainter {
 ///
 ///
 abstract final class _MatableDriver<T> {
-  final Matalue<T> value;
+  final Matalue<T>? matalue;
 
   ///
   /// there is an error if typed generic for [_builder] and [_drive] for multiple driver instance.
@@ -413,12 +422,11 @@ abstract final class _MatableDriver<T> {
   ///
   final AnimationBuilder _builder;
 
-  const _MatableDriver(this.value, this._builder);
+  const _MatableDriver(this.matalue, this._builder);
 
   Animation _drive(Animation<double> parent) {
-    // ignore: unrelated_type_equality_checks
-    if (value == Matalue.normal) return parent;
-    return value.animate(parent);
+    final matalue = this.matalue;
+    return matalue == null ? parent : matalue.animate(parent);
   }
 }
 
@@ -513,9 +521,9 @@ abstract final class _ManableParent {
 final class _ManableParentSyncAlso<T> extends ManableSync<T>
     implements _ManableParent {
   @override
-  Mamable get parent => MamableSingle(value, _builder);
+  Mamable get parent => MamableSingle(matalue, _builder);
 
-  const _ManableParentSyncAlso(super.value, super.builder);
+  const _ManableParentSyncAlso(super.matalue, super.builder);
 }
 
 final class _ManableParentSyncAnd<T> extends ManableSync<T>
@@ -524,11 +532,11 @@ final class _ManableParentSyncAnd<T> extends ManableSync<T>
   final Mamable parent;
 
   const _ManableParentSyncAnd({
-    required Matalue<T> value,
+    required Matalue<T> matalue,
     required AnimationBuilder builder,
     required Mamable mamable,
   })  : parent = mamable,
-        super(value, builder);
+        super(matalue, builder);
 }
 
 //

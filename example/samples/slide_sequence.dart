@@ -9,7 +9,7 @@ class SampleSlide extends StatelessWidget {
     return Mationani.mamion(
       ani: Ani.updateForwardOrReverse(),
       mamable: MamableTransition.align(
-        BetweenDepend.sequence(
+        BetweenTicks.sequence(
           sequence: [
             AlignmentGeometry.topStart,
             AlignmentGeometry.topEnd,

@@ -15,8 +15,7 @@ part of '../mationani.dart';
 ///         --[_BetweenDecoration], [_BetweenBoxDecoration], [_BetweenShapeDecoration]
 ///         --[_BetweenBoxBorder], [_BetweenShapeBorder], [_BetweenOutlinedBorder]
 ///         |
-///         --[BetweenDepend]
-///             --[BetweenPath]
+///         --[BetweenTicks]
 ///
 ///
 
@@ -43,8 +42,6 @@ abstract class Matalue<T> extends Animatable<T> {
 
   const Matalue(this.curve);
 
-  static const Between<double> normal = _BetweenDouble(0, 1, null);
-
   @override
   T evaluate(Animation<double> animation) => transform(animation.value);
 
@@ -58,22 +55,19 @@ abstract class Matalue<T> extends Animatable<T> {
     );
   }
 
-  static const double _radian_angle360 = math.pi * 2;
-  static const double _radian_angle90 = math.pi / 2;
-
   ///
   ///
   ///
   static Matalue<double> doubleRadianFromRound(Animatable<double> round) =>
       switch (round) {
         Between<double>() => Between(
-            round.begin * _radian_angle360,
-            round.end * _radian_angle360,
+            round.begin * _radian360,
+            round.end * _radian360,
             round.curve,
           ),
         Deviate<double>() => Deviate(
-            around: round.around * _radian_angle360,
-            amplitude: round.amplitude * _radian_angle360,
+            around: round.around * _radian360,
+            amplitude: round.amplitude * _radian360,
             curve: round.curve,
           ),
         Animatable<double>() => throw UnimplementedError(),
@@ -89,7 +83,7 @@ abstract class Between<T> extends Matalue<T> {
 
   const Between._(this.begin, this.end, super.curve);
 
-  const factory Between.of(T value, [BiCurve? curve]) = _BetweenConstant;
+  const factory Between.of(T matalue, [BiCurve? curve]) = _BetweenConstant;
 
   @override
   String toString() => 'Between($begin, $end, $curve)';
@@ -158,27 +152,23 @@ abstract class Between<T> extends Matalue<T> {
 
 ///
 /// constructors, factories:
-/// [BetweenDepend.sequence]
+/// [BetweenTicks.sequence], see also [TweenSequence]
 ///
 /// static methods:
-/// [BetweenDepend.offsetArcOval], ...
-/// [BetweenDepend.offsetBezierQuadratic], ...
-/// [BetweenDepend.offsetBezierCubic], ...
-/// [BetweenDepend.offsetCatmullRom], ...
+/// [BetweenTicks.depend]
+/// [offsetArcOval], ...
+/// [pathLine], ...
 ///
-class BetweenDepend<T> extends Between<T> {
+class BetweenTicks<T> extends Between<T> {
   final T Function(double) onLerp;
 
   @override
   T transform(double t) => onLerp(t);
 
-  BetweenDepend(this.onLerp, {BiCurve? curve})
+  BetweenTicks(this.onLerp, [BiCurve? curve])
       : super._(onLerp(0), onLerp(1), curve);
 
-  ///
-  /// see also [TweenSequence]
-  ///
-  factory BetweenDepend.sequence({
+  factory BetweenTicks.sequence({
     BiCurve curve = (Curves.linear, Curves.linear),
     List<BiCurve>? segments,
     List<double>? weights,
@@ -218,11 +208,26 @@ class BetweenDepend<T> extends Between<T> {
     } on UnimplementedError catch (e) {
       throw StateError('unknow how to sequence $sequence,\n${e.message}');
     }
-    return BetweenDepend(TweenSequence(items).transform, curve: curve);
+    return BetweenTicks(TweenSequence(items).transform, curve);
   }
 
+  ///
+  ///
+  ///
+  static S Function(double) depend<T, S>(
+    T Function(double) transform,
+    S Function(T) map,
+  ) =>
+      (t) => map(transform(t));
+
+  ///
+  ///
+  /// offset
+  ///
+  ///
+
   /// arc
-  static Offset Function(double value) offsetArcOval({
+  static Offset Function(double) offsetArcOval({
     required Offset origin,
     required Between<double> direction,
     required Between<double> radius,
@@ -233,7 +238,7 @@ class BetweenDepend<T> extends Between<T> {
     return origin == Offset.zero ? onLerp : (t) => origin + onLerp(t);
   }
 
-  static Offset Function(double value) offsetArcCircle({
+  static Offset Function(double) offsetArcCircle({
     required Offset origin,
     required double radius,
     required Between<double> direction,
@@ -244,7 +249,7 @@ class BetweenDepend<T> extends Between<T> {
         radius: Between.of(radius),
       );
 
-  static Offset Function(double value) offsetArcCircleSemi({
+  static Offset Function(double) offsetArcCircleSemi({
     required Offset begin,
     required Offset end,
     required bool clockwise,
@@ -260,7 +265,7 @@ class BetweenDepend<T> extends Between<T> {
   }
 
   /// bezier quadratic
-  static Offset Function(double value) offsetBezierQuadratic({
+  static Offset Function(double) offsetBezierQuadratic({
     required Offset begin,
     required Offset end,
     required Offset controlPoint,
@@ -274,7 +279,7 @@ class BetweenDepend<T> extends Between<T> {
     };
   }
 
-  static Offset Function(double value) offsetBezierQuadraticSymmetry({
+  static Offset Function(double) offsetBezierQuadraticSymmetry({
     required Offset begin,
     required Offset end,
     double dPerpendicular = 5, // distance perpendicular
@@ -286,7 +291,7 @@ class BetweenDepend<T> extends Between<T> {
       );
 
   /// bezier cubic
-  static Offset Function(double value) offsetBezierCubic({
+  static Offset Function(double) offsetBezierCubic({
     required Offset begin,
     required Offset c1,
     required Offset c2,
@@ -305,7 +310,7 @@ class BetweenDepend<T> extends Between<T> {
     };
   }
 
-  static Offset Function(double value) offsetBezierCubicSymmetry({
+  static Offset Function(double) offsetBezierCubicSymmetry({
     required Offset begin,
     required Offset end,
     double dPerpendicular = 10,
@@ -316,7 +321,7 @@ class BetweenDepend<T> extends Between<T> {
   }
 
   /// catmull rom
-  static Offset Function(double value) offsetCatmullRom({
+  static Offset Function(double) offsetCatmullRom({
     required List<Offset> controlPoints,
     double tension = 0.0,
     Offset? startHandle,
@@ -329,7 +334,7 @@ class BetweenDepend<T> extends Between<T> {
         endHandle: endHandle,
       ).transform;
 
-  static Offset Function(double value) offsetCatmullRomSymmetry({
+  static Offset Function(double) offsetCatmullRomSymmetry({
     required Offset begin,
     required Offset end,
     double dPerpendicular = 5,
@@ -364,40 +369,20 @@ class BetweenDepend<T> extends Between<T> {
                 sizingRect(size),
                 textDirection: textDirection,
               );
-}
 
-///
-/// [_line]
-/// [BetweenPath.line]
-/// [BetweenPath.regularPolygonCubicOnEdge]
-///
-///
-class BetweenPath extends BetweenDepend<Path> {
-  BetweenPath(super.onLerp, {super.curve});
-
-  BetweenPath.line(
+  ///
+  ///
+  ///
+  static Path Function(double) pathLine(
     Offset begin,
     Offset end,
-    double strokeWidth, {
-    super.curve,
+    double width, {
     StrokeCap strokeCap = StrokeCap.round,
-  })  : assert(strokeCap != StrokeCap.square),
-        super(_line(begin, end, strokeWidth, strokeCap));
-
-  ///
-  ///
-  ///
-  static const double _r90 = math.pi / 2;
-
-  static Path Function(double) _line(
-    Offset begin,
-    Offset end,
-    double width,
-    StrokeCap cap,
-  ) {
+  }) {
+    assert(strokeCap != StrokeCap.square);
     final direction = math.atan2(end.dy - begin.dy, end.dx - begin.dx),
-        dTop = direction - _r90,
-        dBottom = direction + _r90,
+        dTop = direction - _radian90,
+        dBottom = direction + _radian90,
         radius = Radius.circular(width),
         pTop = begin + Offset.fromDirection(dTop, width),
         pBottom = begin + Offset.fromDirection(dBottom, width),
@@ -411,8 +396,8 @@ class BetweenPath extends BetweenDepend<Path> {
         ).transform;
 
     // StrokeCap.round
-    if (cap == StrokeCap.round) {
-      final clockwise = direction.abs() < _r90,
+    if (strokeCap == StrokeCap.round) {
+      final clockwise = direction.abs() < _radian90,
           beginPath = Path()
             ..moveTo(pBottom.dx, pBottom.dy)
             ..arcToPoint(pTop, radius: radius, clockwise: clockwise);
@@ -439,72 +424,69 @@ class BetweenPath extends BetweenDepend<Path> {
   }
 
   ///
+  /// RPC stands for Regular Polygon bezier-Cubic
   ///
-  BetweenPath.regularPolygonCubicOnEdge(
+  static Path Function(double) pathRPCOnEdge(
     int n,
     double rCircumscribe, {
     Offset center = Offset.zero,
     Between<double> edgeVectorTimes = const Between.of(0.0),
     Between<double> cornerRadius = const Between.of(0.0),
-    CubicOffset Function(CubicOffset) cubicSwitch = switch_1342,
-    super.curve,
-  }) : super(() {
-          final lerpRadius = cornerRadius.transform,
-              lerpTimes = edgeVectorTimes.transform,
-              iLast = n - 1,
-              rStep = math.pi * 2 / n,
-              corners = List.generate(
-                n,
-                (i) => center + Offset.fromDirection(rStep * i, rCircumscribe),
-                growable: false,
-              ),
-              tangent = math.tan(math.pi / n);
+    CubicOffset Function(CubicOffset) cubicSwitch = _E._rpcSwitch_1342,
+  }) {
+    final lerpRadius = cornerRadius.transform,
+        lerpTimes = edgeVectorTimes.transform,
+        iLast = n - 1,
+        rStep = math.pi * 2 / n,
+        corners = List.generate(
+          n,
+          (i) => center + Offset.fromDirection(rStep * i, rCircumscribe),
+          growable: false,
+        ),
+        tangent = math.tan(math.pi / n);
 
-          return (t) {
-            final timesUnit = lerpRadius(t) * tangent,
-                times = lerpTimes(t),
-                points = <CubicOffset>[];
+    return (t) {
+      final timesUnit = lerpRadius(t) * tangent,
+          times = lerpTimes(t),
+          points = <CubicOffset>[];
 
-            // find all 4 cubic points for each corners
-            for (var i = 0; i < n; i++) {
-              final current = corners[i];
-              final previous = current._parallelOffsetUnitOf(
-                i == 0 ? corners[iLast] : corners[i - 1],
-                timesUnit,
-              );
-              final next = current._parallelOffsetUnitOf(
-                i == iLast ? corners[0] : corners[i + 1],
-                timesUnit,
-              );
-              points.add(cubicSwitch((
-                previous,
-                next,
-                previous._parallelOffsetOf(current, times),
-                current._parallelOffsetOf(next, times),
-              )));
-            }
+      // find all 4 cubic points for each corners
+      for (var i = 0; i < n; i++) {
+        final current = corners[i];
+        final previous = current._parallelOffsetUnitOf(
+          i == 0 ? corners[iLast] : corners[i - 1],
+          timesUnit,
+        );
+        final next = current._parallelOffsetUnitOf(
+          i == iLast ? corners[0] : corners[i + 1],
+          timesUnit,
+        );
+        points.add(cubicSwitch((
+          previous,
+          next,
+          previous._parallelOffsetOf(current, times),
+          current._parallelOffsetOf(next, times),
+        )));
+      }
 
-            // create path
-            final it = points.iterator;
-            var path = Path();
-            if (it.moveNext()) {
-              final p = it.current, pA = p.$1, pB = p.$2, pC = p.$3, pD = p.$4;
-              path = path
-                ..moveTo(pA.dx, pA.dy)
-                ..cubicTo(pB.dx, pB.dy, pC.dx, pC.dy, pD.dx, pD.dy);
-            }
-            while (it.moveNext()) {
-              final p = it.current, pA = p.$1, pB = p.$2, pC = p.$3, pD = p.$4;
-              path = path
-                ..lineTo(pA.dx, pA.dy)
-                ..cubicTo(pB.dx, pB.dy, pC.dx, pC.dy, pD.dx, pD.dy);
-            }
-            return path..close();
-          };
-        }());
-
-  static CubicOffset switch_1342(CubicOffset cubic) =>
-      (cubic.$1, cubic.$3, cubic.$4, cubic.$2);
+      // create path
+      final it = points.iterator;
+      var path = Path();
+      if (it.moveNext()) {
+        final p = it.current, pA = p.$1, pB = p.$2, pC = p.$3, pD = p.$4;
+        path = path
+          ..moveTo(pA.dx, pA.dy)
+          ..cubicTo(pB.dx, pB.dy, pC.dx, pC.dy, pD.dx, pD.dy);
+      }
+      while (it.moveNext()) {
+        final p = it.current, pA = p.$1, pB = p.$2, pC = p.$3, pD = p.$4;
+        path = path
+          ..lineTo(pA.dx, pA.dy)
+          ..cubicTo(pB.dx, pB.dy, pC.dx, pC.dy, pD.dx, pD.dy);
+      }
+      return path..close();
+    };
+  }
 }
 
 ///
