@@ -8,12 +8,16 @@ part of '../mationani.dart';
 ///     --[_Mamion]
 ///     --[_Manion]
 ///
-/// * [AnimationControllerInitializer]
-/// * [AnimationUpdater]
 ///
 ///
 
 ///
+///
+/// [Mationani] takes [Mation] ([Mationani.mation])
+/// [Mation] takes [Matable] ([Mation.matable])
+/// [Matable] takes [Matalue] ([_MatableDriver.matalue], [MamableSet.ables].matalueS)
+/// [Matalue] is the subtype of [Animatable], super type of [Between]
+/// [Between] is similar to [Tween], having more custom implementation
 ///
 ///
 final class Mationani extends StatefulWidget {
@@ -41,30 +45,6 @@ final class Mationani extends StatefulWidget {
           grandChildren: children,
         );
 
-  // // create animation for a child
-  // Mationani.mamion({
-  //   super.key,
-  //   required this.ani,
-  //   required Mamable mamable,
-  //   required Widget child,
-  // }) : mation = _Mamion(mamable: mamable, child: child);
-  //
-  // // create animation for children
-  // Mationani.manion({
-  //   super.key,
-  //   required this.ani,
-  //   required Manable manable,
-  //   required Widget Function(List<Widget> children) parenting,
-  //   required List<Widget> children,
-  // }) : mation = _Manion(
-  //   manable: manable,
-  //   child: parenting,
-  //   grandChildren: children,
-  // );
-
-  ///
-  ///
-  ///
   @override
   State<Mationani> createState() => _MationaniState();
 
@@ -74,7 +54,7 @@ final class Mationani extends StatefulWidget {
 }
 
 class _MationaniState extends State<Mationani>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin<Mationani> {
   late final AnimationController controller;
   late Widget child;
 
@@ -87,7 +67,6 @@ class _MationaniState extends State<Mationani>
   void initState() {
     super.initState();
     final ani = widget.ani;
-    ani.setStateProvider?.call(setState);
     controller = ani.initializing(this);
     child = planForChild;
   }
@@ -119,364 +98,11 @@ class _MationaniState extends State<Mationani>
 
 ///
 ///
-/// [Ani] is a class that focus on how animation can be used in [_MationaniState].
 ///
-/// In tradition, it's hard to implement [AnimationController] everytime we want to trigger animation; we need to
-///   1. let [State] object inherit [TickerProvider].
-///   2. let [AnimationController] instance hold for the [State] inherited [TickerProvider].
-///   3. trigger animation be in the right place ([State.initState], [State.didUpdateWidget], [State.setState])
-/// With [Ani], 1 and 2 are prevented, 3 is easier. It implement the chance we changed state in [_MationaniState]
-/// [_MationaniState.initState], there is [initializing] function for configuration.
-/// [_MationaniState.didUpdateWidget], there is [updater] to be defined
-/// [_MationaniState.setState], there is [setStateProvider] passing callback to parent widget
-///
-///
-
-///
-/// constructors:
-/// [Ani.initForward], ...
-/// [Ani.update], ...
-/// [Ani.updateForwardWhen], ...
-/// [Ani.initForwardAndUpdateReverseWhen], ...
-///
-/// static methods:
-/// [Ani._initialize], ...
-/// [Ani.statusListenForward], ...
-/// [Ani._updateNothing], ...
-/// [Ani.decideForward], ...
-///
-final class Ani {
-  final (Duration?, Duration?) duration;
-  final void Function(void Function(void Function()))? setStateProvider;
-  final VoidCallback? initialListener;
-  final AnimationStatusListener? initialStatusListener;
-  final AnimationControllerInitializer initializer;
-  final AnimationUpdater updater;
-
-  @override
-  int get hashCode => Object.hash(duration.hashCode, setStateProvider,
-      initialListener, initialStatusListener, initializer, updater);
-
-  @override
-  bool operator ==(covariant Ani other) =>
-      duration == other.duration &&
-      setStateProvider == other.setStateProvider &&
-      initialListener == other.initialListener &&
-      initialStatusListener == other.initialStatusListener &&
-      initializer == other.initializer &&
-      updater == other.updater;
-
-  @override
-  String toString() => 'Ani('
-      '\n$duration,'
-      '\n$setStateProvider,'
-      '\n$initialListener,'
-      '\n$initialStatusListener,'
-      '\n$initializer,'
-      '\n$updater,'
-      '\n)\n';
-
-  AnimationController initializing(TickerProvider ticker) => initializer(
-        ticker,
-        duration.$1 ?? _durationDefault,
-        duration.$2 ?? _durationDefault,
-      )
-        ..addStatusListenerIfNotNull(initialStatusListener)
-        ..addListenerIfNotNull(initialListener);
-
-  ///
-  ///
-  ///
-  const Ani({
-    this.initialListener,
-    this.initialStatusListener,
-    this.setStateProvider,
-    this.initializer = Ani._initialize,
-    this.updater = Ani._updateNothing,
-    this.duration = const (null, null),
-  });
-
-  const Ani.initForward({
-    this.initialListener,
-    this.initialStatusListener,
-    this.setStateProvider,
-    this.updater = Ani._updateNothing,
-    this.duration = const (null, null),
-  }) : initializer = Ani.initializeForward;
-
-  const Ani.initForwardReset({
-    this.initialListener,
-    this.initialStatusListener,
-    this.setStateProvider,
-    this.updater = Ani._updateNothing,
-    this.duration = const (null, null),
-  }) : initializer = Ani.initializeForwardReset;
-
-  const Ani.initRepeat({
-    bool reversable = false,
-    this.initialListener,
-    this.initialStatusListener,
-    this.setStateProvider,
-    this.updater = Ani._updateNothing,
-    this.duration = const (null, null),
-  }) : initializer =
-            reversable ? Ani.initializeRepeatReverse : Ani.initializeRepeat;
-
-  ///
-  ///
-  ///
-  Ani.update({
-    this.initialListener,
-    this.initialStatusListener,
-    this.setStateProvider,
-    this.initializer = Ani._initialize,
-    this.duration = const (null, null),
-    required void Function(AnimationController controller) onNotAnimating,
-    void Function(AnimationController controller) onAnimating =
-        Ani.consumeNothing,
-  }) : updater = Ani._consumeUpdate(onAnimating, onNotAnimating);
-
-  Ani.updateForwardReset({
-    this.initialListener,
-    this.initialStatusListener,
-    this.setStateProvider,
-    this.initializer = Ani._initialize,
-    this.duration = const (null, null),
-    void Function(AnimationController controller) onAnimating =
-        Ani.consumeNothing,
-  }) : updater = Ani._consumeUpdate(onAnimating, Ani.consumeForwardReset);
-
-  Ani.updateForwardOrReverse({
-    this.initialListener,
-    this.initialStatusListener,
-    this.setStateProvider,
-    this.initializer = Ani._initialize,
-    this.duration = const (null, null),
-    void Function(AnimationController controller) onAnimating =
-        Ani.consumeNothing,
-  }) : updater = Ani._consumeUpdate(onAnimating, Ani.consumeForwardOrReverse);
-
-  ///
-  ///
-  ///
-  Ani.updateForwardWhen(
-    bool trigger, {
-    this.initialListener,
-    this.initialStatusListener,
-    this.setStateProvider,
-    this.initializer = Ani._initialize,
-    required Duration duration,
-  })  : duration = (duration, duration),
-        updater = Ani._consumeUpdate(
-          Ani.consumeNothing,
-          Ani.decideForward(trigger),
-        );
-
-  Ani.updateForwardOrReverseWhen(
-    bool trigger, {
-    bool onAnimating = false,
-    bool onNotAnimating = true,
-    this.initialListener,
-    this.initialStatusListener,
-    this.setStateProvider,
-    this.initializer = Ani._initialize,
-    this.duration = const (null, null),
-  }) : updater = Ani._consumeUpdate(
-          onAnimating
-              ? Ani.decideForwardOrReverse(trigger)
-              : Ani.consumeNothing,
-          onNotAnimating
-              ? Ani.decideForwardOrReverse(trigger)
-              : Ani.consumeNothing,
-        );
-
-  ///
-  ///
-  ///
-  Ani.initForwardAndUpdateReverseWhen(
-    bool trigger, {
-    this.initialListener,
-    this.initialStatusListener,
-    this.setStateProvider,
-    bool onAnimating = false,
-    bool onNotAnimating = true,
-    this.duration = const (null, null),
-  })  : initializer = Ani.initializeForward,
-        updater = Ani._consumeUpdate(
-          onAnimating ? Ani.decideReverse(trigger) : Ani.consumeNothing,
-          onNotAnimating ? Ani.decideReverse(trigger) : Ani.consumeNothing,
-        );
-
-  Ani.initForwardAndWaitUpdateReverseTo(
-    bool trigger, {
-    this.initialListener,
-    this.setStateProvider,
-    required VoidCallback dismissedCall,
-    this.duration = const (null, null),
-  })  : initialStatusListener = Ani.statusListenDismissed(dismissedCall),
-        initializer = Ani.initializeForward,
-        updater = Ani._consumeUpdate(
-          Ani.consumeNothing,
-          Ani.decideReverse(trigger),
-        );
-
-  ///
-  /// [_initialize]
-  /// [initializeForward], [initializeForwardReset]
-  /// [initializeRepeat], [initializeRepeatReverse]
-  ///
-  static AnimationController _initialize(
-          TickerProvider vsync, Duration forward, Duration reverse) =>
-      AnimationController(
-          vsync: vsync, duration: forward, reverseDuration: reverse);
-
-  static AnimationController initializeForward(
-          TickerProvider vsync, Duration forward, Duration reverse) =>
-      _initialize(vsync, forward, reverse)..forward();
-
-  static AnimationController initializeForwardReset(
-          TickerProvider vsync, Duration forward, Duration reverse) =>
-      _initialize(vsync, forward, reverse)..forwardReset();
-
-  static AnimationController initializeRepeat(
-          TickerProvider vsync, Duration forward, Duration reverse) =>
-      _initialize(vsync, forward, reverse)..repeat();
-
-  static AnimationController initializeRepeatReverse(
-          TickerProvider vsync, Duration forward, Duration reverse) =>
-      _initialize(vsync, forward, reverse)..repeat(reverse: true);
-
-  ///
-  /// [statusListenForward], [statusListenReverse]
-  /// [statusListenCompleted], [statusListenDismissed]
-  /// [statusListenCompletedOrDismissed]
-  ///
-  static AnimationStatusListener statusListenForward(VoidCallback listener) =>
-      (status) => status == AnimationStatus.forward ? listener() : null;
-
-  static AnimationStatusListener statusListenReverse(VoidCallback listener) =>
-      (status) => status == AnimationStatus.reverse ? listener() : null;
-
-  static AnimationStatusListener statusListenCompleted(VoidCallback listener) =>
-      (status) => status == AnimationStatus.completed ? listener() : null;
-
-  static AnimationStatusListener statusListenDismissed(VoidCallback listener) =>
-      (status) => status == AnimationStatus.dismissed ? listener() : null;
-
-  static AnimationStatusListener statusListenCompletedOrDismissed(
-          VoidCallback listener) =>
-      (status) => status == AnimationStatus.completed ||
-              status == AnimationStatus.dismissed
-          ? listener()
-          : null;
-
-  ///
-  /// [_updateNothing]
-  /// [_consumeUpdate]
-  /// [consumeNothing]
-  /// [consumeForward], [consumeForwardReset], [consumeForwardOrReverse], [consumeReverse]
-  /// [consumeRepeat], [consumeRepeatReverse]
-  /// [consumeResetForward]
-  /// [consumeBack]
-  ///
-  static void _updateNothing(AnimationController c, Mationani o, Mationani n) {}
-
-  static AnimationUpdater _consumeUpdate(
-    void Function(AnimationController controller) onAnimating,
-    void Function(AnimationController controller) onNotAnimating,
-  ) =>
-      (controller, oldWidget, widget) {
-        controller.updateDurationIfNew(oldWidget, widget);
-        controller.isAnimating
-            ? onAnimating(controller)
-            : onNotAnimating(controller);
-      };
-
-  static void consumeNothing(AnimationController c) {}
-
-  static void consumeForward(AnimationController c) => c.forward();
-
-  static void consumeForwardReset(AnimationController c) => c.forwardReset();
-
-  static void consumeForwardOrReverse(AnimationController controller) =>
-      controller.status == AnimationStatus.dismissed
-          ? controller.forward()
-          : controller.reverse();
-
-  static void consumeReverse(AnimationController c) => c.reverse();
-
-  static void consumeRepeat(AnimationController c) => c.repeat();
-
-  static void consumeRepeatReverse(AnimationController c) =>
-      c.repeat(reverse: true);
-
-  static void consumeResetForward(AnimationController c) => c.resetForward();
-
-  static void consumeBack(AnimationController controller) =>
-      controller.status == AnimationStatus.forward
-          ? controller.reverse(from: controller.value)
-          : controller.forward(from: controller.value);
-
-  ///
-  /// [decideNothing]
-  /// [decideForward], [decideReverse], [decideRepeat], [decideForwardReset]
-  /// [decideForwardOrReverse], [decideForwardOrRepeat]
-  ///
-  static void Function(AnimationController controller) decideNothing(
-          bool trigger) =>
-      consumeNothing;
-
-  static void Function(AnimationController controller) decideForward(
-          bool trigger) =>
-      trigger ? consumeForward : consumeNothing;
-
-  static void Function(AnimationController controller) decideReverse(
-          bool trigger) =>
-      trigger ? consumeReverse : consumeNothing;
-
-  static void Function(AnimationController controller) decideForwardReset(
-          bool trigger) =>
-      trigger ? consumeForwardReset : consumeNothing;
-
-  static void Function(AnimationController controller) decideRepeat(
-          bool trigger) =>
-      trigger ? consumeRepeat : consumeNothing;
-
-  static void Function(AnimationController controller) decideForwardOrReverse(
-          bool? forward) =>
-      switch (forward) {
-        true => consumeForward,
-        false => consumeReverse,
-        null => consumeNothing,
-      };
-
-  static void Function(AnimationController controller) decideForwardOrRepeat(
-          bool? forward) =>
-      switch (forward) {
-        true => consumeForward,
-        false => consumeRepeat,
-        null => consumeNothing,
-      };
-}
-
-///
-/// below is an approximate flow illustrating how [Mation] works, take [MamableClipAdjust] as example.
-/// .
-///                           [MamableClipAdjust] <  <  [MamableSingle._perform]
-///                                      v               ^
-/// [_Mamion.matable] < [Mation.matable]  v               ^    [_MatableDriver._drive]
-///                  [Mationani.mation]  v               ^    [_MatableDriver._builder]
-///      [_MationaniState.planForChild]  v               ^
-///                                      v               ^
-///          [Mation.plan] > [_Mamion.plan] required [Mamable._perform] < [Matable._perform]
-///
-///
-abstract base class Mation<A extends Matable, C> {
+abstract final class Mation<A extends Matable, C> {
   final A matable;
   final C child;
 
-  // factory cannot construct typed generic, so it's not possible to integrate subclasses into Mation for now
-  // static methods as constructor is not referenced well in android studio.
   const Mation({required this.matable, required this.child});
 
   Widget plan(Animation<double> parent);
@@ -521,16 +147,233 @@ final class _Manion
   }
 }
 
-///
-///
-///
-typedef AnimationControllerInitializer = AnimationController Function(
-  TickerProvider vsync,
-  Duration forward,
-  Duration reverse,
-);
-typedef AnimationUpdater = void Function(
-  AnimationController controller,
-  Mationani oldWidget,
-  Mationani widget,
-);
+// ///
+// ///
+// ///
+// /// todo: sequence step by step (onAnimating -> next)
+// ///
+// class MationaniSequence<T> extends StatefulWidget {
+//   final List<T> steps;
+//   final List<AnimationStyle>? styles;
+//   final Duration defaultDuration;
+//   final Curve defaultCurve;
+//   final Mation Function(T, T, BiCurve) sMation;
+//   final AniSequence Function(Duration) sAni;
+//
+//   MationaniSequence.mamion({
+//     super.key,
+//     this.styles,
+//     this.defaultDuration = _durationDefault,
+//     this.defaultCurve = Curves.fastOutSlowIn,
+//     required this.steps,
+//     required this.sAni,
+//     required Mamable Function(T, T, BiCurve) sMamable,
+//     required Widget child,
+//   }) : sMation = _sMamion(sMamable, child);
+//
+//   MationaniSequence.manion({
+//     super.key,
+//     this.styles,
+//     this.defaultDuration = _durationDefault,
+//     this.defaultCurve = Curves.fastOutSlowIn,
+//     required this.steps,
+//     required this.sAni,
+//     required Manable Function(T, T, BiCurve) sManable,
+//     required Widget Function(List<Widget> children) parenting,
+//     required List<Widget> children,
+//   }) : sMation = _sManion(sManable, parenting, children);
+//
+//   ///
+//   ///
+//   ///
+//   static _Mamion Function(T, T, BiCurve) _sMamion<T>(
+//       Mamable Function(T, T, BiCurve) mamable,
+//       Widget child,
+//       ) =>
+//           (previous, next, curve) =>
+//           _Mamion(mamable: mamable(previous, next, curve), child: child);
+//
+//   static _Manion Function(T, T, BiCurve) _sManion<T>(
+//       Manable Function(T, T, BiCurve) manable,
+//       Widget Function(List<Widget> children) parenting,
+//       List<Widget> children,
+//       ) =>
+//           (previous, next, curve) => _Manion(
+//         manable: manable(previous, next, curve),
+//         child: parenting,
+//         grandChildren: children,
+//       );
+//
+//   @override
+//   State<MationaniSequence<T>> createState() => _MationaniSequenceState<T>();
+//
+//   ///
+//   /// except animation controller repeats forward-reverse-forward... (0.0 ~ 1.0 ~ 0.0 ~ 1.0 ...)
+//   /// return (durationForward, durationReverse, curveForward, curveReverse, mamable)
+//   ///
+//   static List<(Duration, Duration, T, T, BiCurve)> stepsFrom<T>(
+//       List<T> steps, {
+//         List<AnimationStyle>? styles,
+//         Duration defaultDuration = _durationDefault,
+//         Curve defaultCurve = Curves.fastOutSlowIn,
+//       }) {
+//     late final int count;
+//     late final List<(Duration, Duration, Curve, Curve)> times;
+//     if (styles == null) {
+//       count = steps.length - 1;
+//       times = List.filled(count,
+//           (defaultDuration, defaultDuration, defaultCurve, defaultCurve));
+//     } else {
+//       count = styles.length;
+//       times = List.of(
+//         [
+//           ...styles.map(
+//                 (style) => (
+//             style.duration ?? defaultDuration,
+//             style.reverseDuration ?? defaultDuration,
+//             style.curve ?? defaultCurve,
+//             style.reverseCurve ?? defaultCurve
+//             ),
+//           )
+//         ],
+//         growable: false,
+//       );
+//       assert(count + 1 == steps.length);
+//     }
+//
+//     // controller is forward(0.0 ~ 1.0) when i % 2 == 0
+//     // controller is reverse(1.0 ~ 0.0) when i % 2 == 1
+//     final elements = <(Duration, Duration, T, T, BiCurve)>[];
+//     var previous = steps[0];
+//     for (var i = 0; i < count; i++) {
+//       final next = steps[i + 1], fr = times[i];
+//       elements.add(
+//         i % 2 == 0
+//             ? (fr.$1, fr.$2, previous, next, (fr.$3, fr.$4))
+//             : (fr.$2, fr.$1, next, previous, (fr.$4, fr.$3)),
+//       );
+//       previous = next;
+//     }
+//     return List.of(elements, growable: false);
+//   }
+//
+//   static bool dismissUpdateBuilder<T>(
+//       MationaniSequence<T> oldWidget,
+//       MationaniSequence<T> widget,
+//       ) =>
+//       oldWidget.steps == widget.steps &&
+//           oldWidget.styles == widget.styles &&
+//           oldWidget.defaultDuration == widget.defaultDuration &&
+//           oldWidget.defaultCurve == widget.defaultCurve &&
+//           oldWidget.sMation == widget.sMation &&
+//           oldWidget.sAni == widget.sAni;
+// }
+//
+// class _MationaniSequenceState<T> extends State<MationaniSequence<T>>
+//     with SingleTickerProviderStateMixin<MationaniSequence<T>> {
+//   final List<(Duration, Duration, T, T, BiCurve)> steps = [];
+//   late final AnimationController controller;
+//   late final int _iMax;
+//   late Widget child;
+//   int i = 0;
+//
+//   Widget get planForChild {
+//     final widget = this.widget, current = steps[i];
+//     return widget.sMation(current.$3, current.$4, current.$5).plan(controller);
+//   }
+//
+//   @override
+//   void initState() {
+//     super.initState();
+//     final widget = this.widget, steps = this.steps;
+//     steps.addAll(MationaniSequence.stepsFrom(
+//       widget.steps,
+//       styles: widget.styles,
+//       defaultDuration: widget.defaultDuration,
+//       defaultCurve: widget.defaultCurve,
+//     ));
+//     _iMax = steps.length - 1;
+//
+//     final step = steps[0];
+//     final controller = AnimationController(
+//       vsync: this,
+//       duration: step.$1,
+//       reverseDuration: step.$2,
+//     );
+//     controller
+//       ..addStatusListener(_statusListenerOf(controller))
+//       ..addListenerIfNotNull(initialListener)
+//       ..forward();
+//
+//     this.controller = widget.sAni.initializing(this);
+//     child = planForChild;
+//   }
+//
+//   @override
+//   void dispose() {
+//     super.dispose();
+//     controller.dispose();
+//   }
+//
+//   @override
+//   void didUpdateWidget(covariant MationaniSequence<T> oldWidget) {
+//     super.didUpdateWidget(oldWidget);
+//     final widget = this.widget;
+//     widget.sAni.updater(controller, oldWidget, widget);
+//     if (MationaniSequence.dismissUpdateBuilder(widget, oldWidget)) return;
+//     child = planForChild;
+//   }
+//
+//   @override
+//   Widget build(BuildContext context) => child;
+//
+//   AnimationStatusListener _statusListenerOf(AnimationController controller) {
+//     void forward() {
+//       setState(() => i++);
+//       controller
+//         ..duration = steps[i].$1
+//         ..forward();
+//     }
+//
+//     void reverse() {
+//       setState(() => i++);
+//       controller
+//         ..reverseDuration = steps[i].$1 // it means forward in the sequence
+//         ..reverse();
+//     }
+//
+//     const dismissed = AnimationStatus.dismissed,
+//         completed = AnimationStatus.completed;
+//     final statusListener = widget.sAni.initialStatusListener;
+//     final listener = statusListener == null
+//         ? (status) {
+//       switch (status) {
+//         case dismissed:
+//           if (i == _iMax) return;
+//           return forward();
+//         case completed:
+//           if (i == _iMax) return;
+//           return reverse();
+//         default:
+//           return;
+//       }
+//     }
+//         : (status) {
+//       final i = this.i;
+//       switch (status) {
+//         case dismissed:
+//           if (i == _iMax) return statusListener(dismissed);
+//           return forward();
+//         case completed:
+//           if (i == _iMax) return statusListener(completed);
+//           return reverse();
+//         default:
+//           return;
+//       }
+//     };
+//
+//     // todo: remove listener then add listener for reverse
+//
+//     return listener;
+//   }
+// }

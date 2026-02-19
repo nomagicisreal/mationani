@@ -10,7 +10,7 @@ class SampleSlide extends StatelessWidget {
       ani: Ani.updateForwardOrReverse(),
       mamable: MamableTransition.align(
         BetweenTicks.sequence(
-          sequence: [
+          [
             AlignmentGeometry.topStart,
             AlignmentGeometry.topEnd,
             AlignmentGeometry.bottomEnd,

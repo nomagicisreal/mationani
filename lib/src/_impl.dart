@@ -3,28 +3,27 @@ part of '../mationani.dart';
 ///
 ///
 /// implementation for this file
-/// * [_ListWidget]
+/// + [_ListWidget]
 ///
 /// implementation for `matalue.dart`
-/// * [_ShapeDecoration]
-/// * [_E]
-/// * [_OffsetOffset]
-/// * [_BetweenConstant], ...
-/// * [_DeviateDouble], ...
-/// * [_CurveSegment]
+/// + [_E]
+/// + [_ShapeDecoration]
+/// + [_OffsetOffset]
+/// --[_BetweenConstant], ...
+/// --[_DeviateDouble], ...
+/// --[_CurveSegment]
 ///
 /// implementation for `animation.dart`
-/// * [_durationDefault]
-/// * [_AnimationController]
-/// * [_AnimationStyleExtension]
+/// k [_durationDefault]
+/// + [_AnimationController]
 ///
 /// implementation for `matable.dart`
-/// * [_radian360], ...
-/// * [_ClipperAdjust]
-/// * [_PainterAdjust]
-/// * [_MatableDriver]
-/// * [_ManableSetSync], ...
-/// * [_ManableParent], ...
+/// k [_radian360], ...
+/// --[Clipper], [_ClipperAdjust]
+/// --[Painter], [_PainterAdjust]
+/// [_MatableDriver]
+/// --[_ManableSetSync], ...
+/// [_ManableParent], ...
 ///
 ///
 ///
@@ -276,16 +275,14 @@ class _DeviateDouble extends Deviate<double> {
   const _DeviateDouble(super.around, super.amplitude, super.curve) : super._();
 
   @override
-  double transform(double t) =>
-      around + amplitude * math.sin(_radian360 * t);
+  double transform(double t) => around + amplitude * math.sin(_radian360 * t);
 }
 
 class _DeviateOffset extends Deviate<Offset> {
   const _DeviateOffset(super.around, super.amplitude, super.curve) : super._();
 
   @override
-  Offset transform(double t) =>
-      around + amplitude * math.sin(_radian360 * t);
+  Offset transform(double t) => around + amplitude * math.sin(_radian360 * t);
 }
 
 final class _CurveSegment extends Curve {
@@ -319,6 +316,9 @@ extension _AnimationController on AnimationController {
     if (listener != null) addListener(listener);
   }
 
+  ///
+  ///
+  ///
   void forwardReset({double? from}) => forward(from: from).then((_) => reset());
 
   void resetForward({double? from}) => this

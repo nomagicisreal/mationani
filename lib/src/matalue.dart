@@ -168,11 +168,11 @@ class BetweenTicks<T> extends Between<T> {
   BetweenTicks(this.onLerp, [BiCurve? curve])
       : super._(onLerp(0), onLerp(1), curve);
 
-  factory BetweenTicks.sequence({
+  factory BetweenTicks.sequence(
+    List<T> sequence, {
     BiCurve curve = (Curves.linear, Curves.linear),
     List<BiCurve>? segments,
     List<double>? weights,
-    required List<T> sequence,
     Animatable<T> Function(T begin, T end, BiCurve? curve)? construct,
   }) {
     final steps = sequence.length;
