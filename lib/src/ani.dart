@@ -6,7 +6,7 @@ part of '../mationani.dart';
 /// * [AniControllerInitializer]
 /// * [AniUpdater]
 ///
-/// * [AniSequence]
+/// * [AniSequenceCommand]
 /// * [AniSequenceCommandInit]
 /// * [AniSequenceCommandUpdate]
 ///
@@ -307,13 +307,13 @@ typedef AniUpdater = void Function(
 ///
 ///
 ///
-final class AniSequence {
-  final AniSequenceCommandInit? commandInitialize;
-  final AniSequenceCommandUpdate commandUpdate;
+final class AniSequenceCommand {
+  final AniSequenceCommandInit? initialize;
+  final AniSequenceCommandUpdate update;
 
-  const AniSequence({
-    this.commandInitialize,
-    this.commandUpdate = AniSequenceCommandUpdate.nothing,
+  const AniSequenceCommand({
+    this.initialize = AniSequenceCommandInit.forward,
+    this.update = AniSequenceCommandUpdate.nothing,
   });
 }
 
@@ -323,7 +323,6 @@ enum AniSequenceCommandInit {
   forwardRepeat,
   pulse, // forward then reverse
   pulseRepeat,
-  pulseExpanding,
 }
 
 enum AniSequenceCommandUpdate {
@@ -332,5 +331,5 @@ enum AniSequenceCommandUpdate {
   forwardStep,
   reverse,
   reverseStep,
-  stop,
+  stopOrResume,
 }

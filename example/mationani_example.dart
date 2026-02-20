@@ -41,10 +41,26 @@ class _MyHomeState extends State<MyHome> {
     setState(() => toggle = !toggle);
   }
 
+  Mamable _sMamable(double previous, double next, BiCurve curve) =>
+      MamablePaint.path(
+        BetweenTicks(
+          BetweenTicks.depend(
+            Between(previous, next).transform,
+            (scalar) => Path()
+              ..moveTo(scalar, 0)
+              ..quadraticBezierTo(0, 100, 100, 100),
+          ),
+          curve,
+        ),
+        pen: Paint()
+          ..style = PaintingStyle.stroke
+          ..color = Colors.black,
+      );
+
   @override
   Widget build(BuildContext context) {
     final steps =
-        List.generate(20, (_) => math.Random().nextInt(200).toDouble());
+        List.generate(10, (_) => math.Random().nextInt(200).toDouble());
     return Scaffold(
       backgroundColor: Colors.black45,
       body: Center(
@@ -52,24 +68,15 @@ class _MyHomeState extends State<MyHome> {
           height: 300,
           width: 100,
 
-          // child: Mationani.mamion(
-          //   ani: AniSequence(steps),
-          //   mamable: MamablePaint.path(
-          //     BetweenTicks(
-          //       BetweenTicks.depend(
-          //         Between(step.$3, step.$4).transform,
-          //         (scalar) => Path()
-          //           ..moveTo(scalar, 0)
-          //           ..quadraticBezierTo(0, 100, 100, 100),
-          //       ),
-          //       step.$5,
-          //     ),
-          //     pen: Paint()
-          //       ..style = PaintingStyle.stroke
-          //       ..color = Colors.black,
-          //   ),
-          //   child: SizedBox.expand(),
-          // ),
+          child: MationaniSequence.mamion(
+            steps: steps,
+            ani: const AniSequenceCommand(
+              initialize: AniSequenceCommandInit.pulseRepeat,
+              update: AniSequenceCommandUpdate.stopOrResume,
+            ),
+            sMamable: _sMamable,
+            child: SizedBox.expand(),
+          ),
 
           // child: SampleSlide(),
           // child: SampleDraw(),
