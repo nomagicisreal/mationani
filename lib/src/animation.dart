@@ -23,10 +23,12 @@ part of '../mationani.dart';
 final class Mationani extends StatefulWidget {
   final Ani ani;
   final Mation mation;
+  final (Duration, Duration) duration;
 
   // create animation for a child
   Mationani.mamion({
     super.key,
+    this.duration = const (_durationDefault, _durationDefault),
     required this.ani,
     required Mamable mamable,
     required Widget child,
@@ -35,6 +37,7 @@ final class Mationani extends StatefulWidget {
   // create animation for children
   Mationani.manion({
     super.key,
+    this.duration = const (_durationDefault, _durationDefault),
     required this.ani,
     required Manable manable,
     required Widget Function(List<Widget> children) parenting,
@@ -49,6 +52,7 @@ final class Mationani extends StatefulWidget {
   State<Mationani> createState() => _MationaniState();
 
   static bool dismissUpdateBuilder(Mationani oldWidget, Mationani widget) =>
+      oldWidget.duration == widget.duration &&
       oldWidget.mation.matable == widget.mation.matable &&
       oldWidget.ani == widget.ani;
 }
@@ -58,17 +62,12 @@ class _MationaniState extends State<Mationani>
   late final AnimationController controller;
   late Widget child;
 
-  Widget get planForChild {
-    final widget = this.widget;
-    return widget.mation.plan(controller);
-  }
-
   @override
   void initState() {
     super.initState();
-    final ani = widget.ani;
-    controller = ani.initializing(this);
-    child = planForChild;
+    final widget = this.widget, duration = widget.duration;
+    controller = widget.ani.initializer(this, duration.$1, duration.$2);
+    child = widget.mation.plan(controller);
   }
 
   @override
@@ -87,9 +86,9 @@ class _MationaniState extends State<Mationani>
   void didUpdateWidget(covariant Mationani oldWidget) {
     super.didUpdateWidget(oldWidget);
     final widget = this.widget;
-    widget.ani.updater(controller, oldWidget, widget);
+    widget.ani.updater?.call(controller, oldWidget, widget);
     if (Mationani.dismissUpdateBuilder(widget, oldWidget)) return;
-    child = planForChild;
+    child = widget.mation.plan(controller);
   }
 
   @override
@@ -152,13 +151,14 @@ final class _Manion
 // ///
 // /// todo: sequence step by step (onAnimating -> next)
 // ///
+// ///
 // class MationaniSequence<T> extends StatefulWidget {
 //   final List<T> steps;
 //   final List<AnimationStyle>? styles;
 //   final Duration defaultDuration;
 //   final Curve defaultCurve;
 //   final Mation Function(T, T, BiCurve) sMation;
-//   final AniSequence Function(Duration) sAni;
+//   final AniSequence ani;
 //
 //   MationaniSequence.mamion({
 //     super.key,
@@ -166,7 +166,7 @@ final class _Manion
 //     this.defaultDuration = _durationDefault,
 //     this.defaultCurve = Curves.fastOutSlowIn,
 //     required this.steps,
-//     required this.sAni,
+//     required this.ani,
 //     required Mamable Function(T, T, BiCurve) sMamable,
 //     required Widget child,
 //   }) : sMation = _sMamion(sMamable, child);
@@ -177,7 +177,7 @@ final class _Manion
 //     this.defaultDuration = _durationDefault,
 //     this.defaultCurve = Curves.fastOutSlowIn,
 //     required this.steps,
-//     required this.sAni,
+//     required this.ani,
 //     required Manable Function(T, T, BiCurve) sManable,
 //     required Widget Function(List<Widget> children) parenting,
 //     required List<Widget> children,
@@ -187,22 +187,22 @@ final class _Manion
 //   ///
 //   ///
 //   static _Mamion Function(T, T, BiCurve) _sMamion<T>(
-//       Mamable Function(T, T, BiCurve) mamable,
-//       Widget child,
-//       ) =>
-//           (previous, next, curve) =>
+//     Mamable Function(T, T, BiCurve) mamable,
+//     Widget child,
+//   ) =>
+//       (previous, next, curve) =>
 //           _Mamion(mamable: mamable(previous, next, curve), child: child);
 //
 //   static _Manion Function(T, T, BiCurve) _sManion<T>(
-//       Manable Function(T, T, BiCurve) manable,
-//       Widget Function(List<Widget> children) parenting,
-//       List<Widget> children,
-//       ) =>
-//           (previous, next, curve) => _Manion(
-//         manable: manable(previous, next, curve),
-//         child: parenting,
-//         grandChildren: children,
-//       );
+//     Manable Function(T, T, BiCurve) manable,
+//     Widget Function(List<Widget> children) parenting,
+//     List<Widget> children,
+//   ) =>
+//       (previous, next, curve) => _Manion(
+//             manable: manable(previous, next, curve),
+//             child: parenting,
+//             grandChildren: children,
+//           );
 //
 //   @override
 //   State<MationaniSequence<T>> createState() => _MationaniSequenceState<T>();
@@ -212,11 +212,11 @@ final class _Manion
 //   /// return (durationForward, durationReverse, curveForward, curveReverse, mamable)
 //   ///
 //   static List<(Duration, Duration, T, T, BiCurve)> stepsFrom<T>(
-//       List<T> steps, {
-//         List<AnimationStyle>? styles,
-//         Duration defaultDuration = _durationDefault,
-//         Curve defaultCurve = Curves.fastOutSlowIn,
-//       }) {
+//     List<T> steps, {
+//     List<AnimationStyle>? styles,
+//     Duration defaultDuration = _durationDefault,
+//     Curve defaultCurve = Curves.fastOutSlowIn,
+//   }) {
 //     late final int count;
 //     late final List<(Duration, Duration, Curve, Curve)> times;
 //     if (styles == null) {
@@ -228,11 +228,11 @@ final class _Manion
 //       times = List.of(
 //         [
 //           ...styles.map(
-//                 (style) => (
-//             style.duration ?? defaultDuration,
-//             style.reverseDuration ?? defaultDuration,
-//             style.curve ?? defaultCurve,
-//             style.reverseCurve ?? defaultCurve
+//             (style) => (
+//               style.duration ?? defaultDuration,
+//               style.reverseDuration ?? defaultDuration,
+//               style.curve ?? defaultCurve,
+//               style.reverseCurve ?? defaultCurve
 //             ),
 //           )
 //         ],
@@ -258,15 +258,15 @@ final class _Manion
 //   }
 //
 //   static bool dismissUpdateBuilder<T>(
-//       MationaniSequence<T> oldWidget,
-//       MationaniSequence<T> widget,
-//       ) =>
+//     MationaniSequence<T> oldWidget,
+//     MationaniSequence<T> widget,
+//   ) =>
 //       oldWidget.steps == widget.steps &&
-//           oldWidget.styles == widget.styles &&
-//           oldWidget.defaultDuration == widget.defaultDuration &&
-//           oldWidget.defaultCurve == widget.defaultCurve &&
-//           oldWidget.sMation == widget.sMation &&
-//           oldWidget.sAni == widget.sAni;
+//       oldWidget.styles == widget.styles &&
+//       oldWidget.defaultDuration == widget.defaultDuration &&
+//       oldWidget.defaultCurve == widget.defaultCurve &&
+//       oldWidget.sMation == widget.sMation &&
+//       oldWidget.ani == widget.ani;
 // }
 //
 // class _MationaniSequenceState<T> extends State<MationaniSequence<T>>
@@ -300,12 +300,58 @@ final class _Manion
 //       duration: step.$1,
 //       reverseDuration: step.$2,
 //     );
-//     controller
-//       ..addStatusListener(_statusListenerOf(controller))
-//       ..addListenerIfNotNull(initialListener)
-//       ..forward();
+//     final initializer = widget.ani.commandInitialize;
+//     if (initializer != null) {
+//       late final AnimationStatusListener slListener;
+//       slListener = switch (initializer) {
+//         AniSequenceCommandInit.forward => _slForward,
+//         AniSequenceCommandInit.forwardReset => (status) =>
+//             _slForward(status, (_) {
+//               i = 0;
+//               controller.reset();
+//             }),
+//         AniSequenceCommandInit.forwardRepeat => (status) =>
+//             _slForward(status, (_) {
+//               i = 0;
+//               controller
+//                 ..reset()
+//                 ..forward();
+//             }),
+//         AniSequenceCommandInit.pulse => (status) =>
+//             _slForward(status, (completed) {
+//               controller
+//                 ..removeStatusListener(slListener)
+//                 ..addStatusListener(_slReverse);
+//               completed ? controller.reverse() : controller.forward();
+//             }),
+//         AniSequenceCommandInit.pulseRepeat => () {
+//             late final AnimationStatusListener slF;
+//             void reverse(AnimationStatus status) => _slReverse(
+//                   status,
+//                   (_) => controller
+//                     ..removeStatusListener(reverse)
+//                     ..addStatusListener(slF)
+//                     ..forward(),
+//                 );
+//             slF = (status) => _slForward(
+//                   status,
+//                   (completed) {
+//                     controller
+//                       ..removeStatusListener(slF)
+//                       ..addStatusListener(reverse);
+//                     completed ? controller.reverse() : controller.forward();
+//                   },
+//                 );
+//             return slF;
+//           }(),
+//         AniSequenceCommandInit.pulseExpanding => throw UnimplementedError(),
+//       };
+//       controller
+//         ..addStatusListener(slListener)
+//         ..forward();
+//     }
 //
-//     this.controller = widget.sAni.initializing(this);
+//     this.controller = controller;
 //     child = planForChild;
 //   }
 //
@@ -319,7 +365,9 @@ final class _Manion
 //   void didUpdateWidget(covariant MationaniSequence<T> oldWidget) {
 //     super.didUpdateWidget(oldWidget);
 //     final widget = this.widget;
-//     widget.sAni.updater(controller, oldWidget, widget);
+//     if (widget.ani.commandUpdate != AniSequenceCommandUpdate.nothing) {
+//       throw UnimplementedError();
+//     }
 //     if (MationaniSequence.dismissUpdateBuilder(widget, oldWidget)) return;
 //     child = planForChild;
 //   }
@@ -327,53 +375,45 @@ final class _Manion
 //   @override
 //   Widget build(BuildContext context) => child;
 //
-//   AnimationStatusListener _statusListenerOf(AnimationController controller) {
-//     void forward() {
-//       setState(() => i++);
-//       controller
-//         ..duration = steps[i].$1
-//         ..forward();
+//   void _slForward(
+//     AnimationStatus status, [
+//     void Function(bool)? listenFinished,
+//   ]) {
+//     switch (status) {
+//       case AnimationStatus.dismissed:
+//         if (i >= _iMax) return listenFinished?.call(false);
+//         return controller.forwardAt(_durationNext().$1);
+//       case AnimationStatus.completed:
+//         if (i >= _iMax) return listenFinished?.call(true);
+//         return controller.reverseAt(_durationNext().$1);
+//       case AnimationStatus.forward || AnimationStatus.reverse:
+//         return;
 //     }
+//   }
 //
-//     void reverse() {
-//       setState(() => i++);
-//       controller
-//         ..reverseDuration = steps[i].$1 // it means forward in the sequence
-//         ..reverse();
+//   void _slReverse(
+//     AnimationStatus status, [
+//     void Function(bool)? listenFinished,
+//   ]) {
+//     switch (status) {
+//       case AnimationStatus.dismissed:
+//         if (i == -1) return listenFinished?.call(false);
+//         return controller.forwardAt(_durationPrevious().$2);
+//       case AnimationStatus.completed:
+//         if (i == -1) return listenFinished?.call(true);
+//         return controller.reverseAt(_durationPrevious().$2);
+//       case AnimationStatus.forward || AnimationStatus.reverse:
+//         return;
 //     }
+//   }
 //
-//     const dismissed = AnimationStatus.dismissed,
-//         completed = AnimationStatus.completed;
-//     final statusListener = widget.sAni.initialStatusListener;
-//     final listener = statusListener == null
-//         ? (status) {
-//       switch (status) {
-//         case dismissed:
-//           if (i == _iMax) return;
-//           return forward();
-//         case completed:
-//           if (i == _iMax) return;
-//           return reverse();
-//         default:
-//           return;
-//       }
-//     }
-//         : (status) {
-//       final i = this.i;
-//       switch (status) {
-//         case dismissed:
-//           if (i == _iMax) return statusListener(dismissed);
-//           return forward();
-//         case completed:
-//           if (i == _iMax) return statusListener(completed);
-//           return reverse();
-//         default:
-//           return;
-//       }
-//     };
+//   (Duration, Duration, T, T, BiCurve) _durationNext() {
+//     setState(() => i++);
+//     return steps[i];
+//   }
 //
-//     // todo: remove listener then add listener for reverse
-//
-//     return listener;
+//   (Duration, Duration, T, T, BiCurve) _durationPrevious() {
+//     setState(() => i--);
+//     return steps[i];
 //   }
 // }

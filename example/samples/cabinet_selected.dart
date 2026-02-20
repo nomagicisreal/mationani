@@ -10,9 +10,9 @@ class SampleCabinet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Mationani.manion(
+      duration: (Duration(seconds: 3), Duration(seconds: 2)),
       ani: Ani.updateForwardOrReverseWhen(
         toggle,
-        duration: (Duration(seconds: 3), Duration(seconds: 2)),
       ),
       manable: ManableSet.selectedAndParent(
         parent: MamableSingle(

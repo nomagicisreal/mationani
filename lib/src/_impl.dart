@@ -308,14 +308,6 @@ final class _CurveSegment extends Curve {
 const Duration _durationDefault = Duration(milliseconds: 500);
 
 extension _AnimationController on AnimationController {
-  void addStatusListenerIfNotNull(AnimationStatusListener? statusListener) {
-    if (statusListener != null) addStatusListener(statusListener);
-  }
-
-  void addListenerIfNotNull(VoidCallback? listener) {
-    if (listener != null) addListener(listener);
-  }
-
   ///
   ///
   ///
@@ -326,13 +318,21 @@ extension _AnimationController on AnimationController {
     ..forward(from: from);
 
   void updateDurationIfNew(Mationani oldWidget, Mationani widget) {
-    final duration = widget.ani.duration,
-        durationOld = oldWidget.ani.duration,
+    final duration = widget.duration,
+        durationOld = oldWidget.duration,
         df = duration.$1,
         dr = duration.$2;
     if (durationOld.$1 != df) this.duration = df;
     if (durationOld.$2 != dr) reverseDuration = dr;
   }
+
+  void forwardAt(Duration duration, [double? from]) => this
+    ..duration = duration
+    ..forward(from: from);
+
+  void reverseAt(Duration duration, [double? from]) => this
+    ..reverseDuration = duration
+    ..reverse(from: from);
 }
 
 ///

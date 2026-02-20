@@ -2,26 +2,22 @@ part of '../mationani.dart';
 
 ///
 ///
-/// [Ani]
-///   --[AniSequence]
+/// * [Ani]
+/// * [AniControllerInitializer]
+/// * [AniUpdater]
 ///
-/// * [AnimationControllerInitializer]
-/// * [AnimationUpdater]
+/// * [AniSequence]
+/// * [AniSequenceCommandInit]
+/// * [AniSequenceCommandUpdate]
+///
 ///
 ///
 
 ///
 ///
-/// [Ani] is a class that focus on how animation can be used in [_MationaniState].
 ///
-/// In tradition, it's hard to implement [AnimationController] everytime we want to trigger animation; we need to
-///   1. let [State] object inherit [TickerProvider].
-///   2. let [AnimationController] instance hold for the [State] inherited [TickerProvider].
-///   3. trigger animation be in the right place ([State.initState], [State.didUpdateWidget], [State.setState])
-/// With [Ani], 1 and 2 are prevented, 3 is easier. It implement the chance we changed state in [_MationaniState]
-/// [_MationaniState.initState], there is [initializing] function for configuration.
-/// [_MationaniState.didUpdateWidget], there is [updater] to be defined
-/// [_MationaniState.setState], there is [setStateProvider] passing callback to parent widget
+/// [Ani] is a class that focus on how animation can be used in [_MationaniState],
+/// hiding the logic of [AnimationController] implementation.
 ///
 ///
 
@@ -39,69 +35,32 @@ part of '../mationani.dart';
 /// [Ani.decideForward], ...
 ///
 final class Ani {
-  final AnimationControllerInitializer initializer;
-  final VoidCallback? initialListener;
-  final AnimationStatusListener? initialStatusListener;
-  final AnimationUpdater updater;
-  final (Duration, Duration) duration;
+  final AniControllerInitializer initializer;
+  final AniUpdater? updater;
 
   @override
-  int get hashCode => Object.hash(duration.hashCode, initialListener,
-      initialStatusListener, initializer, updater);
+  int get hashCode => Object.hash(initializer, updater);
 
   @override
   bool operator ==(covariant Ani other) =>
-      duration == other.duration &&
-      initialListener == other.initialListener &&
-      initialStatusListener == other.initialStatusListener &&
-      initializer == other.initializer &&
-      updater == other.updater;
+      initializer == other.initializer && updater == other.updater;
 
   @override
-  String toString() => 'Ani('
-      '\n$duration,'
-      '\n$initialListener,'
-      '\n$initialStatusListener,'
-      '\n$initializer,'
-      '\n$updater,'
-      '\n)\n';
+  String toString() => 'Ani($initializer, $updater)';
 
-  AnimationController initializing(TickerProvider vsync) =>
-      initializer(vsync, duration.$1, duration.$2)
-        ..addStatusListenerIfNotNull(initialStatusListener)
-        ..addListenerIfNotNull(initialListener);
-
-  ///
-  ///
-  ///
   const Ani({
     this.initializer = Ani._initialize,
-    this.initialListener,
-    this.initialStatusListener,
-    this.updater = Ani._updateNothing,
-    this.duration = const (_durationDefault, _durationDefault),
+    this.updater,
   });
 
-  const Ani.initForward({
-    this.initialListener,
-    this.initialStatusListener,
-    this.updater = Ani._updateNothing,
-    this.duration = const (_durationDefault, _durationDefault),
-  }) : initializer = Ani.initializeForward;
+  const Ani.initForward({this.updater}) : initializer = Ani.initializeForward;
 
-  const Ani.initForwardReset({
-    this.initialListener,
-    this.initialStatusListener,
-    this.updater = Ani._updateNothing,
-    this.duration = const (_durationDefault, _durationDefault),
-  }) : initializer = Ani.initializeForwardReset;
+  const Ani.initForwardReset({this.updater})
+      : initializer = Ani.initializeForwardReset;
 
   const Ani.initRepeat({
     bool reversable = false,
-    this.initialListener,
-    this.initialStatusListener,
-    this.updater = Ani._updateNothing,
-    this.duration = const (_durationDefault, _durationDefault),
+    this.updater,
   }) : initializer =
             reversable ? Ani.initializeRepeatReverse : Ani.initializeRepeat;
 
@@ -109,31 +68,19 @@ final class Ani {
   ///
   ///
   Ani.update({
-    this.initialListener,
-    this.initialStatusListener,
     this.initializer = Ani._initialize,
-    this.duration = const (_durationDefault, _durationDefault),
-    required void Function(AnimationController controller) onNotAnimating,
-    void Function(AnimationController controller) onAnimating =
-        Ani.consumeNothing,
+    required void Function(AnimationController) onNotAnimating,
+    void Function(AnimationController) onAnimating = Ani.consumeNothing,
   }) : updater = Ani._consumeUpdate(onAnimating, onNotAnimating);
 
   Ani.updateForwardReset({
-    this.initialListener,
-    this.initialStatusListener,
     this.initializer = Ani._initialize,
-    this.duration = const (_durationDefault, _durationDefault),
-    void Function(AnimationController controller) onAnimating =
-        Ani.consumeNothing,
+    void Function(AnimationController) onAnimating = Ani.consumeNothing,
   }) : updater = Ani._consumeUpdate(onAnimating, Ani.consumeForwardReset);
 
   Ani.updateForwardOrReverse({
-    this.initialListener,
-    this.initialStatusListener,
     this.initializer = Ani._initialize,
-    this.duration = const (_durationDefault, _durationDefault),
-    void Function(AnimationController controller) onAnimating =
-        Ani.consumeNothing,
+    void Function(AnimationController) onAnimating = Ani.consumeNothing,
   }) : updater = Ani._consumeUpdate(onAnimating, Ani.consumeForwardOrReverse);
 
   ///
@@ -141,12 +88,9 @@ final class Ani {
   ///
   Ani.updateForwardWhen(
     bool trigger, {
-    this.initialListener,
-    this.initialStatusListener,
     this.initializer = Ani._initialize,
     required Duration duration,
-  })  : duration = (duration, duration),
-        updater = Ani._consumeUpdate(
+  }) : updater = Ani._consumeUpdate(
           Ani.consumeNothing,
           Ani.decideForward(trigger),
         );
@@ -155,10 +99,7 @@ final class Ani {
     bool trigger, {
     bool onAnimating = false,
     bool onNotAnimating = true,
-    this.initialListener,
-    this.initialStatusListener,
     this.initializer = Ani._initialize,
-    this.duration = const (_durationDefault, _durationDefault),
   }) : updater = Ani._consumeUpdate(
           onAnimating
               ? Ani.decideForwardOrReverse(trigger)
@@ -173,11 +114,8 @@ final class Ani {
   ///
   Ani.initForwardAndUpdateReverseWhen(
     bool trigger, {
-    this.initialListener,
-    this.initialStatusListener,
     bool onAnimating = false,
     bool onNotAnimating = true,
-    this.duration = const (_durationDefault, _durationDefault),
   })  : initializer = Ani.initializeForward,
         updater = Ani._consumeUpdate(
           onAnimating ? Ani.decideReverse(trigger) : Ani.consumeNothing,
@@ -186,11 +124,8 @@ final class Ani {
 
   Ani.initForwardAndWaitUpdateReverseTo(
     bool trigger, {
-    this.initialListener,
     required VoidCallback dismissedCall,
-    this.duration = const (_durationDefault, _durationDefault),
-  })  : initialStatusListener = Ani.statusListenDismissed(dismissedCall),
-        initializer = Ani.initializeForward,
+  })  : initializer = Ani.initializeForwardThenUpdateReverse,
         updater = Ani._consumeUpdate(
           Ani.consumeNothing,
           Ani.decideReverse(trigger),
@@ -222,32 +157,52 @@ final class Ani {
           TickerProvider vsync, Duration forward, Duration reverse) =>
       _initialize(vsync, forward, reverse)..repeat(reverse: true);
 
+  static AnimationController initializeForwardThenUpdateReverse(
+      TickerProvider vsync, Duration forward, Duration reverse) {
+    final controller = _initialize(vsync, forward, reverse);
+    return controller
+      ..forward()
+      ..addStatusListener(statusListenDismissed(controller.reverse));
+  }
+
   ///
   /// [statusListenForward], [statusListenReverse]
   /// [statusListenCompleted], [statusListenDismissed]
   /// [statusListenCompletedOrDismissed]
   ///
   static AnimationStatusListener statusListenForward(VoidCallback listener) =>
-      (status) => status == AnimationStatus.forward ? listener() : null;
+      (status) {
+        if (status == AnimationStatus.forward) listener();
+      };
 
   static AnimationStatusListener statusListenReverse(VoidCallback listener) =>
-      (status) => status == AnimationStatus.reverse ? listener() : null;
+      (status) {
+        if (status == AnimationStatus.reverse) listener();
+      };
 
   static AnimationStatusListener statusListenCompleted(VoidCallback listener) =>
-      (status) => status == AnimationStatus.completed ? listener() : null;
+      (status) {
+        if (status == AnimationStatus.completed) listener();
+      };
 
   static AnimationStatusListener statusListenDismissed(VoidCallback listener) =>
-      (status) => status == AnimationStatus.dismissed ? listener() : null;
+      (status) {
+        if (status == AnimationStatus.dismissed) listener();
+      };
 
   static AnimationStatusListener statusListenCompletedOrDismissed(
-          VoidCallback listener) =>
-      (status) => status == AnimationStatus.completed ||
-              status == AnimationStatus.dismissed
-          ? listener()
-          : null;
+    VoidCallback listener,
+  ) =>
+      (status) {
+        switch (status) {
+          case AnimationStatus.dismissed || AnimationStatus.completed:
+            listener();
+          case AnimationStatus.forward || AnimationStatus.reverse:
+            return;
+        }
+      };
 
   ///
-  /// [_updateNothing]
   /// [_consumeUpdate]
   /// [consumeNothing]
   /// [consumeForward], [consumeForwardReset], [consumeForwardOrReverse], [consumeReverse]
@@ -255,11 +210,11 @@ final class Ani {
   /// [consumeResetForward]
   /// [consumeBack]
   ///
-  static void _updateNothing(AnimationController c, Mationani o, Mationani n) {}
+  // static void _updateNothing(AnimationController c, Mationani o, Mationani n) {}
 
-  static AnimationUpdater _consumeUpdate(
-    void Function(AnimationController controller) onAnimating,
-    void Function(AnimationController controller) onNotAnimating,
+  static AniUpdater _consumeUpdate(
+    void Function(AnimationController) onAnimating,
+    void Function(AnimationController) onNotAnimating,
   ) =>
       (controller, oldWidget, widget) {
         controller.updateDurationIfNew(oldWidget, widget);
@@ -338,13 +293,44 @@ final class Ani {
 ///
 ///
 ///
-typedef AnimationControllerInitializer = AnimationController Function(
+typedef AniControllerInitializer = AnimationController Function(
   TickerProvider vsync,
   Duration forward,
   Duration reverse,
 );
-typedef AnimationUpdater = void Function(
+typedef AniUpdater = void Function(
   AnimationController controller,
   Mationani oldWidget,
   Mationani widget,
 );
+
+///
+///
+///
+final class AniSequence {
+  final AniSequenceCommandInit? commandInitialize;
+  final AniSequenceCommandUpdate commandUpdate;
+
+  const AniSequence({
+    this.commandInitialize,
+    this.commandUpdate = AniSequenceCommandUpdate.nothing,
+  });
+}
+
+enum AniSequenceCommandInit {
+  forward,
+  forwardReset,
+  forwardRepeat,
+  pulse, // forward then reverse
+  pulseRepeat,
+  pulseExpanding,
+}
+
+enum AniSequenceCommandUpdate {
+  nothing,
+  forward,
+  forwardStep,
+  reverse,
+  reverseStep,
+  stop,
+}
