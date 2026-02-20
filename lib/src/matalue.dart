@@ -107,6 +107,8 @@ abstract class Between<T> extends Matalue<T> {
           _BetweenDoubleDouble(begin, end as (double, double), curve),
         (double, double, double) _ => _BetweenDoubleDoubleDouble(
             begin, end as (double, double, double), curve),
+        (double, double, double, double) _ => _BetweenDoubleDoubleDoubleDouble(
+            begin, end as (double, double, double, double), curve),
 
         ///
         ///

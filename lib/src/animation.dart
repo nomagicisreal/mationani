@@ -8,9 +8,8 @@ part of '../mationani.dart';
 ///     --[_Mamion]
 ///     --[_Manion]
 ///
-/// [MationaniSequence]
+/// [Masionani]
 /// * [AniSequenceCommand]
-/// * [Mation]
 ///
 ///
 
@@ -152,15 +151,25 @@ final class _Manion
 ///
 ///
 ///
-class MationaniSequence<T> extends StatefulWidget {
+///
+///
+/// [Masionani] is the sequenceable version of [Mationani],
+/// we can provide [styles] duration for each animation [steps].
+/// While [AnimationStyle] properties are null by default,
+/// there are [defaultDuration] and [defaultCurve] for each animation step.
+///
+///
+///
+///
+class Masionani<T> extends StatefulWidget {
   final List<T> steps;
   final List<AnimationStyle>? styles;
   final Duration defaultDuration;
   final Curve defaultCurve;
-  final Mation Function(T, T, BiCurve) sMation;
+  final Mation Function(T, T, BiCurve) sequencing;
   final AniSequenceCommand ani;
 
-  MationaniSequence.mamion({
+  Masionani.mamion({
     super.key,
     this.styles,
     this.defaultDuration = _durationDefault,
@@ -169,9 +178,10 @@ class MationaniSequence<T> extends StatefulWidget {
     required this.ani,
     required Mamable Function(T, T, BiCurve) sMamable,
     required Widget child,
-  }) : sMation = _sMamion(sMamable, child);
+  })  : sequencing = _sMamion(sMamable, child),
+        assert(steps.length > 1);
 
-  MationaniSequence.manion({
+  Masionani.manion({
     super.key,
     this.styles,
     this.defaultDuration = _durationDefault,
@@ -181,7 +191,8 @@ class MationaniSequence<T> extends StatefulWidget {
     required Manable Function(T, T, BiCurve) sManable,
     required Widget Function(List<Widget> children) parenting,
     required List<Widget> children,
-  }) : sMation = _sManion(sManable, parenting, children);
+  })  : sequencing = _sManion(sManable, parenting, children),
+        assert(steps.length > 1);
 
   ///
   ///
@@ -205,20 +216,16 @@ class MationaniSequence<T> extends StatefulWidget {
           );
 
   @override
-  State<MationaniSequence<T>> createState() => _MationaniSequenceState<T>();
+  State<Masionani<T>> createState() => _MasionaniState<T>();
 
   ///
   /// except animation controller repeats forward-reverse-forward... (0.0 ~ 1.0 ~ 0.0 ~ 1.0 ...)
   /// return (durationForward, durationReverse, curveForward, curveReverse, mamable)
   ///
-  static List<(Duration, Duration, T, T, BiCurve)> stepsFrom<T>(
-    List<T> steps, {
-    List<AnimationStyle>? styles,
-    Duration defaultDuration = _durationDefault,
-    Curve defaultCurve = Curves.fastOutSlowIn,
-  }) {
+  List<(Duration, Duration, T, T, BiCurve)> get elements {
     late final int count;
     late final List<(Duration, Duration, Curve, Curve)> times;
+    final styles = this.styles;
     if (styles == null) {
       count = steps.length - 1;
       times = List.filled(count,
@@ -257,179 +264,311 @@ class MationaniSequence<T> extends StatefulWidget {
     return List.of(elements, growable: false);
   }
 
-  static bool _dismissUpdateBuilder<T>(
-    MationaniSequence<T> oldWidget,
-    MationaniSequence<T> widget,
-  ) =>
-      oldWidget.steps == widget.steps &&
-      oldWidget.styles == widget.styles &&
-      oldWidget.defaultDuration == widget.defaultDuration &&
-      oldWidget.defaultCurve == widget.defaultCurve &&
-      oldWidget.sMation == widget.sMation &&
-      oldWidget.ani == widget.ani;
+// static bool _dismissUpdateBuilder<T>(
+//   MationaniSequence<T> oldWidget,
+//   MationaniSequence<T> widget,
+// ) =>
+//     // oldWidget.steps == widget.steps && // already checked in didUpdateWidget
+//     oldWidget.styles == widget.styles &&
+//     oldWidget.defaultDuration == widget.defaultDuration &&
+//     oldWidget.defaultCurve == widget.defaultCurve &&
+//     oldWidget.sequencing == widget.sequencing &&
+//     oldWidget.ani == widget.ani;
 }
 
-class _MationaniSequenceState<T> extends State<MationaniSequence<T>>
-    with SingleTickerProviderStateMixin<MationaniSequence<T>> {
-  final List<(Duration, Duration, T, T, BiCurve)> steps = [];
-  late final AnimationController controller;
-  late int _iMax;
-  late Mation Function(T, T, BiCurve) sequencing;
-  int i = 0;
+///
+///
+///
+/// [_listenerInit], [_listenerUpdate]
+/// [_slSequenceForward], [_slSequenceReverse]
+/// [_durationNext], [_durationPrevious]
+///
+///
+class _MasionaniState<T> extends State<Masionani<T>>
+    with SingleTickerProviderStateMixin<Masionani<T>> {
+  late final List<(Duration, Duration, T, T, BiCurve)> _steps;
+  late final AnimationController _controller;
+  late Mation Function(T, T, BiCurve) _sequencing;
+
+  ///
+  /// Notice that the [_status] here is the status of [Masionani],
+  /// not the status of [AnimationController.status]
+  ///
+  AnimationStatus _status = AnimationStatus.dismissed;
+  int _i = 0;
 
   @override
   void initState() {
     super.initState();
-    final widget = this.widget, steps = this.steps;
-    steps.addAll(MationaniSequence.stepsFrom(
-      widget.steps,
-      styles: widget.styles,
-      defaultDuration: widget.defaultDuration,
-      defaultCurve: widget.defaultCurve,
-    ));
-    _iMax = steps.length - 1;
+    final widget = this.widget,
+        steps = widget.elements,
+        step = steps[0],
+        controller = AnimationController(
+          vsync: this,
+          duration: step.$1,
+          reverseDuration: step.$2,
+        ),
+        listener = _listenerInit(controller, widget.ani.initialize);
 
-    final step = steps[0];
-    final controller = AnimationController(
-      vsync: this,
-      duration: step.$1,
-      reverseDuration: step.$2,
-    );
-    final initializer = widget.ani.initialize;
-    if (initializer != null) {
-      late final AnimationStatusListener slListener;
-      slListener = switch (initializer) {
-        AniSequenceCommandInit.forward => _slForward,
-        AniSequenceCommandInit.forwardReset => (status) =>
-            _slForward(status, (_) {
-              i = 0;
-              controller.reset();
-            }),
-        AniSequenceCommandInit.forwardRepeat => (status) =>
-            _slForward(status, (_) {
-              i = 0;
-              controller
-                ..reset()
-                ..forward();
-            }),
-        AniSequenceCommandInit.pulse => (status) =>
-            _slForward(status, (completed) {
-              controller
-                ..removeStatusListener(slListener)
-                ..addStatusListener(_slReverse);
-              completed ? controller.reverse() : controller.forward();
-            }),
-        AniSequenceCommandInit.pulseRepeat => () {
-            late final AnimationStatusListener slF;
-            void reverse(AnimationStatus status) => _slReverse(
-                  status,
-                  (_) => controller
-                    ..removeStatusListener(reverse)
-                    ..addStatusListener(slF)
-                    ..forward(),
-                );
-            slF = (status) => _slForward(
-                  status,
-                  (completed) {
-                    controller
-                      ..removeStatusListener(slF)
-                      ..addStatusListener(reverse);
-                    completed ? controller.reverse() : controller.forward();
-                  },
-                );
-            return slF;
-          }(),
-      };
-      controller
-        ..addStatusListener(slListener)
+    _steps = steps;
+    if (listener == null) {
+      _controller = controller;
+    } else {
+      _controller = controller
+        ..addStatusListener(listener)
         ..forward();
+      _status = AnimationStatus.forward;
     }
-
-    this.controller = controller;
-    sequencing = widget.sMation;
+    _sequencing = widget.sequencing;
   }
 
   @override
   void dispose() {
     super.dispose();
-    controller.dispose();
+    _controller.dispose();
   }
 
   @override
-  void didUpdateWidget(covariant MationaniSequence<T> oldWidget) {
+  void didUpdateWidget(covariant Masionani<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
     final widget = this.widget;
-    switch (widget.ani.update) {
-      case AniSequenceCommandUpdate.nothing:
-        return;
-      case AniSequenceCommandUpdate.stopOrResume:
-        final controller = this.controller;
-        switch (controller.status) {
-          case AnimationStatus.dismissed:
-          case AnimationStatus.completed:
-            return;
-          case AnimationStatus.forward:
-            controller.isAnimating ? controller.stop() : controller.forward();
-            return;
-          case AnimationStatus.reverse:
-            controller.isAnimating ? controller.stop() : controller.reverse();
-            return;
-        }
-      case AniSequenceCommandUpdate.forward:
-      case AniSequenceCommandUpdate.forwardStep:
-      case AniSequenceCommandUpdate.reverse:
-      case AniSequenceCommandUpdate.reverseStep:
-        if (MationaniSequence._dismissUpdateBuilder(widget, oldWidget)) return;
-        sequencing = widget.sMation;
-        throw UnimplementedError();
+    if (widget.steps.isIdentical(oldWidget.steps)) {
+      return _listenerUpdate(widget.ani.update);
     }
+    throw UnimplementedError();
   }
 
   @override
   Widget build(BuildContext context) {
-    final step = steps[i];
-    return sequencing(step.$3, step.$4, step.$5).plan(controller);
+    final step = _steps[_i];
+    return _sequencing(step.$3, step.$4, step.$5).plan(_controller);
   }
 
-  void _slForward(
-    AnimationStatus status, [
-    void Function(bool)? listenFinished,
-  ]) {
-    switch (status) {
-      case AnimationStatus.dismissed:
-        if (i >= _iMax) return listenFinished?.call(false);
-        return controller.forwardAt(_durationNext().$1);
-      case AnimationStatus.completed:
-        if (i >= _iMax) return listenFinished?.call(true);
-        return controller.reverseAt(_durationNext().$1);
-      case AnimationStatus.forward || AnimationStatus.reverse:
+  ///
+  ///
+  /// [_listenerInit]
+  /// [_listenerUpdate]
+  ///
+  ///
+  AnimationStatusListener? _listenerInit(
+    AnimationController controller,
+    AniSequenceCommandInit? initialize,
+  ) =>
+      switch (initialize) {
+        null => null,
+        AniSequenceCommandInit.forward => _slSequenceForward(),
+        AniSequenceCommandInit.forwardStep => () {
+            controller.forward().then((_) => setState(() => _i++));
+            _status = AnimationStatus.forward;
+            return null;
+          }(),
+        AniSequenceCommandInit.forwardReset => _slSequenceForward(
+            (_) {
+              setState(() => _i = 0);
+              controller.reset();
+              _status = AnimationStatus.dismissed;
+            },
+          ),
+        AniSequenceCommandInit.forwardRepeat => _slSequenceForward(
+            (_) {
+              setState(() => _i = 0);
+              controller.reset();
+              controller.forward();
+              _status = AnimationStatus.forward;
+            },
+          ),
+        AniSequenceCommandInit.pulse => _slSequenceForward(
+            (completed) {
+              controller.addStatusListener(_slSequenceReverse());
+              completed ? controller.reverse() : controller.forward();
+              _status = AnimationStatus.reverse;
+            },
+          ),
+        AniSequenceCommandInit.pulseRepeat => () {
+            AnimationStatusListener slF(status) => _slSequenceForward(
+                  (completed) {
+                    controller.addStatusListener(
+                      _slSequenceReverse(
+                        (_) {
+                          controller.addStatusListener(slF);
+                          controller.forward();
+                          _status = AnimationStatus.forward;
+                        },
+                      ),
+                    );
+                    completed ? controller.reverse() : controller.forward();
+                    _status = AnimationStatus.reverse;
+                  },
+                );
+            return slF;
+          }(),
+      };
+
+  void _listenerUpdate(AniSequenceCommandUpdate? update) {
+    switch (update) {
+      case null:
         return;
+
+      //
+      case AniSequenceCommandUpdate.stopOrResume:
+        final controller = _controller;
+        if (controller.isAnimating) {
+          controller.stop();
+          return;
+        }
+        switch (controller.status) {
+          case AnimationStatus.dismissed || AnimationStatus.completed:
+            return;
+          case AnimationStatus.forward:
+            controller.forward();
+            return;
+          case AnimationStatus.reverse:
+            controller.reverse();
+            return;
+        }
+
+      //
+      case AniSequenceCommandUpdate.forwardIfDismissed:
+        if (_status != AnimationStatus.dismissed) return;
+        _controller
+          ..addStatusListener(_slSequenceForward())
+          ..forward();
+        _status = AnimationStatus.forward;
+        return;
+
+      //
+      case AniSequenceCommandUpdate.forwardStepExceptReverse:
+        final controller = _controller;
+        if (controller.isAnimating) return;
+        switch (_status) {
+          case AnimationStatus.dismissed:
+            controller.forward().then((_) => setState(() => _i++));
+            _status = AnimationStatus.forward;
+            return;
+          case AnimationStatus.forward:
+            final i = _i;
+            (i % 2 == 0
+                ? controller.forward().then
+                : controller.reverse().then)(
+              i < _steps.length - 1
+                  ? (_) => setState(() => _i++)
+                  : (_) => _status = AnimationStatus.completed,
+            );
+            return;
+          case AnimationStatus.reverse || AnimationStatus.completed:
+            return;
+        }
+
+      //
+      case AniSequenceCommandUpdate.reverseIfCompleted:
+        if (_status != AnimationStatus.completed) return;
+        final controller = _controller;
+        controller.addStatusListener(_slSequenceReverse());
+        controller.status == AnimationStatus.completed
+            ? controller.reverse()
+            : controller.forward();
+        _status = AnimationStatus.reverse;
+        return;
+
+      //
+      case AniSequenceCommandUpdate.reverseStepExceptForward:
+        final controller = _controller;
+        if (controller.isAnimating) return;
+        switch (_status) {
+          case AnimationStatus.completed:
+            (_i % 2 == 0
+                ? controller.reverse().then
+                : controller.forward().then)((_) => setState(() => _i--));
+            _status = AnimationStatus.reverse;
+            return;
+          case AnimationStatus.reverse:
+            final i = _i;
+            (i % 2 == 0
+                ? controller.reverse().then
+                : controller.forward().then)(
+              i > 0
+                  ? (_) => setState(() => _i--)
+                  : (_) => _status = AnimationStatus.dismissed,
+            );
+            return;
+          case AnimationStatus.forward || AnimationStatus.dismissed:
+            return;
+        }
     }
   }
 
-  void _slReverse(
-    AnimationStatus status, [
+  ///
+  ///
+  /// [_slSequenceForward]
+  /// [_slSequenceReverse]
+  ///
+  ///
+  AnimationStatusListener _slSequenceForward([
     void Function(bool)? listenFinished,
   ]) {
-    switch (status) {
-      case AnimationStatus.dismissed:
-        if (i == 0) return listenFinished?.call(false);
-        return controller.forwardAt(_durationPrevious().$2);
-      case AnimationStatus.completed:
-        if (i == 0) return listenFinished?.call(true);
-        return controller.reverseAt(_durationPrevious().$2);
-      case AnimationStatus.forward || AnimationStatus.reverse:
-        return;
+    final iMax = _steps.length - 1;
+    void forward(AnimationStatus status) {
+      switch (status) {
+        case AnimationStatus.dismissed:
+          if (_i >= iMax) {
+            _status = AnimationStatus.completed;
+            _controller.removeStatusListener(forward);
+            return listenFinished?.call(false);
+          }
+          return _controller.forwardAt(_durationNext.$1);
+        case AnimationStatus.completed:
+          if (_i >= iMax) {
+            _status = AnimationStatus.completed;
+            _controller.removeStatusListener(forward);
+            return listenFinished?.call(true);
+          }
+          return _controller.reverseAt(_durationNext.$1);
+        case AnimationStatus.forward || AnimationStatus.reverse:
+          return;
+      }
     }
+
+    return forward;
   }
 
-  (Duration, Duration, T, T, BiCurve) _durationNext() {
-    setState(() => i++);
-    return steps[i];
+  AnimationStatusListener _slSequenceReverse([
+    void Function(bool)? listenFinished,
+  ]) {
+    void reverse(AnimationStatus status) {
+      switch (status) {
+        case AnimationStatus.dismissed:
+          if (_i == 0) {
+            _status = AnimationStatus.dismissed;
+            _controller.removeStatusListener(reverse);
+            return listenFinished?.call(false);
+          }
+          return _controller.forwardAt(_durationPrevious.$2);
+        case AnimationStatus.completed:
+          if (_i == 0) {
+            _status = AnimationStatus.dismissed;
+            _controller.removeStatusListener(reverse);
+            return listenFinished?.call(true);
+          }
+          return _controller.reverseAt(_durationPrevious.$2);
+        case AnimationStatus.forward || AnimationStatus.reverse:
+          return;
+      }
+    }
+
+    return reverse;
   }
 
-  (Duration, Duration, T, T, BiCurve) _durationPrevious() {
-    setState(() => i--);
-    return steps[i];
+  ///
+  /// [_durationNext]
+  /// [_durationPrevious]
+  ///
+  (Duration, Duration, T, T, BiCurve) get _durationNext {
+    setState(() => _i++);
+    return _steps[_i];
+  }
+
+  (Duration, Duration, T, T, BiCurve) get _durationPrevious {
+    setState(() => _i--);
+    return _steps[_i];
   }
 }

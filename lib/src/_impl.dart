@@ -6,6 +6,7 @@ part of '../mationani.dart';
 /// + [_ListWidget]
 ///
 /// implementation for `matalue.dart`
+/// k [_radian360], ...
 /// + [_E]
 /// + [_ShapeDecoration]
 /// + [_OffsetOffset]
@@ -16,9 +17,9 @@ part of '../mationani.dart';
 /// implementation for `animation.dart`
 /// k [_durationDefault]
 /// + [_AnimationController]
+/// + [_ListExtension]
 ///
 /// implementation for `matable.dart`
-/// k [_radian360], ...
 /// --[Clipper], [_ClipperAdjust]
 /// --[Painter], [_PainterAdjust]
 /// [_MatableDriver]
@@ -161,7 +162,7 @@ class _BetweenDoubleDoubleDouble extends Between<(double, double, double)> {
     final begin = this.begin,
         end = this.end,
         b1 = begin.$1,
-        b2 = begin.$1,
+        b2 = begin.$2,
         b3 = begin.$3,
         e1 = end.$1,
         e2 = end.$2,
@@ -170,6 +171,32 @@ class _BetweenDoubleDoubleDouble extends Between<(double, double, double)> {
       b1 * (1.0 - t) + e1 * t,
       b2 * (1.0 - t) + e2 * t,
       b3 * (1.0 - t) + e3 * t
+    );
+  }
+}
+
+class _BetweenDoubleDoubleDoubleDouble
+    extends Between<(double, double, double, double)> {
+  const _BetweenDoubleDoubleDoubleDouble(super.begin, super.end, super.curve)
+      : super._();
+
+  @override
+  (double, double, double, double) transform(double t) {
+    final begin = this.begin,
+        end = this.end,
+        b1 = begin.$1,
+        b2 = begin.$2,
+        b3 = begin.$3,
+        b4 = begin.$4,
+        e1 = end.$1,
+        e2 = end.$2,
+        e3 = end.$3,
+        e4 = end.$4;
+    return (
+      b1 * (1.0 - t) + e1 * t,
+      b2 * (1.0 - t) + e2 * t,
+      b3 * (1.0 - t) + e3 * t,
+      b4 * (1.0 - t) + e4 * t
     );
   }
 }
@@ -333,6 +360,20 @@ extension _AnimationController on AnimationController {
   void reverseAt(Duration duration, [double? from]) => this
     ..reverseDuration = duration
     ..reverse(from: from);
+}
+
+///
+///
+///
+extension _ListExtension<T> on List<T> {
+  bool isIdentical(List<T> another) {
+    final length = this.length;
+    if (length != another.length) return false;
+    for (var i = 0; i < length; i++) {
+      if (this[i] != another[i]) return false;
+    }
+    return true;
+  }
 }
 
 ///

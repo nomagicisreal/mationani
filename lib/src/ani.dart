@@ -309,16 +309,14 @@ typedef AniUpdater = void Function(
 ///
 final class AniSequenceCommand {
   final AniSequenceCommandInit? initialize;
-  final AniSequenceCommandUpdate update;
+  final AniSequenceCommandUpdate? update;
 
-  const AniSequenceCommand({
-    this.initialize = AniSequenceCommandInit.forward,
-    this.update = AniSequenceCommandUpdate.nothing,
-  });
+  const AniSequenceCommand({this.initialize, this.update});
 }
 
 enum AniSequenceCommandInit {
   forward,
+  forwardStep,
   forwardReset,
   forwardRepeat,
   pulse, // forward then reverse
@@ -326,10 +324,9 @@ enum AniSequenceCommandInit {
 }
 
 enum AniSequenceCommandUpdate {
-  nothing,
-  forward,
-  forwardStep,
-  reverse,
-  reverseStep,
+  forwardIfDismissed,
+  forwardStepExceptReverse,
+  reverseIfCompleted,
+  reverseStepExceptForward,
   stopOrResume,
 }

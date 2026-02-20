@@ -41,44 +41,15 @@ class _MyHomeState extends State<MyHome> {
     setState(() => toggle = !toggle);
   }
 
-  Mamable _sMamable(double previous, double next, BiCurve curve) =>
-      MamablePaint.path(
-        BetweenTicks(
-          BetweenTicks.depend(
-            Between(previous, next).transform,
-            (scalar) => Path()
-              ..moveTo(scalar, 0)
-              ..quadraticBezierTo(0, 100, 100, 100),
-          ),
-          curve,
-        ),
-        pen: Paint()
-          ..style = PaintingStyle.stroke
-          ..color = Colors.black,
-      );
-
   @override
   Widget build(BuildContext context) {
-    final steps =
-        List.generate(10, (_) => math.Random().nextInt(200).toDouble());
     return Scaffold(
       backgroundColor: Colors.black45,
       body: Center(
         child: SizedBox(
           height: 300,
           width: 100,
-
-          child: MationaniSequence.mamion(
-            steps: steps,
-            ani: const AniSequenceCommand(
-              initialize: AniSequenceCommandInit.pulseRepeat,
-              update: AniSequenceCommandUpdate.stopOrResume,
-            ),
-            sMamable: _sMamable,
-            child: SizedBox.expand(),
-          ),
-
-          // child: SampleSlide(),
+          child: SampleSlide(),
           // child: SampleDraw(),
           // child: SampleCutting(),
           // child: SampleCabinet(toggle: toggle),
@@ -88,3 +59,4 @@ class _MyHomeState extends State<MyHome> {
     );
   }
 }
+

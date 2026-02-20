@@ -53,62 +53,6 @@ abstract final class Mamable implements Matable {
     Animation<double> parent,
     covariant Widget child,
   );
-
-  ///
-  /// todo: implement AniSequence for forward/reverse step by step (onAnimating -> next) or all steps
-  /// except animation controller repeats forward-reverse-forward... (0.0 ~ 1.0 ~ 0.0 ~ 1.0 ...)
-  /// return (durationForward, durationReverse, curveForward, curveReverse, mamable)
-  ///
-  static List<(Duration, Duration, T, T, BiCurve)> sequencing<T>({
-    Duration dDefault = _durationDefault,
-    List<AnimationStyle>? styles,
-    required List<T> steps,
-  }) {
-    late final int count;
-    late final List<(Duration, Duration, Curve, Curve)> times;
-    if (styles == null) {
-      count = steps.length - 1;
-      times = List.filled(count, (
-        dDefault,
-        dDefault,
-        Curves.fastOutSlowIn,
-        Curves.fastOutSlowIn,
-      ));
-    } else {
-      count = styles.length;
-      times = List.of(
-        [
-          ...styles.map(
-            (style) => (
-              style.duration ?? dDefault,
-              style.reverseDuration ?? dDefault,
-              style.curve ?? Curves.fastOutSlowIn,
-              style.reverseCurve ?? Curves.fastOutSlowIn
-            ),
-          )
-        ],
-        growable: false,
-      );
-      assert(count + 1 == steps.length);
-    }
-
-    final elements = <(Duration, Duration, T, T, BiCurve)>[];
-    var previous = steps[0];
-    for (var i = 0; i < count; i++) {
-      final next = steps[i + 1], fr = times[i];
-
-      // controller is forward(0.0 ~ 1.0) when i % 2 == 0
-      // controller is reverse(1.0 ~ 0.0) when i % 2 == 1
-      elements.add(
-        i % 2 == 0
-            ? (fr.$1, fr.$2, previous, next, (fr.$3, fr.$4))
-            : (fr.$2, fr.$1, next, previous, (fr.$4, fr.$3)),
-      );
-      previous = next;
-    }
-
-    return elements;
-  }
 }
 
 abstract final class Manable implements Matable {
