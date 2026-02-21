@@ -453,7 +453,7 @@ final class MamablePaint extends MamableSingle {
 ///
 ///
 ///
-final class MamableTransform extends MamableSingle<(double, double, double)> {
+final class MamableTransform extends MamableSingle {
   final Matrix4 Function(Matrix4 m, (double, double, double) vector) onAnimate;
   AlignmentGeometry? alignment;
   Matrix4 host;
@@ -479,42 +479,42 @@ final class MamableTransform extends MamableSingle<(double, double, double)> {
   ///
   ///
   MamableTransform.translation({
+    required Matrix4 host,
     required Matalue<(double, double, double)> translate,
     AlignmentGeometry? alignment,
-    Matrix4? host,
   }) : this(
           translate,
           alignment: alignment,
-          host: host ?? Matrix4.identity(),
-          onAnimate: MamableTransform._translating,
+          host: host,
+          onAnimate: MamableTransform._setTranslation,
         );
 
   MamableTransform.rotation({
+    required Matrix4 host,
     required Matalue<(double, double, double)> rotate,
     AlignmentGeometry? alignment,
-    Matrix4? host,
   }) : this(
           rotate,
           alignment: alignment,
-          host: host ?? Matrix4.identity(),
-          onAnimate: MamableTransform._rotating,
+          host: host,
+          onAnimate: MamableTransform._setRotation,
         );
 
   MamableTransform.scale({
+    required Matrix4 host,
     required Matalue<(double, double, double)> scale,
     AlignmentGeometry? alignment,
-    Matrix4? host,
   }) : this(
           scale,
           alignment: alignment,
-          host: host ?? Matrix4.identity(),
-          onAnimate: MamableTransform._scaling,
+          host: host,
+          onAnimate: MamableTransform._setScale,
         );
 
-  static Matrix4 _translating(Matrix4 matrix4, (double, double, double) p) =>
-      matrix4..translateByDouble(p.$1, p.$2, p.$3, 1.0);
+  static Matrix4 _setTranslation(Matrix4 matrix4, (double, double, double) p) =>
+      matrix4..setTranslationRaw(p.$1, p.$2, p.$3);
 
-  static Matrix4 _rotating(Matrix4 matrix4, (double, double, double) p) =>
+  static Matrix4 _setRotation(Matrix4 matrix4, (double, double, double) p) =>
       matrix4
         ..setRotation((Matrix4.identity()
               ..rotateX(p.$1)
@@ -522,7 +522,7 @@ final class MamableTransform extends MamableSingle<(double, double, double)> {
               ..rotateZ(p.$3))
             .getRotation());
 
-  static Matrix4 _scaling(Matrix4 matrix4, (double, double, double) p) =>
+  static Matrix4 _setScale(Matrix4 matrix4, (double, double, double) p) =>
       matrix4.scaledByDouble(p.$1, p.$2, p.$3, 1.0);
 }
 

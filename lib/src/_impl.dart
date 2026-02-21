@@ -40,7 +40,7 @@ extension _ListWidget on List<Widget> {
   ) {
     if (length != animations.length) {
       throw StateError(
-        'size(${animations.length}) not equal to children size($length)',
+        '${animations.length} ≠ $length (animations.length ≠ children.length)',
       );
     }
     var children = <Widget>[];

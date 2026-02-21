@@ -120,6 +120,7 @@ class SampleCabinet extends StatelessWidget {
         ]),
         6: MamableSet([
           MamableTransform.rotation(
+            host: Matrix4.identity(),
             rotate: Between(
               (0, 0, 0),
               (
