@@ -4,7 +4,8 @@ part of '../mationani.dart';
 /// .
 ///     --[MamableSet]
 ///     |
-///     |   --[MamableTransform]
+///     |   --[MamableTransformCompose]
+///     |   --[MamableTransform], [Matrix4Extension]
 ///     |   --[MamableClip]
 ///     |   --[MamablePaint]
 ///     |   --[MamableTransition]
@@ -478,20 +479,9 @@ final class MamableTransform extends MamableSingle {
   ///
   ///
   ///
-  MamableTransform.translation({
-    required Matrix4 host,
-    required Matalue<(double, double, double)> translate,
-    AlignmentGeometry? alignment,
-  }) : this(
-          translate,
-          alignment: alignment,
-          host: host,
-          onAnimate: MamableTransform._setTranslation,
-        );
-
-  MamableTransform.rotation({
-    required Matrix4 host,
-    required Matalue<(double, double, double)> rotate,
+  MamableTransform.rotating(
+    Matalue<(double, double, double)> rotate,
+    Matrix4 host, {
     AlignmentGeometry? alignment,
   }) : this(
           rotate,
@@ -500,30 +490,55 @@ final class MamableTransform extends MamableSingle {
           onAnimate: MamableTransform._setRotation,
         );
 
-  MamableTransform.scale({
-    required Matrix4 host,
-    required Matalue<(double, double, double)> scale,
-    AlignmentGeometry? alignment,
-  }) : this(
-          scale,
-          alignment: alignment,
-          host: host,
-          onAnimate: MamableTransform._setScale,
-        );
-
-  static Matrix4 _setTranslation(Matrix4 matrix4, (double, double, double) p) =>
-      matrix4..setTranslationRaw(p.$1, p.$2, p.$3);
-
   static Matrix4 _setRotation(Matrix4 matrix4, (double, double, double) p) =>
       matrix4
-        ..setRotation((Matrix4.identity()
-              ..rotateX(p.$1)
-              ..rotateY(p.$2)
-              ..rotateZ(p.$3))
-            .getRotation());
+        ..setRotation(v64.Matrix3.rotationX(p.$1)
+          ..setRotationY(p.$2)
+          ..setRotationZ(p.$3));
+}
 
-  static Matrix4 _setScale(Matrix4 matrix4, (double, double, double) p) =>
-      matrix4.scaledByDouble(p.$1, p.$2, p.$3, 1.0);
+final class MamableTransformCompose extends MamableSingle {
+  AlignmentGeometry? alignment;
+
+  MamableTransformCompose(
+    Matalue<TransformTarget> matalue, {
+    this.alignment,
+  }) : super._(
+          matalue,
+          (animation, child) => ListenableBuilder(
+            listenable: animation,
+            builder: (_, __) {
+              final h = animation.value as TransformTarget;
+              return Transform(
+                transform: Matrix4.compose(h._t, h._r, h._s),
+                alignment: alignment,
+                child: child,
+              );
+            },
+          ),
+        );
+}
+
+///
+///
+///
+extension Matrix4Extension on Matrix4 {
+  ///
+  /// [perspective] = 1 / distance
+  ///
+  void setPerspective(double perspective) => setEntry(3, 2, perspective);
+
+  void setIdentityPerspective() {
+    final p = getPerspective();
+    this
+      ..setIdentity()
+      ..setEntry(3, 2, p);
+  }
+
+  void rotateOn(double vx, double vy, double vz, double r) =>
+      rotate(v64.Vector3(vx, vy, vz), r);
+
+  double getPerspective() => entry(3, 2);
 }
 
 ///

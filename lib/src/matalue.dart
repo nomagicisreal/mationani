@@ -17,6 +17,8 @@ part of '../mationani.dart';
 ///         |
 ///         --[BetweenTicks]
 ///
+/// * [TransformTarget]
+///
 ///
 
 typedef CubicOffset = (Offset, Offset, Offset, Offset);
@@ -37,7 +39,7 @@ class _AnimationMatalue<T> extends Animation<T>
   T get value => animatable.evaluate(parent);
 }
 
-abstract class Matalue<T> extends Animatable<T> {
+abstract final class Matalue<T> extends Animatable<T> {
   final BiCurve? curve;
 
   const Matalue(this.curve);
@@ -77,7 +79,7 @@ abstract class Matalue<T> extends Animatable<T> {
 ///
 ///
 ///
-abstract class Between<T> extends Matalue<T> {
+abstract final class Between<T> extends Matalue<T> {
   final T begin;
   final T end;
 
@@ -106,9 +108,17 @@ abstract class Between<T> extends Matalue<T> {
         (double, double) _ =>
           _BetweenDoubleDouble(begin, end as (double, double), curve),
         (double, double, double) _ => _BetweenDoubleDoubleDouble(
-            begin, end as (double, double, double), curve),
+            begin,
+            end as (double, double, double),
+            curve,
+          ),
         (double, double, double, double) _ => _BetweenDoubleDoubleDoubleDouble(
-            begin, end as (double, double, double, double), curve),
+            begin,
+            end as (double, double, double, double),
+            curve,
+          ),
+        TransformTarget _ =>
+          _BetweenTransform(begin, end as TransformTarget, curve),
 
         ///
         ///
@@ -161,7 +171,7 @@ abstract class Between<T> extends Matalue<T> {
 /// [offsetArcOval], ...
 /// [pathLine], ...
 ///
-class BetweenTicks<T> extends Between<T> {
+final class BetweenTicks<T> extends Between<T> {
   final T Function(double) onLerp;
 
   @override
@@ -494,7 +504,7 @@ class BetweenTicks<T> extends Between<T> {
 ///
 ///
 ///
-abstract class Deviate<T> extends Matalue<T> {
+abstract final class Deviate<T> extends Matalue<T> {
   final T around;
   final T amplitude;
 
@@ -518,4 +528,96 @@ abstract class Deviate<T> extends Matalue<T> {
       around == other.around &&
       amplitude == other.amplitude &&
       curve == other.curve;
+}
+
+///
+///
+///
+final class TransformTarget {
+  final (double, double, double) translation;
+  final (double, double, double) rotation;
+  final (double, double, double) scale;
+
+  @override
+  String toString() => 'TransformHost(\n$translation\n$rotation\n$scale\n)';
+
+  const TransformTarget({
+    this.translation = (0, 0, 0),
+    this.rotation = (0, 0, 0),
+    this.scale = (1, 1, 1),
+  });
+
+  v64.Vector3 get _t {
+    final translation = this.translation;
+    return v64.Vector3(translation.$1, translation.$2, translation.$3);
+  }
+
+  v64.Quaternion get _r {
+    final rotation = this.rotation;
+    return v64.Quaternion.euler(rotation.$1, rotation.$2, rotation.$3);
+  }
+
+  v64.Vector3 get _s {
+    final scale = this.scale;
+    return v64.Vector3(scale.$1, scale.$2, scale.$3);
+  }
+
+  static TransformTarget Function(double) lerp(
+      TransformTarget begin, TransformTarget end) {
+    final bt = begin.translation,
+        br = begin.rotation,
+        bs = begin.scale,
+        et = end.translation,
+        er = end.rotation,
+        es = end.scale,
+        btX = bt.$1,
+        btY = bt.$2,
+        btZ = bt.$3,
+        brX = br.$1,
+        brY = br.$2,
+        brZ = br.$3,
+        bsX = bs.$1,
+        bsY = bs.$2,
+        bsZ = bs.$3,
+        etX = et.$1,
+        etY = et.$2,
+        etZ = et.$3,
+        erX = er.$1,
+        erY = er.$2,
+        erZ = er.$3,
+        esX = es.$1,
+        esY = es.$2,
+        esZ = es.$3;
+    return (t) => TransformTarget(
+          translation: (
+            btX * (1 - t) + etX * t,
+            btY * (1 - t) + etY * t,
+            btZ * (1 - t) + etZ * t
+          ),
+          rotation: (
+            brX * (1 - t) + erX * t,
+            brY * (1 - t) + erY * t,
+            brZ * (1 - t) + erZ * t
+          ),
+          scale: (
+            bsX * (1 - t) + esX * t,
+            bsY * (1 - t) + esY * t,
+            bsZ * (1 - t) + esZ * t
+          ),
+        );
+  }
+
+  ///
+  ///
+  ///
+  Matrix4 get matrix4 {
+    final translation = this.translation,
+        rotation = this.rotation,
+        scale = this.scale;
+    return Matrix4.compose(
+      v64.Vector3(translation.$1, translation.$2, translation.$3),
+      v64.Quaternion.euler(rotation.$3, rotation.$2, rotation.$1),
+      v64.Vector3(scale.$1, scale.$2, scale.$3),
+    );
+  }
 }

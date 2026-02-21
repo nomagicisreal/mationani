@@ -9,6 +9,7 @@ import 'samples/draw_each.dart';
 import 'samples/cutting_respectively.dart';
 import 'samples/cabinet_selected.dart';
 import 'samples/slide_sequence.dart';
+import 'samples/slide_transform.dart';
 
 void main(List<String> args) {
   runApp(const MyApp());
@@ -49,7 +50,8 @@ class _MyHomeState extends State<MyHome> {
         child: SizedBox(
           height: 300,
           width: 100,
-          child: SampleSlide(),
+          child: SampleTransform(),
+          // child: SampleSlide(),
           // child: SampleDraw(),
           // child: SampleCutting(),
           // child: SampleCabinet(toggle: toggle),

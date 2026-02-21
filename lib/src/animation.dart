@@ -179,7 +179,10 @@ class Masionani<T> extends StatefulWidget {
     required Mamable Function(T, T, BiCurve) sMamable,
     required Widget child,
   })  : sequencing = _sMamion(sMamable, child),
-        assert(steps.length > 1);
+        assert(
+          steps.length > 2,
+          'Prefer using Mationani when there is only 1 animation: $steps',
+        );
 
   Masionani.manion({
     super.key,
@@ -192,7 +195,10 @@ class Masionani<T> extends StatefulWidget {
     required Widget Function(List<Widget> children) parenting,
     required List<Widget> children,
   })  : sequencing = _sManion(sManable, parenting, children),
-        assert(steps.length > 1);
+        assert(
+          steps.length > 1,
+          'Prefer using Mationani when there is only 1 animation: $steps',
+        );
 
   ///
   ///
@@ -247,6 +253,7 @@ class Masionani<T> extends StatefulWidget {
       );
       assert(count + 1 == steps.length);
     }
+    assert(count > 1);
 
     // controller is forward(0.0 ~ 1.0) when i % 2 == 0
     // controller is reverse(1.0 ~ 0.0) when i % 2 == 1

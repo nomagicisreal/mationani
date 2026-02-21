@@ -119,9 +119,8 @@ class SampleCabinet extends StatelessWidget {
           ),
         ]),
         6: MamableSet([
-          MamableTransform.rotation(
-            host: Matrix4.identity(),
-            rotate: Between(
+          MamableTransform.rotating(
+            Between(
               (0, 0, 0),
               (
                 math.pi * 1.75,
@@ -129,6 +128,7 @@ class SampleCabinet extends StatelessWidget {
                 math.pi * 0.2,
               ),
             ),
+            Matrix4.identity(),
             alignment: Alignment.center,
           ),
         ]),
