@@ -9,7 +9,8 @@ part of '../mationani.dart';
 ///     --[_Manion]
 ///
 /// [Masionani]
-/// * [AniSequenceCommand]
+/// * [AniSequenceCommandInit]
+/// * [AniSequenceCommandUpdate]
 ///
 ///
 
@@ -167,15 +168,17 @@ class Masionani<T> extends StatefulWidget {
   final Duration defaultDuration;
   final Curve defaultCurve;
   final Mation Function(T, T, BiCurve) sequencing;
-  final AniSequenceCommand ani;
+  final AniSequenceCommandInit? aniInit;
+  final AniSequenceCommandUpdate? aniUpdate;
 
   Masionani.mamion({
     super.key,
     this.styles,
     this.defaultDuration = _durationDefault,
     this.defaultCurve = Curves.fastOutSlowIn,
+    this.aniInit,
+    this.aniUpdate,
     required this.steps,
-    required this.ani,
     required Mamable Function(T, T, BiCurve) sMamable,
     required Widget child,
   })  : sequencing = _sMamion(sMamable, child),
@@ -189,8 +192,9 @@ class Masionani<T> extends StatefulWidget {
     this.styles,
     this.defaultDuration = _durationDefault,
     this.defaultCurve = Curves.fastOutSlowIn,
+    this.aniInit,
+    this.aniUpdate,
     required this.steps,
-    required this.ani,
     required Manable Function(T, T, BiCurve) sManable,
     required Widget Function(List<Widget> children) parenting,
     required List<Widget> children,
@@ -315,7 +319,7 @@ class _MasionaniState<T> extends State<Masionani<T>>
           duration: step.$1,
           reverseDuration: step.$2,
         ),
-        listener = _listenerInit(controller, widget.ani.initialize);
+        listener = _listenerInit(controller, widget.aniInit);
 
     _steps = steps;
     if (listener == null) {
@@ -340,7 +344,7 @@ class _MasionaniState<T> extends State<Masionani<T>>
     super.didUpdateWidget(oldWidget);
     final widget = this.widget;
     if (widget.steps.isIdentical(oldWidget.steps)) {
-      return _listenerUpdate(widget.ani.update);
+      return _listenerUpdate(widget.aniUpdate);
     }
     throw UnimplementedError();
   }

@@ -307,13 +307,6 @@ typedef AniUpdater = void Function(
 ///
 ///
 ///
-final class AniSequenceCommand {
-  final AniSequenceCommandInit? initialize;
-  final AniSequenceCommandUpdate? update;
-
-  const AniSequenceCommand({this.initialize, this.update});
-}
-
 enum AniSequenceCommandInit {
   forward,
   forwardStep,

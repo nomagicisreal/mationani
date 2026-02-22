@@ -5,43 +5,58 @@ import 'package:mationani/mationani.dart';
 class SampleTransform extends StatelessWidget {
   const SampleTransform({super.key});
 
-  static final Matrix4 host = Matrix4.identity();
-  static const double r30 = math.pi / 6;
-
+  static const double r60 = math.pi / 3;
   static final List<TransformTarget> steps = [
     ...List.generate(
-      13,
-      (i) => TransformTarget(rotation: (0, 0, r30 * i)),
+      7,
+      (i) => TransformTarget(rotation: (0, 0, r60 * i)),
     ),
     ...List.generate(
-      13,
-      (i) => TransformTarget(rotation: (0, r30 * i, 0)),
+      7,
+      (i) => TransformTarget(rotation: (0, r60 * i, 0)),
     ),
     ...List.generate(
-      13,
-      (i) => TransformTarget(rotation: (r30 * i, 0, 0)),
+      7,
+      (i) => TransformTarget(rotation: (r60 * i, 0, 0)),
     ),
     ...List.generate(
-      13,
-      (i) => TransformTarget(rotation: (0, r30 * i, r30 * i)),
+      7,
+      (i) => TransformTarget(rotation: (0, r60 * i, r60 * i)),
     ),
     ...List.generate(
-      13,
-          (i) => TransformTarget(rotation: (0, -r30 * i, r30 * i)),
+      7,
+      (i) => TransformTarget(rotation: (0, -r60 * i, r60 * i)),
     ),
     ...List.generate(
-      13,
-      (i) => TransformTarget(rotation: (r30 * i, 0, r30 * i)),
+      7,
+      (i) => TransformTarget(rotation: (r60 * i, 0, r60 * i)),
     ),
     ...List.generate(
-      13,
-          (i) => TransformTarget(rotation: (-r30 * i, 0, r30 * i)),
+      7,
+      (i) => TransformTarget(rotation: (-r60 * i, 0, r60 * i)),
     ),
-    TransformTarget(rotation: (0, 0, 0)),
+    ...List.generate(
+      10,
+          (_) => TransformTarget(
+        translation: (
+        math.Random().nextInt(200) - 100.0,
+        math.Random().nextInt(300) - 150.0,
+        math.Random().nextInt(200) - 100.0,
+        ),
+        rotation: (
+        math.Random().nextInt(3) * r60,
+        math.Random().nextInt(3) * r60,
+        math.Random().nextInt(3) * r60,
+        ),
+        scale: (
+        1.1 + math.Random().nextInt(8),
+        1.1 + math.Random().nextInt(8),
+        1.1 + math.Random().nextInt(2),
+        ),
+      ),
+    ),
+    const TransformTarget(),
   ];
-
-  Mamable _sMamable(TransformTarget p, TransformTarget n, BiCurve c) =>
-      MamableTransformCompose(Between(p, n));
 
   @override
   Widget build(BuildContext context) {
@@ -50,11 +65,9 @@ class SampleTransform extends StatelessWidget {
         dimension: 20,
         child: Masionani.mamion(
           steps: steps,
-          ani: const AniSequenceCommand(
-            update: AniSequenceCommandUpdate.forwardStepExceptReverse,
-          ),
+          aniUpdate: AniSequenceCommandUpdate.forwardStepExceptReverse,
           defaultDuration: const Duration(milliseconds: 300),
-          sMamable: _sMamable,
+          sMamable: MamableTransform.sequenceCompose,
           child: DecoratedBox(
             decoration: BoxDecoration(
               border: Border(

@@ -68,6 +68,9 @@ extension _ListWidget on List<Widget> {
 ///
 const double _radian360 = math.pi * 2;
 const double _radian90 = math.pi / 2;
+typedef _D2 = (double, double);
+typedef _D3 = (double, double, double);
+typedef _D4 = (double, double, double, double);
 
 extension _E on Offset {
   static void _draw(Canvas canvas, Paint paint, Path path) =>
@@ -138,11 +141,11 @@ final class _BetweenDouble extends Between<double> {
   double transform(double t) => begin * (1.0 - t) + end * t;
 }
 
-final class _BetweenDoubleDouble extends Between<(double, double)> {
+final class _BetweenDoubleDouble extends Between<_D2> {
   const _BetweenDoubleDouble(super.begin, super.end, super.curve) : super._();
 
   @override
-  (double, double) transform(double t) {
+  _D2 transform(double t) {
     final begin = this.begin,
         end = this.end,
         b1 = begin.$1,
@@ -154,12 +157,12 @@ final class _BetweenDoubleDouble extends Between<(double, double)> {
 }
 
 final class _BetweenDoubleDoubleDouble
-    extends Between<(double, double, double)> {
+    extends Between<_D3> {
   const _BetweenDoubleDoubleDouble(super.begin, super.end, super.curve)
       : super._();
 
   @override
-  (double, double, double) transform(double t) {
+  _D3 transform(double t) {
     final begin = this.begin,
         end = this.end,
         b1 = begin.$1,
@@ -177,12 +180,12 @@ final class _BetweenDoubleDoubleDouble
 }
 
 final class _BetweenDoubleDoubleDoubleDouble
-    extends Between<(double, double, double, double)> {
+    extends Between<_D4> {
   const _BetweenDoubleDoubleDoubleDouble(super.begin, super.end, super.curve)
       : super._();
 
   @override
-  (double, double, double, double) transform(double t) {
+  _D4 transform(double t) {
     final begin = this.begin,
         end = this.end,
         b1 = begin.$1,
@@ -296,17 +299,129 @@ final class _BetweenOutlinedBorder extends Between<OutlinedBorder> {
   OutlinedBorder transform(double t) => OutlinedBorder.lerp(begin, end, t)!;
 }
 
-///
-///
 final class _BetweenTransform extends Between<TransformTarget> {
-  final TransformTarget Function(double) _lerp;
+  final v64.Vector3 translation;
+  final v64.Quaternion rotation;
+  final v64.Vector3 scale;
+  final void Function(double) setTransform;
 
-  _BetweenTransform(super.begin, super.end, super.curve)
-      : _lerp = TransformTarget.lerp(begin, end),
-        super._();
+  Matrix4 get matrix4 => Matrix4.compose(translation, rotation, scale);
+
+  _BetweenTransform._(
+    this.translation,
+    this.rotation,
+    this.scale,
+    this.setTransform,
+    super.begin,
+    super.end,
+    super.curve,
+  ) : super._();
+
+  factory _BetweenTransform(
+    TransformTarget begin,
+    TransformTarget end, [
+    BiCurve? curve,
+  ]) {
+    final bt = begin.translation,
+        br = begin.rotation,
+        bs = begin.scale,
+        et = end.translation,
+        er = end.rotation,
+        es = end.scale,
+        btX = bt.$1,
+        btY = bt.$2,
+        btZ = bt.$3,
+        brX = br.$1,
+        brY = br.$2,
+        brZ = br.$3,
+        bsX = bs.$1,
+        bsY = bs.$2,
+        bsZ = bs.$3,
+        etX = et.$1,
+        etY = et.$2,
+        etZ = et.$3,
+        erX = er.$1,
+        erY = er.$2,
+        erZ = er.$3,
+        esX = es.$1,
+        esY = es.$2,
+        esZ = es.$3;
+    final translation = v64.Vector3(btX, btY, btZ);
+    final rotation = v64.Quaternion.euler(brX, brY, brZ);
+    final scale = v64.Vector3(bsX, bsY, bsZ);
+    return _BetweenTransform._(
+      translation,
+      rotation,
+      scale,
+      (t) {
+        translation.setValues(
+          btX * (1 - t) + etX * t,
+          btY * (1 - t) + etY * t,
+          btZ * (1 - t) + etZ * t,
+        );
+        rotation.setEuler(
+          brX * (1 - t) + erX * t,
+          brY * (1 - t) + erY * t,
+          brZ * (1 - t) + erZ * t,
+        );
+        scale.setValues(
+          bsX * (1 - t) + esX * t,
+          bsY * (1 - t) + esY * t,
+          bsZ * (1 - t) + esZ * t,
+        );
+      },
+      begin,
+      end,
+      curve,
+    );
+  }
 
   @override
-  TransformTarget transform(double t) => _lerp(t);
+  TransformTarget transform(double t) {
+    final begin = this.begin,
+        end = this.end,
+        bt = begin.translation,
+        br = begin.rotation,
+        bs = begin.scale,
+        et = end.translation,
+        er = end.rotation,
+        es = end.scale,
+        btX = bt.$1,
+        btY = bt.$2,
+        btZ = bt.$3,
+        brX = br.$1,
+        brY = br.$2,
+        brZ = br.$3,
+        bsX = bs.$1,
+        bsY = bs.$2,
+        bsZ = bs.$3,
+        etX = et.$1,
+        etY = et.$2,
+        etZ = et.$3,
+        erX = er.$1,
+        erY = er.$2,
+        erZ = er.$3,
+        esX = es.$1,
+        esY = es.$2,
+        esZ = es.$3;
+    return TransformTarget(
+      translation: (
+        btX * (1 - t) + etX * t,
+        btY * (1 - t) + etY * t,
+        btZ * (1 - t) + etZ * t,
+      ),
+      rotation: (
+        brX * (1 - t) + erX * t,
+        brY * (1 - t) + erY * t,
+        brZ * (1 - t) + erZ * t,
+      ),
+      scale: (
+        bsX * (1 - t) + esX * t,
+        bsY * (1 - t) + esY * t,
+        bsZ * (1 - t) + esZ * t,
+      ),
+    );
+  }
 }
 
 ///

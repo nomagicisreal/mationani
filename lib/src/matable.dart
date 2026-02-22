@@ -4,8 +4,7 @@ part of '../mationani.dart';
 /// .
 ///     --[MamableSet]
 ///     |
-///     |   --[MamableTransformCompose]
-///     |   --[MamableTransform], [Matrix4Extension]
+///     |   --[MamableTransform]
 ///     |   --[MamableClip]
 ///     |   --[MamablePaint]
 ///     |   --[MamableTransition]
@@ -453,93 +452,114 @@ final class MamablePaint extends MamableSingle {
 
 ///
 ///
+/// factories:
+/// [MamableTransform.rotate]
+/// [MamableTransform.compose]
+///
+/// static methods:
+/// [hostSetRotation], ...
+///
 ///
 final class MamableTransform extends MamableSingle {
-  final Matrix4 Function(Matrix4 m, (double, double, double) vector) onAnimate;
-  AlignmentGeometry? alignment;
-  Matrix4 host;
+  MamableTransform._(super.matalue, super._builder) : super._();
 
-  MamableTransform(
+  factory MamableTransform(
     Matalue<(double, double, double)> matalue, {
-    required this.alignment,
-    required this.host,
-    required this.onAnimate,
-  }) : super._(
-          matalue,
-          (animation, child) => ListenableBuilder(
-            listenable: animation,
-            builder: (_, __) => Transform(
-              transform: onAnimate(host, animation.value),
-              alignment: alignment,
-              child: child,
-            ),
-          ),
-        );
+    required Matrix4 host,
+    required Matrix4 Function(Matrix4, (double, double, double)) onAnimate,
+    AlignmentGeometry? alignment,
+  }) {
+    return MamableTransform._(
+      matalue,
+      (animation, child) => ListenableBuilder(
+        listenable: animation,
+        builder: (_, __) => Transform(
+          transform: onAnimate(host, animation.value),
+          alignment: alignment,
+          child: child,
+        ),
+      ),
+    );
+  }
 
-  ///
-  ///
-  ///
-  MamableTransform.rotating(
+  factory MamableTransform.rotate(
     Matalue<(double, double, double)> rotate,
     Matrix4 host, {
     AlignmentGeometry? alignment,
-  }) : this(
-          rotate,
-          alignment: alignment,
-          host: host,
-          onAnimate: MamableTransform._setRotation,
-        );
+  }) =>
+      MamableTransform(
+        rotate,
+        alignment: alignment,
+        host: host,
+        onAnimate: MamableTransform.hostSetRotation,
+      );
 
-  static Matrix4 _setRotation(Matrix4 matrix4, (double, double, double) p) =>
+  factory MamableTransform.compose(
+    Matalue<TransformTarget> matalue, {
+    AlignmentGeometry? alignment,
+  }) {
+    final host = matalue as _BetweenTransform,
+        matrix4 = Matrix4.compose(host.translation, host.rotation, host.scale);
+    return MamableTransform._(
+      null,
+      (animation, child) => ListenableBuilder(
+        listenable: animation,
+        builder: (_, __) {
+          host.setTransform(animation.value);
+          return Transform(
+            transform: matrix4
+              ..setFromTranslationRotationScale(
+                host.translation,
+                host.rotation,
+                host.scale,
+              ),
+            alignment: alignment,
+            child: child,
+          );
+        },
+      ),
+    );
+  }
+
+  ///
+  ///
+  ///
+  static Mamable sequenceCompose(
+    TransformTarget previous,
+    TransformTarget next,
+    BiCurve curve,
+  ) =>
+      MamableTransform.compose(_BetweenTransform(previous, next, curve));
+
+  ///
+  ///
+  ///
+  static Matrix4 hostSetRotation(Matrix4 matrix4, (double, double, double) p) =>
       matrix4
         ..setRotation(v64.Matrix3.rotationX(p.$1)
           ..setRotationY(p.$2)
           ..setRotationZ(p.$3));
-}
 
-final class MamableTransformCompose extends MamableSingle {
-  AlignmentGeometry? alignment;
-
-  MamableTransformCompose(
-    Matalue<TransformTarget> matalue, {
-    this.alignment,
-  }) : super._(
-          matalue,
-          (animation, child) => ListenableBuilder(
-            listenable: animation,
-            builder: (_, __) {
-              final h = animation.value as TransformTarget;
-              return Transform(
-                transform: Matrix4.compose(h._t, h._r, h._s),
-                alignment: alignment,
-                child: child,
-              );
-            },
-          ),
-        );
-}
-
-///
-///
-///
-extension Matrix4Extension on Matrix4 {
   ///
   /// [perspective] = 1 / distance
   ///
-  void setPerspective(double perspective) => setEntry(3, 2, perspective);
+  static void hostSetPerspective(Matrix4 matrix4, double perspective) =>
+      matrix4.setEntry(3, 2, perspective);
 
-  void setIdentityPerspective() {
-    final p = getPerspective();
-    this
+  static void hostSetIdentityPerspective(Matrix4 matrix4) {
+    final p = hostGetPerspective(matrix4);
+    matrix4
       ..setIdentity()
       ..setEntry(3, 2, p);
   }
 
-  void rotateOn(double vx, double vy, double vz, double r) =>
-      rotate(v64.Vector3(vx, vy, vz), r);
-
-  double getPerspective() => entry(3, 2);
+  static double hostGetPerspective(Matrix4 matrix4) => matrix4.entry(3, 2);
 }
+
+///
+///
+///
+extension Matrix4Extension on Matrix4 {}
 
 ///
 ///

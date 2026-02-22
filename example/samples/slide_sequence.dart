@@ -31,10 +31,7 @@ class SampleSlide extends StatelessWidget {
       children: [
         Masionani.mamion(
           steps: cubics,
-          ani: const AniSequenceCommand(
-            initialize: null,
-            update: AniSequenceCommandUpdate.forwardStepExceptReverse,
-          ),
+          aniUpdate: AniSequenceCommandUpdate.forwardStepExceptReverse,
           sMamable: _sMamable,
           child: ColoredBox(
             color: Colors.green.shade400,
