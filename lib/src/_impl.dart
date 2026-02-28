@@ -14,7 +14,7 @@ part of '../mationani.dart';
 /// --[_DeviateDouble], ...
 /// --[_CurveSegment]
 ///
-/// implementation for `animation.dart`
+/// implementation for `widget.dart`
 /// k [_durationDefault]
 /// + [_AnimationController]
 /// + [_ListExtension]

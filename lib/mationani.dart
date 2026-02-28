@@ -11,6 +11,6 @@ import 'package:flutter/material.dart';
 
 part 'src/_impl.dart';
 part 'src/ani.dart';
-part 'src/animation.dart';
+part 'src/widget.dart';
 part 'src/matable.dart';
 part 'src/matalue.dart';
