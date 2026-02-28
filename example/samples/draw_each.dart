@@ -8,13 +8,13 @@ class SampleDraw extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Mationani.manion(
+    return Mationani.n(
       ani: Ani.updateForwardOrReverse(),
       manable: ManableSet.each([
         MamablePaint.path(
           BetweenTicks(
             // strokes are implicit closing if Path.combine
-            (t) => Path.combine(
+                (t) => Path.combine(
               PathOperation.union,
               _Arc.arcA.extractPath(0, _Arc.arcA.length * t),
               _Arc.arcB.extractPath(0, _Arc.arcB.length * t),

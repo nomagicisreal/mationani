@@ -74,13 +74,13 @@ class _ScatteredOut extends StatelessWidget {
 
   static MamableSet _generator2Mamable(int index) => MamableSet([
         MamableTransition.rotate(
-          Between(0,  index == 0 ? 1 / 12 : -1 / 12),
+          Between(0, index == 0 ? 1 / 12 : -1 / 12),
           alignment: Alignment.topLeft,
         ),
         MamableTransition.slide(
           Between(
             Offset.zero,
-             index == 0 ? const Offset(-0.2, 0) : const Offset(0.2, 0),
+            index == 0 ? const Offset(-0.2, 0) : const Offset(0.2, 0),
           ),
         ),
       ]);
@@ -108,7 +108,7 @@ class _ScatteredOut extends StatelessWidget {
 
   static MamableSet _generator3Mamable(int index) => MamableSet([
         MamableTransition.scale(
-          Between(1,  index == 1 ? 0.8 : 0.3),
+          Between(1, index == 1 ? 0.8 : 0.3),
           alignment: switch (index) {
             0 => Alignment(-0.2, 0),
             1 => Alignment.center,
@@ -119,7 +119,7 @@ class _ScatteredOut extends StatelessWidget {
         MamableTransition.slide(
           Between(
             Offset.zero,
-             switch (index) {
+            switch (index) {
               0 => const Offset(-0.3, 0),
               1 => Offset.zero,
               2 => const Offset(0.3, 0),
@@ -161,7 +161,7 @@ class _ScatteredOut extends StatelessWidget {
 
     return Stack(
       children: [
-        Mationani.manion(
+        Mationani.n(
           ani: ani,
           manable: ManableSet.respectivelyAndParent(
             parent: MamableTransition.fadeOut(curve: curveFadeOut),
@@ -170,16 +170,16 @@ class _ScatteredOut extends StatelessWidget {
           parenting: (children) => Stack(children: children),
           children: List.generate(
             count,
-            (i) => ClipPath(
+                (i) => ClipPath(
               clipper: _Clipping.reclipNever(generatorSizingPath(i)),
               child: child,
             ),
           ),
         ),
-        Mationani.mamion(
+        Mationani.m(
           ani: ani,
-          mamable: MamableTransition.fadeOut(curve: curveOverlay),
-          child: child,
+            mamable: MamableTransition.fadeOut(curve: curveOverlay),
+            child: child,
         ),
       ],
     );

@@ -89,7 +89,7 @@ class SampleSlide extends StatelessWidget {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        Mationani.mamion(
+        Mationani.m(
           duration: const (Duration(seconds: 5), Duration(seconds: 5)),
           ani: Ani.initForward(),
           mamable: MamableTransition.align(
@@ -110,7 +110,7 @@ class SampleSlide extends StatelessWidget {
             child: SizedBox.square(dimension: 10),
           ),
         ),
-        Masionani.mamion(
+        Masionani.m(
           steps: stepsTransition,
           aniUpdate: AniSequenceCommandUpdate.forwardStepExceptReverse,
           sMamable: _sMamable,
@@ -122,7 +122,7 @@ class SampleSlide extends StatelessWidget {
         Center(
           child: SizedBox.square(
             dimension: 20,
-            child: Masionani.mamion(
+            child: Masionani.m(
               steps: stepsTransform,
               aniUpdate: AniSequenceCommandUpdate.forwardStepExceptReverse,
               defaultDuration: const Duration(milliseconds: 300),
