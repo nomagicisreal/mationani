@@ -140,18 +140,18 @@ final class MamableTransition extends MamableSingle {
   }) : super._(matalue, _fromFade(alwaysIncludeSemantics));
 
   MamableTransition.fadeIn({
-    BiCurve? curve,
+    BiCurve curve = _curveLinear,
     bool alwaysIncludeSemantics = false,
   }) : this.fade(Between(0.0, 1.0, curve));
 
   MamableTransition.fadeInTo(
     double opacity, {
-    BiCurve? curve,
+    BiCurve curve = _curveLinear,
     bool alwaysIncludeSemantics = false,
   }) : this.fade(Between(0.0, opacity, curve));
 
   MamableTransition.fadeOut({
-    BiCurve? curve,
+    BiCurve curve = _curveLinear,
     bool alwaysIncludeSemantics = false,
   }) : this.fade(Between(1.0, 0.0, curve));
 

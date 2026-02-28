@@ -42,7 +42,7 @@ class SampleCutting extends StatelessWidget {
 class _ScatteredOut extends StatelessWidget {
   const _ScatteredOut({
     super.key,
-    this.curveFadeOut,
+    this.curveFadeOut = const (Curves.linear, Curves.linear),
     this.curveOverlay = const (Interval(0, 0.01), Interval(0, 0.01)),
     required this.initializer,
     required this.updater,
@@ -57,7 +57,7 @@ class _ScatteredOut extends StatelessWidget {
   final int count;
   final MamableSet Function(int index) generatorMamableSet;
   final Path Function(Size size) Function(int index) generatorSizingPath;
-  final BiCurve? curveFadeOut;
+  final BiCurve curveFadeOut;
   final BiCurve curveOverlay;
   final Widget child;
 
@@ -66,7 +66,7 @@ class _ScatteredOut extends StatelessWidget {
   ///
   const _ScatteredOut.cut2({
     super.key,
-    this.curveFadeOut,
+    this.curveFadeOut = const (Curves.linear, Curves.linear),
     this.curveOverlay = const (Interval(0, 0.01), Interval(0, 0.01)),
     this.initializer = Ani.initialize,
     required this.updater,
@@ -101,7 +101,7 @@ class _ScatteredOut extends StatelessWidget {
   ///
   const _ScatteredOut.cut3({
     super.key,
-    this.curveFadeOut,
+    this.curveFadeOut = const (Curves.linear, Curves.linear),
     this.curveOverlay = const (Interval(0, 0.01), Interval(0, 0.01)),
     this.initializer = Ani.initialize,
     required this.updater,

@@ -40,7 +40,7 @@ final class _AnimationMatalue<T> extends Animation<T>
 }
 
 abstract final class Matalue<T> extends Animatable<T> {
-  final BiCurve? curve;
+  final BiCurve curve;
 
   const Matalue(this.curve);
 
@@ -50,7 +50,7 @@ abstract final class Matalue<T> extends Animatable<T> {
   @override
   Animation<T> animate(Animation<double> parent) {
     final curve = this.curve;
-    if (curve == null) return _AnimationMatalue(parent, this);
+    if (curve == _curveLinear) return _AnimationMatalue(parent, this);
     return _AnimationMatalue(
       CurvedAnimation(parent: parent, curve: curve.$1, reverseCurve: curve.$2),
       this,
@@ -85,25 +85,23 @@ abstract final class Between<T> extends Matalue<T> {
 
   const Between._(this.begin, this.end, super.curve);
 
-  const factory Between.of(T matalue, [BiCurve? curve]) = _BetweenConstant;
+  const factory Between.of(T matalue, [BiCurve curve]) = _BetweenConstant;
 
   @override
   String toString() => 'Between($begin, $end, $curve)';
 
   @override
-  int get hashCode => Object.hash(begin, end, curve?.$1, curve?.$2);
+  int get hashCode => Object.hash(begin, end, curve.$1, curve.$2);
 
   @override
   bool operator ==(covariant Between<T> other) =>
-      begin == other.begin &&
-      end == other.end &&
-      curve?.$1 == other.curve?.$1 &&
-      curve?.$2 == other.curve?.$2;
+      begin == other.begin && end == other.end && curve == other.curve;
 
   ///
   ///
   ///
-  factory Between(T begin, T end, [BiCurve? curve]) => switch (begin) {
+  factory Between(T begin, T end, [BiCurve curve = _curveLinear]) =>
+      switch (begin) {
         double _ => _BetweenDouble(begin, end as double, curve),
         _D2 _ => _BetweenDoubleDouble(begin, end as _D2, curve),
         _D3 _ => _BetweenDoubleDoubleDouble(
@@ -166,7 +164,7 @@ abstract final class Between<T> extends Matalue<T> {
 
 ///
 /// constructors, factories:
-/// [BetweenTicks.sequence], see also [TweenSequence]
+/// [BetweenTicks.seque{nce], see also [TweenSequence]
 ///
 /// static methods:
 /// [BetweenTicks.depend]
@@ -179,7 +177,7 @@ final class BetweenTicks<T> extends Between<T> {
   @override
   T transform(double t) => onLerp(t);
 
-  BetweenTicks(this.onLerp, [BiCurve? curve])
+  BetweenTicks(this.onLerp, [BiCurve curve = _curveLinear])
       : super._(onLerp(0), onLerp(1), curve);
 
   factory BetweenTicks.sequence(
@@ -187,7 +185,7 @@ final class BetweenTicks<T> extends Between<T> {
     BiCurve curve = (Curves.linear, Curves.linear),
     List<BiCurve>? segments,
     List<double>? weights,
-    Animatable<T> Function(T begin, T end, BiCurve? curve)? construct,
+    Animatable<T> Function(T, T, BiCurve)? construct,
   }) {
     final steps = sequence.length;
     assert(weights == null || weights.length + 1 == steps);
@@ -196,7 +194,7 @@ final class BetweenTicks<T> extends Between<T> {
     final items = <TweenSequenceItem<T>>[],
         addition = items.add,
         wTotal = weights?.reduce(_E._doublePlus) ?? steps,
-        instance = construct ?? _E._between,
+        instance = construct ?? _E._between<T>,
         iLast = steps - 2,
         w = weights ?? List.generate(steps, _E._gen1, growable: false),
         c = segments ?? List.generate(steps, _E._genLinear, growable: false);
@@ -512,7 +510,11 @@ abstract final class Deviate<T> extends Matalue<T> {
 
   const Deviate._(this.around, this.amplitude, super.curve);
 
-  factory Deviate({required T around, required T amplitude, BiCurve? curve}) =>
+  factory Deviate({
+    required T around,
+    required T amplitude,
+    BiCurve curve = _curveLinear,
+  }) =>
       switch (around) {
         double _ => _DeviateDouble(around, amplitude as double, curve),
         Offset _ => _DeviateOffset(around, amplitude as Offset, curve),
@@ -523,7 +525,7 @@ abstract final class Deviate<T> extends Matalue<T> {
   String toString() => 'Deviate($around, $amplitude, $curve)';
 
   @override
-  int get hashCode => Object.hash(around, amplitude, curve?.$1, curve?.$2);
+  int get hashCode => Object.hash(around, amplitude, curve.$1, curve.$2);
 
   @override
   bool operator ==(covariant Deviate<T> other) =>

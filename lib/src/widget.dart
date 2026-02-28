@@ -27,7 +27,7 @@ final class Mationani extends StatefulWidget {
   Mationani.m({
     super.key,
     this.duration = const (_durationDefault, _durationDefault),
-    this.initializer = Ani.initializeForward,
+    this.initializer = Ani.initialize,
     this.updater,
     required Mamable mamable,
     required Widget child,
@@ -129,7 +129,7 @@ class _MationaniState extends State<Mationani>
 ///
 class Masionani<T> extends StatefulWidget {
   final List<T> steps;
-  final List<AnimationStyle>? styles;
+  final List<AnimationStyle> styles;
   final Duration defaultDuration;
   final Curve defaultCurve;
   final Widget Function(T, T, BiCurve, Animation<double>) sequencing;
@@ -138,7 +138,7 @@ class Masionani<T> extends StatefulWidget {
 
   Masionani.m({
     super.key,
-    this.styles,
+    this.styles = const [],
     this.defaultDuration = _durationDefault,
     this.defaultCurve = Curves.fastOutSlowIn,
     this.aniInit,
@@ -150,11 +150,15 @@ class Masionani<T> extends StatefulWidget {
         assert(
           steps.length > 2,
           'Prefer using Mationani when there is only 1 animation: $steps',
+        ),
+        assert(
+          styles.isEmpty || styles.length + 1 == steps.length,
+          "'styles' is intervals of 'steps', ${styles.length + 1} ≠ ${steps.length}",
         );
 
   Masionani.n({
     super.key,
-    this.styles,
+    this.styles = const [],
     this.defaultDuration = _durationDefault,
     this.defaultCurve = Curves.fastOutSlowIn,
     this.aniInit,
@@ -167,6 +171,10 @@ class Masionani<T> extends StatefulWidget {
         assert(
           steps.length > 1,
           'Prefer using Mationani when there is only 1 animation: $steps',
+        ),
+        assert(
+          styles.isEmpty || styles.length + 1 == steps.length,
+          "'styles' is intervals of 'steps', ${styles.length + 1} ≠ ${steps.length}",
         );
 
   @override
@@ -180,7 +188,7 @@ class Masionani<T> extends StatefulWidget {
     late final int count;
     late final List<(Duration, Duration, Curve, Curve)> times;
     final styles = this.styles;
-    if (styles == null) {
+    if (styles.isEmpty) {
       count = steps.length - 1;
       times = List.filled(count,
           (defaultDuration, defaultDuration, defaultCurve, defaultCurve));
@@ -199,9 +207,7 @@ class Masionani<T> extends StatefulWidget {
         ],
         growable: false,
       );
-      assert(count + 1 == steps.length);
     }
-    assert(count > 1);
 
     // controller is forward(0.0 ~ 1.0) when i % 2 == 0
     // controller is reverse(1.0 ~ 0.0) when i % 2 == 1
@@ -558,3 +564,73 @@ class _MasionaniState<T> extends State<Masionani<T>>
     return _steps[_i];
   }
 }
+
+// ///
+// ///
+// /// usage:
+// /// how [Matalue] affect animation of a switching child?
+// ///   (x) 1. fixed matalue forward in / reverse out
+// ///   (x) 2. 2 steps matalue forward in / forward out
+// ///   - fixed matalue forward (0.0, 0.5) in / forward (0.5, 1.0) out
+// /// how [AnimationController] affect animation of 2 switching children?
+// ///   (x) - each of children may in|out when 0~1 or 1~0 (even interval), according to its starting time
+// ///   (x) - simultaneously drive switching children or solo drive at beginning&ending
+// ///   - drive betweenIn(0.0, 0.5) or betweenOut(0.5, 1.0), simultaneously when oldIndex ≠ index
+// ///
+// ///
+// class Mationainer extends StatefulWidget {
+//   final int index;
+//   final bool finish;
+//   final AnimationController Function(TickerProvider, Duration) initializer;
+//   final Duration duration;
+//   final Widget Function(Animation<double>) mation;
+//
+//   const Mationainer({
+//     super.key,
+//     required this.index,
+//     this.finish = false,
+//     this.initializer = _initialize,
+//     this.duration = _durationDefault,
+//   });
+//
+//   static AnimationController _initialize(TickerProvider vsync, Duration duration) => AnimationController(vsync: vsync, duration: duration);
+//
+//   @override
+//   State<Mationainer> createState() => _MationainerState();
+// }
+//
+// class _MationainerState extends State<Mationainer>
+//     with SingleTickerProviderStateMixin<Mationainer> {
+//   late final AnimationController _controller;
+//   late final Animation<double> _animationIn, _animationOut;
+//   late Widget _child;
+//
+//   @override
+//   void initState() {
+//     super.initState();
+//     final widget = this.widget;
+//     final controller = widget.initializer(this, widget.duration);
+//     _controller = controller;
+//     _animationIn = _between00To05.animate(controller);
+//     _animationOut = _between05To10.animate(controller);
+//     _child = widget.mation(_animationIn);
+//
+//   }
+//
+//   @override
+//   void didUpdateWidget(covariant Mationainer oldWidget) {
+//     super.didUpdateWidget(oldWidget);
+//     final widget = this.widget, controller = _controller;
+//     if (oldWidget.index == widget.index) {
+//       if (controller.isCompleted && widget.finish) {
+//         widget.mation(_animationOut);
+//         controller.forward();
+//         return;
+//       }
+//       return;
+//     }
+//   }
+//
+//   @override
+//   Widget build(BuildContext context) => _child;
+// }

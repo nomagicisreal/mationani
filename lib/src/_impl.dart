@@ -84,7 +84,7 @@ extension _E on Offset {
 
   static BiCurve _genLinear(int i) => (Curves.linear, Curves.linear);
 
-  static Animatable<T> _between<T>(T begin, T end, BiCurve? curve) =>
+  static Animatable<T> _between<T>(T begin, T end, BiCurve curve) =>
       Between(begin, end, curve);
 
   static CubicOffset _rpcSwitch_1342(CubicOffset cubic) =>
@@ -127,7 +127,7 @@ extension _OffsetOffset on (Offset, Offset) {
 ///
 ///
 final class _BetweenConstant<T> extends Between<T> {
-  const _BetweenConstant(T matalue, [BiCurve? curve])
+  const _BetweenConstant(T matalue, [BiCurve curve = _curveLinear])
       : super._(matalue, matalue, curve);
 
   @override
@@ -320,7 +320,7 @@ final class _BetweenTransform extends Between<TransformTarget> {
   factory _BetweenTransform(
     TransformTarget begin,
     TransformTarget end, [
-    BiCurve? curve,
+    BiCurve curve = _curveLinear,
   ]) {
     final bt = begin.translation,
         br = begin.rotation,
@@ -465,6 +465,8 @@ final class _CurveSegment extends Curve {
 ///
 ///
 const Duration _durationDefault = Duration(milliseconds: 500);
+// const Between<double> _between00To05 = _BetweenDouble(0, 0.5, _curveLinear);
+// const Between<double> _between05To10 = _BetweenDouble(0.5, 1, _curveLinear);
 
 extension _AnimationController on AnimationController {
   ///
@@ -511,6 +513,8 @@ extension _ListExtension<T> on List<T> {
 ///
 ///
 ///
+const BiCurve _curveLinear = (Curves.linear, Curves.linear);
+
 class _Clipper extends CustomClipper<Path> {
   final Path path;
 
