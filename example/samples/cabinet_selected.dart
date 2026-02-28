@@ -11,13 +11,11 @@ class SampleCabinet extends StatelessWidget {
   Widget build(BuildContext context) {
     return Mationani.n(
       duration: (Duration(seconds: 3), Duration(seconds: 2)),
-      ani: Ani.updateForwardOrReverseWhen(
-        toggle,
-      ),
+      updater: Ani.updateDecideFr(toggle),
       manable: ManableSet.selectedAndParent(
         parent: MamableSingle(
           Between(Colors.red.shade200, Colors.green.shade200),
-              (animation, child) => ColoredBox(
+          (animation, child) => ColoredBox(
             color: animation.value,
             child: child,
           ),

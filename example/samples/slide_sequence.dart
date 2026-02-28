@@ -91,7 +91,7 @@ class SampleSlide extends StatelessWidget {
       children: [
         Mationani.m(
           duration: const (Duration(seconds: 5), Duration(seconds: 5)),
-          ani: Ani.initForward(),
+          initializer: Ani.initializeForward,
           mamable: MamableTransition.align(
             BetweenTicks.sequence(
               [

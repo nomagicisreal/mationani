@@ -16,7 +16,8 @@ part of '../mationani.dart';
 ///
 ///
 final class Mationani extends StatefulWidget {
-  final Ani ani;
+  final AniInitializer initializer;
+  final AniUpdater? updater;
   final Widget Function(Animation<double>) mation;
   final (Duration, Duration) duration;
 
@@ -26,7 +27,8 @@ final class Mationani extends StatefulWidget {
   Mationani.m({
     super.key,
     this.duration = const (_durationDefault, _durationDefault),
-    required this.ani,
+    this.initializer = Ani.initializeForward,
+    this.updater,
     required Mamable mamable,
     required Widget child,
   }) : mation = _planMamion(mamable, child);
@@ -37,7 +39,8 @@ final class Mationani extends StatefulWidget {
   Mationani.n({
     super.key,
     this.duration = const (_durationDefault, _durationDefault),
-    required this.ani,
+    this.initializer = Ani.initialize,
+    this.updater,
     required Manable manable,
     required Widget Function(List<Widget>) parenting,
     required List<Widget> children,
@@ -69,7 +72,8 @@ final class Mationani extends StatefulWidget {
   static bool _dismissUpdateBuilder(Mationani oldWidget, Mationani widget) =>
       oldWidget.duration == widget.duration &&
       oldWidget.mation == widget.mation &&
-      oldWidget.ani == widget.ani;
+      oldWidget.initializer == widget.initializer &&
+      oldWidget.updater == widget.updater;
 }
 
 class _MationaniState extends State<Mationani>
@@ -81,7 +85,7 @@ class _MationaniState extends State<Mationani>
   void initState() {
     super.initState();
     final widget = this.widget, duration = widget.duration;
-    controller = widget.ani.initializer(this, duration.$1, duration.$2);
+    controller = widget.initializer(this, duration.$1, duration.$2);
     child = widget.mation(controller);
   }
 
@@ -101,7 +105,7 @@ class _MationaniState extends State<Mationani>
   void didUpdateWidget(covariant Mationani oldWidget) {
     super.didUpdateWidget(oldWidget);
     final widget = this.widget;
-    widget.ani.updater?.call(controller, oldWidget, widget);
+    widget.updater?.call(controller, oldWidget, widget);
     if (Mationani._dismissUpdateBuilder(widget, oldWidget)) return;
     child = widget.mation(controller);
   }

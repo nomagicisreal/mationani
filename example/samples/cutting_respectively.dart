@@ -16,14 +16,14 @@ class SampleCutting extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
         _ScatteredOut.cut2(
-          ani: Ani.updateForwardOrReverse(),
+          updater: Ani.updateFr,
           child: ColoredBox(
             color: Colors.purple,
             child: SizedBox.square(dimension: 100),
           ),
         ),
         _ScatteredOut.cut3(
-          ani: Ani.updateForwardOrReverse(),
+          updater: Ani.updateFr,
           child: ColoredBox(
             color: Colors.amber,
             child: SizedBox.square(dimension: 100),
@@ -44,14 +44,16 @@ class _ScatteredOut extends StatelessWidget {
     super.key,
     this.curveFadeOut,
     this.curveOverlay = const (Interval(0, 0.01), Interval(0, 0.01)),
-    required this.ani,
+    required this.initializer,
+    required this.updater,
     required this.generatorMamableSet,
     required this.count,
     required this.generatorSizingPath,
     required this.child,
   });
 
-  final Ani ani;
+  final AniInitializer initializer;
+  final AniUpdater updater;
   final int count;
   final MamableSet Function(int index) generatorMamableSet;
   final Path Function(Size size) Function(int index) generatorSizingPath;
@@ -66,7 +68,8 @@ class _ScatteredOut extends StatelessWidget {
     super.key,
     this.curveFadeOut,
     this.curveOverlay = const (Interval(0, 0.01), Interval(0, 0.01)),
-    required this.ani,
+    this.initializer = Ani.initialize,
+    required this.updater,
     required this.child,
   })  : count = 2,
         generatorMamableSet = _generator2Mamable,
@@ -100,7 +103,8 @@ class _ScatteredOut extends StatelessWidget {
     super.key,
     this.curveFadeOut,
     this.curveOverlay = const (Interval(0, 0.01), Interval(0, 0.01)),
-    required this.ani,
+    this.initializer = Ani.initialize,
+    required this.updater,
     required this.child,
   })  : count = 3,
         generatorMamableSet = _generator3Mamable,
@@ -154,7 +158,8 @@ class _ScatteredOut extends StatelessWidget {
   ///
   @override
   Widget build(BuildContext context) {
-    final ani = this.ani,
+    final initializer = this.initializer,
+        updater = this.updater,
         count = this.count,
         generatorSizingPath = this.generatorSizingPath,
         child = this.child;
@@ -162,7 +167,8 @@ class _ScatteredOut extends StatelessWidget {
     return Stack(
       children: [
         Mationani.n(
-          ani: ani,
+          initializer: initializer,
+          updater: updater,
           manable: ManableSet.respectivelyAndParent(
             parent: MamableTransition.fadeOut(curve: curveFadeOut),
             children: List.generate(count, generatorMamableSet),
@@ -170,16 +176,17 @@ class _ScatteredOut extends StatelessWidget {
           parenting: (children) => Stack(children: children),
           children: List.generate(
             count,
-                (i) => ClipPath(
+            (i) => ClipPath(
               clipper: _Clipping.reclipNever(generatorSizingPath(i)),
               child: child,
             ),
           ),
         ),
         Mationani.m(
-          ani: ani,
-            mamable: MamableTransition.fadeOut(curve: curveOverlay),
-            child: child,
+          initializer: initializer,
+          updater: updater,
+          mamable: MamableTransition.fadeOut(curve: curveOverlay),
+          child: child,
         ),
       ],
     );

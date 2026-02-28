@@ -9,7 +9,7 @@ class SampleDraw extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Mationani.n(
-      ani: Ani.updateForwardOrReverse(),
+      updater: Ani.updateFr,
       manable: ManableSet.each([
         MamablePaint.path(
           BetweenTicks(
