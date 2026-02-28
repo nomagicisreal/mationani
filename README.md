@@ -94,4 +94,3 @@ Come and check it out: https://github.com/nomagicisreal/mationani/blob/main/exam
 <img src="https://github.com/nomagicisreal/mationani/blob/main/example/sample_cutting.gif?raw=true" alt="Example">
 <img src="https://github.com/nomagicisreal/mationani/blob/main/example/sample_path.gif?raw=true" alt="Example">
 <img src="https://github.com/nomagicisreal/mationani/blob/main/example/sample_sequence.gif?raw=true" alt="Example">
-<img src="https://github.com/nomagicisreal/mationani/blob/main/example/sample_transform.gif?raw=true" alt="Example">
