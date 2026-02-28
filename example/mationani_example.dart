@@ -9,7 +9,6 @@ import 'samples/draw_each.dart';
 import 'samples/cutting_respectively.dart';
 import 'samples/cabinet_selected.dart';
 import 'samples/slide_sequence.dart';
-import 'samples/slide_transform.dart';
 
 void main(List<String> args) {
   runApp(const MyApp());
@@ -37,27 +36,42 @@ class MyHome extends StatefulWidget {
 
 class _MyHomeState extends State<MyHome> {
   bool toggle = false;
-
-  void _onPressed({bool update = true}) {
-    setState(() => toggle = !toggle);
-  }
+  int step = 0;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black45,
-      body: Center(
-        child: SizedBox(
-          height: 300,
-          width: 100,
-          child: SampleTransform(),
-          // child: SampleSlide(),
-          // child: SampleDraw(),
-          // child: SampleCutting(),
-          // child: SampleCabinet(toggle: toggle),
+      body: Align(
+        alignment: const Alignment(-0.2, 1),
+        child: Padding(
+          padding: const EdgeInsetsGeometry.only(bottom: 80),
+          child: SizedBox(
+            height: 300,
+            width: 100,
+            child: SampleSlide(),
+            // child: SampleDraw(),
+            // child: SampleCutting(),
+            // child: SampleCabinet(toggle: toggle),
+          ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(onPressed: _onPressed),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButton: Builder(
+        builder: (context) => FloatingActionButton(
+          onPressed: () {
+            setState(() {
+              toggle = !toggle;
+              step++;
+            });
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              // content: Center(child: Text('toggle: $toggle')),
+              content: Center(child: Text('step: $step')),
+              duration: Duration(milliseconds: 200),
+            ));
+          },
+        ),
+      ),
     );
   }
 }

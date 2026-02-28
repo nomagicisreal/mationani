@@ -453,7 +453,7 @@ class _MasionaniState<T> extends State<Masionani<T>>
         if (controller.isAnimating) return;
         switch (_status) {
           case AnimationStatus.dismissed:
-            controller.forward().then((_) => setState(() => _i++));
+            controller.forward().then(_thenNext);
             _status = AnimationStatus.forward;
             return;
           case AnimationStatus.forward:
@@ -461,12 +461,10 @@ class _MasionaniState<T> extends State<Masionani<T>>
             (i % 2 == 0
                 ? controller.forward().then
                 : controller.reverse().then)(
-              i < _steps.length - 1
-                  ? (_) => setState(() => _i++)
-                  : (_) => _status = AnimationStatus.completed,
+              i < _steps.length - 1 ? _thenNext : _thenComplete,
             );
             return;
-          case AnimationStatus.reverse || AnimationStatus.completed:
+          case AnimationStatus.completed || AnimationStatus.reverse:
             return;
         }
 
@@ -487,9 +485,9 @@ class _MasionaniState<T> extends State<Masionani<T>>
         if (controller.isAnimating) return;
         switch (_status) {
           case AnimationStatus.completed:
-            (_i % 2 == 0
-                ? controller.reverse().then
-                : controller.forward().then)((_) => setState(() => _i--));
+            _i % 2 == 0
+                ? controller.reverse().then(_thenPrevious)
+                : controller.forward().then(_thenPrevious);
             _status = AnimationStatus.reverse;
             return;
           case AnimationStatus.reverse:
@@ -497,9 +495,7 @@ class _MasionaniState<T> extends State<Masionani<T>>
             (i % 2 == 0
                 ? controller.reverse().then
                 : controller.forward().then)(
-              i > 0
-                  ? (_) => setState(() => _i--)
-                  : (_) => _status = AnimationStatus.dismissed,
+              i > 0 ? _thenPrevious : _thenDismiss,
             );
             return;
           case AnimationStatus.forward || AnimationStatus.dismissed:
@@ -507,6 +503,20 @@ class _MasionaniState<T> extends State<Masionani<T>>
         }
     }
   }
+
+  ///
+  /// [_thenNext]
+  /// [_thenPrevious]
+  /// [_thenComplete]
+  /// [_thenDismiss]
+  ///
+  void _thenNext(void _) => setState(() => _i++);
+
+  void _thenPrevious(void _) => setState(() => _i--);
+
+  void _thenComplete(void _) => _status = AnimationStatus.completed;
+
+  void _thenDismiss(void _) => _status = AnimationStatus.dismissed;
 
   ///
   ///

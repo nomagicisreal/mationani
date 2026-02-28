@@ -51,11 +51,6 @@ class SampleCabinet extends StatelessWidget {
           child: ColoredBox(color: Colors.green.shade400),
         ),
         _height10,
-        SizedBox.square(
-          dimension: center.dx * 2,
-          child: ColoredBox(color: Colors.brown.shade400),
-        ),
-        _height10,
       ];
 
   //
@@ -116,20 +111,6 @@ class SampleCabinet extends StatelessWidget {
               ..strokeCap = StrokeCap.butt
               ..color = Colors.purple
               ..strokeWidth = 5,
-          ),
-        ]),
-        6: MamableSet([
-          MamableTransform.rotate(
-            Between(
-              (0, 0, 0),
-              (
-                math.pi * 1.75,
-                math.pi * 0.5,
-                math.pi * 0.2,
-              ),
-            ),
-            Matrix4.identity(),
-            alignment: Alignment.center,
           ),
         ]),
       };
