@@ -495,23 +495,23 @@ final class MamableTransform extends MamableSingle {
       );
 
   factory MamableTransform.compose(
-    Matalue<TransformTarget> matalue, {
+    BetweenTransform matalue, {
     AlignmentGeometry? alignment,
   }) {
-    final host = matalue as _BetweenTransform,
-        matrix4 = Matrix4.compose(host.translation, host.rotation, host.scale);
+    final matrix4 =
+        Matrix4.compose(matalue.translation, matalue.rotation, matalue.scale);
     return MamableTransform._(
       null,
       (animation, child) => ListenableBuilder(
         listenable: animation,
         builder: (_, __) {
-          host.setTransform(animation.value);
+          matalue.setTransform(animation.value);
           return Transform(
             transform: matrix4
               ..setFromTranslationRotationScale(
-                host.translation,
-                host.rotation,
-                host.scale,
+                matalue.translation,
+                matalue.rotation,
+                matalue.scale,
               ),
             alignment: alignment,
             child: child,
@@ -522,14 +522,14 @@ final class MamableTransform extends MamableSingle {
   }
 
   ///
+  /// s: sequence
   ///
-  ///
-  static Mamable sequenceCompose(
+  static Mamable _sCompose(
     TransformTarget previous,
     TransformTarget next,
     BiCurve curve,
   ) =>
-      MamableTransform.compose(_BetweenTransform(previous, next, curve));
+      MamableTransform.compose(BetweenTransform(previous, next, curve));
 
   ///
   ///
@@ -555,11 +555,6 @@ final class MamableTransform extends MamableSingle {
 
   static double hostGetPerspective(Matrix4 matrix4) => matrix4.entry(3, 2);
 }
-
-///
-///
-///
-extension Matrix4Extension on Matrix4 {}
 
 ///
 ///

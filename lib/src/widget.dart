@@ -21,30 +21,57 @@ final class Mationani extends StatefulWidget {
   final Widget Function(Animation<double>) mation;
   final (Duration, Duration) duration;
 
+  const Mationani._({
+    super.key,
+    required this.initializer,
+    required this.updater,
+    required this.mation,
+    required this.duration,
+  });
+
   ///
   /// create animation for a child ([SizedBox], [Container], [Scaffold], ...)
   ///
-  Mationani.m({
-    super.key,
-    this.duration = const (_durationDefault, _durationDefault),
-    this.initializer = Ani.initialize,
-    this.updater,
+  factory Mationani.m({
+    Key? key,
+    (Duration, Duration) duration = const (_durationDefault, _durationDefault),
+    AniInitializer initializer = Ani.initialize,
+    AniUpdater? updater,
     required Mamable mamable,
     required Widget child,
-  }) : mation = _planMamion(mamable, child);
+  }) =>
+      Mationani._(
+        key: key,
+        duration: duration,
+        initializer: initializer,
+        updater: updater,
+        mation: (animation) => mamable._perform(animation, child),
+      );
 
   ///
   /// create animation on a parent widget with 'children'. ([Stack], [Column], ...)
   ///
-  Mationani.n({
-    super.key,
-    this.duration = const (_durationDefault, _durationDefault),
-    this.initializer = Ani.initialize,
-    this.updater,
+  factory Mationani.n({
+    Key? key,
+    (Duration, Duration) duration = const (_durationDefault, _durationDefault),
+    AniInitializer initializer = Ani.initialize,
+    AniUpdater? updater,
     required Manable manable,
     required Widget Function(List<Widget>) parenting,
     required List<Widget> children,
-  }) : mation = _planManion(manable, parenting, children);
+  }) =>
+      Mationani._(
+        key: key,
+        duration: duration,
+        initializer: initializer,
+        updater: updater,
+        mation: manable is _ManableParent
+            ? (animation) => (manable as _ManableParent).parent._perform(
+                  animation,
+                  parenting(manable._perform(animation, children)),
+                )
+            : (animation) => parenting(manable._perform(animation, children)),
+      );
 
   @override
   State<Mationani> createState() => _MationaniState();
@@ -52,23 +79,6 @@ final class Mationani extends StatefulWidget {
   ///
   ///
   ///
-  static Widget Function(Animation<double>) _planMamion(
-    Mamable mamable,
-    Widget child,
-  ) =>
-      (parent) => mamable._perform(parent, child);
-
-  static Widget Function(Animation<double>) _planManion(
-    Manable manable,
-    Widget Function(List<Widget>) parenting,
-    List<Widget> children,
-  ) =>
-      (parent) {
-        final child = parenting(manable._perform(parent, children));
-        if (manable is! _ManableParent) return child;
-        return (manable as _ManableParent).parent._perform(parent, child);
-      };
-
   static bool _dismissUpdateBuilder(Mationani oldWidget, Mationani widget) =>
       oldWidget.duration == widget.duration &&
       oldWidget.mation == widget.mation &&
@@ -136,18 +146,16 @@ class Masionani<T> extends StatefulWidget {
   final AniSequenceCommandInit? aniInit;
   final AniSequenceCommandUpdate? aniUpdate;
 
-  Masionani.m({
+  Masionani._({
     super.key,
-    this.styles = const [],
-    this.defaultDuration = _durationDefault,
-    this.defaultCurve = Curves.fastOutSlowIn,
-    this.aniInit,
-    this.aniUpdate,
+    required this.styles,
+    required this.defaultDuration,
+    required this.defaultCurve,
+    required this.aniInit,
+    required this.aniUpdate,
     required this.steps,
-    required Mamable Function(T, T, BiCurve) sMamable,
-    required Widget child,
-  })  : sequencing = _sequenceMamion(sMamable, child),
-        assert(
+    required this.sequencing,
+  })  : assert(
           steps.length > 2,
           'Prefer using Mationani when there is only 1 animation: $steps',
         ),
@@ -156,26 +164,76 @@ class Masionani<T> extends StatefulWidget {
           "'styles' is intervals of 'steps', ${styles.length + 1} ≠ ${steps.length}",
         );
 
-  Masionani.n({
-    super.key,
-    this.styles = const [],
-    this.defaultDuration = _durationDefault,
-    this.defaultCurve = Curves.fastOutSlowIn,
-    this.aniInit,
-    this.aniUpdate,
-    required this.steps,
-    required Manable Function(T, T, BiCurve) sManable,
+  ///
+  ///
+  ///
+  factory Masionani.m({
+    Key? key,
+    List<AnimationStyle> styles = const [],
+    Duration defaultDuration = _durationDefault,
+    Curve defaultCurve = Curves.fastOutSlowIn,
+    AniSequenceCommandInit? aniInit,
+    AniSequenceCommandUpdate? aniUpdate,
+    Mamable Function(T, T, BiCurve)? sMamable,
+    required List<T> steps,
+    required Widget child,
+  }) {
+    late final Mamable Function(T, T, BiCurve) sequencer;
+    if (sMamable == null) {
+      assert(T == TransformTarget);
+      sequencer = MamableTransform._sCompose as Mamable Function(T, T, BiCurve);
+    } else {
+      sequencer = sMamable;
+    }
+    return Masionani._(
+      styles: styles,
+      defaultDuration: defaultDuration,
+      defaultCurve: defaultCurve,
+      aniInit: aniInit,
+      aniUpdate: aniUpdate,
+      steps: steps,
+      sequencing: (previous, next, curve, animation) =>
+          sequencer(previous, next, curve)._perform(animation, child),
+    );
+  }
+
+  ///
+  ///
+  ///
+  factory Masionani.n({
+    Key? key,
+    List<AnimationStyle> styles = const [],
+    Duration defaultDuration = _durationDefault,
+    Curve defaultCurve = Curves.fastOutSlowIn,
+    AniSequenceCommandInit? aniInit,
+    AniSequenceCommandUpdate? aniUpdate,
+    Manable Function(T, T, BiCurve)? sManable,
+    required List<T> steps,
     required Widget Function(List<Widget> children) parenting,
     required List<Widget> children,
-  })  : sequencing = _sequenceManion(sManable, parenting, children),
-        assert(
-          steps.length > 1,
-          'Prefer using Mationani when there is only 1 animation: $steps',
-        ),
-        assert(
-          styles.isEmpty || styles.length + 1 == steps.length,
-          "'styles' is intervals of 'steps', ${styles.length + 1} ≠ ${steps.length}",
-        );
+  }) {
+    late final Manable Function(T, T, BiCurve) sequencer;
+    if (sManable == null) {
+      assert(T == TransformTarget);
+      throw UnimplementedError();
+    } else {
+      sequencer = sManable;
+    }
+    return Masionani._(
+      styles: styles,
+      defaultDuration: defaultDuration,
+      defaultCurve: defaultCurve,
+      aniInit: aniInit,
+      aniUpdate: aniUpdate,
+      steps: steps,
+      sequencing: (previous, next, curve, animation) {
+        final manable = sequencer(previous, next, curve);
+        final child = parenting(manable._perform(animation, children));
+        if (manable is! _ManableParent) return child;
+        return (manable as _ManableParent).parent._perform(animation, child);
+      },
+    );
+  }
 
   @override
   State<Masionani<T>> createState() => _MasionaniState<T>();
@@ -225,27 +283,6 @@ class Masionani<T> extends StatefulWidget {
     return List.of(elements, growable: false);
   }
 
-  ///
-  ///
-  ///
-  static Widget Function(T, T, BiCurve, Animation<double>) _sequenceMamion<T>(
-    Mamable Function(T, T, BiCurve) sMamable,
-    Widget child,
-  ) =>
-      (previous, next, curve, parent) =>
-          sMamable(previous, next, curve)._perform(parent, child);
-
-  static Widget Function(T, T, BiCurve, Animation<double>) _sequenceManion<T>(
-    Manable Function(T, T, BiCurve) sManable,
-    Widget Function(List<Widget>) parenting,
-    List<Widget> children,
-  ) =>
-      (previous, next, curve, parent) {
-        final manable = sManable(previous, next, curve);
-        final child = parenting(manable._perform(parent, children));
-        if (manable is! _ManableParent) return child;
-        return (manable as _ManableParent).parent._perform(parent, child);
-      };
 // static bool _dismissUpdateBuilder<T>(
 //   MationaniSequence<T> oldWidget,
 //   MationaniSequence<T> widget,
@@ -419,7 +456,7 @@ class _MasionaniState<T> extends State<Masionani<T>>
         return;
 
       //
-      case AniSequenceCommandUpdate.forwardStepExceptReverse:
+      case AniSequenceCommandUpdate.forwardStep:
         final controller = _controller;
         if (controller.isAnimating) return;
         switch (_status) {
@@ -451,7 +488,7 @@ class _MasionaniState<T> extends State<Masionani<T>>
         return;
 
       //
-      case AniSequenceCommandUpdate.reverseStepExceptForward:
+      case AniSequenceCommandUpdate.reverseStep:
         final controller = _controller;
         if (controller.isAnimating) return;
         switch (_status) {
@@ -491,6 +528,7 @@ class _MasionaniState<T> extends State<Masionani<T>>
 
   ///
   ///
+  /// status listener sequence forward/reverse
   /// [_slSequenceForward]
   /// [_slSequenceReverse]
   ///
@@ -564,73 +602,3 @@ class _MasionaniState<T> extends State<Masionani<T>>
     return _steps[_i];
   }
 }
-
-// ///
-// ///
-// /// usage:
-// /// how [Matalue] affect animation of a switching child?
-// ///   (x) 1. fixed matalue forward in / reverse out
-// ///   (x) 2. 2 steps matalue forward in / forward out
-// ///   - fixed matalue forward (0.0, 0.5) in / forward (0.5, 1.0) out
-// /// how [AnimationController] affect animation of 2 switching children?
-// ///   (x) - each of children may in|out when 0~1 or 1~0 (even interval), according to its starting time
-// ///   (x) - simultaneously drive switching children or solo drive at beginning&ending
-// ///   - drive betweenIn(0.0, 0.5) or betweenOut(0.5, 1.0), simultaneously when oldIndex ≠ index
-// ///
-// ///
-// class Mationainer extends StatefulWidget {
-//   final int index;
-//   final bool finish;
-//   final AnimationController Function(TickerProvider, Duration) initializer;
-//   final Duration duration;
-//   final Widget Function(Animation<double>) mation;
-//
-//   const Mationainer({
-//     super.key,
-//     required this.index,
-//     this.finish = false,
-//     this.initializer = _initialize,
-//     this.duration = _durationDefault,
-//   });
-//
-//   static AnimationController _initialize(TickerProvider vsync, Duration duration) => AnimationController(vsync: vsync, duration: duration);
-//
-//   @override
-//   State<Mationainer> createState() => _MationainerState();
-// }
-//
-// class _MationainerState extends State<Mationainer>
-//     with SingleTickerProviderStateMixin<Mationainer> {
-//   late final AnimationController _controller;
-//   late final Animation<double> _animationIn, _animationOut;
-//   late Widget _child;
-//
-//   @override
-//   void initState() {
-//     super.initState();
-//     final widget = this.widget;
-//     final controller = widget.initializer(this, widget.duration);
-//     _controller = controller;
-//     _animationIn = _between00To05.animate(controller);
-//     _animationOut = _between05To10.animate(controller);
-//     _child = widget.mation(_animationIn);
-//
-//   }
-//
-//   @override
-//   void didUpdateWidget(covariant Mationainer oldWidget) {
-//     super.didUpdateWidget(oldWidget);
-//     final widget = this.widget, controller = _controller;
-//     if (oldWidget.index == widget.index) {
-//       if (controller.isCompleted && widget.finish) {
-//         widget.mation(_animationOut);
-//         controller.forward();
-//         return;
-//       }
-//       return;
-//     }
-//   }
-//
-//   @override
-//   Widget build(BuildContext context) => _child;
-// }

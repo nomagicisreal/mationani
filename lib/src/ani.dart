@@ -6,7 +6,6 @@ part of '../mationani.dart';
 /// * [AniInitializer]
 /// * [AniUpdater]
 ///
-/// * [AniSequenceCommand]
 /// * [AniSequenceCommandInit]
 /// * [AniSequenceCommandUpdate]
 ///
@@ -223,8 +222,8 @@ enum AniSequenceCommandInit {
 
 enum AniSequenceCommandUpdate {
   forwardIfDismissed,
-  forwardStepExceptReverse,
+  forwardStep,
   reverseIfCompleted,
-  reverseStepExceptForward,
+  reverseStep,
   stopOrResume,
 }

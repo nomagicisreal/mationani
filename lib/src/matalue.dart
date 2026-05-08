@@ -114,7 +114,7 @@ abstract final class Between<T> extends Matalue<T> {
             end as _D4,
             curve,
           ),
-        TransformTarget _ => _BetweenTransform(
+        TransformTarget _ => BetweenTransform(
             begin,
             end as TransformTarget,
             curve,
@@ -163,13 +163,19 @@ abstract final class Between<T> extends Matalue<T> {
 }
 
 ///
+///
 /// constructors, factories:
-/// [BetweenTicks.seque{nce], see also [TweenSequence]
+/// [BetweenTicks.sequence], see also [TweenSequence]
 ///
 /// static methods:
-/// [BetweenTicks.depend]
 /// [offsetArcOval], ...
-/// [pathLine], ...
+/// [offsetBezierQuadratic], ...
+/// [offsetBezierCubic], ...
+/// [offsetCatmullRom], ...
+/// [pathLine]
+/// [pathRPCOnEdge]
+/// [pathAdjustShapeBorder]
+///
 ///
 final class BetweenTicks<T> extends Between<T> {
   final T Function(double) onLerp;
@@ -223,14 +229,11 @@ final class BetweenTicks<T> extends Between<T> {
     return BetweenTicks(TweenSequence(items).transform, curve);
   }
 
-  ///
-  ///
-  ///
-  static S Function(double) depend<T, S>(
-    T Function(double) transform,
-    S Function(T) map,
-  ) =>
-      (t) => map(transform(t));
+  // static S Function(double) depend<T, S>(
+  //   T Function(double) transform,
+  //   S Function(T) map,
+  // ) =>
+  //     (t) => map(transform(t));
 
   ///
   ///
@@ -367,24 +370,6 @@ final class BetweenTicks<T> extends Between<T> {
   ///
   ///
   ///
-  static Path Function(Size) Function(ShapeBorder) pathAdjustShapeBorder({
-    bool outerPath = true,
-    TextDirection? textDirection,
-    Rect Function(Size size) sizingRect = _E._rectFull,
-  }) =>
-      outerPath
-          ? (shape) => (size) => shape.getOuterPath(
-                sizingRect(size),
-                textDirection: textDirection,
-              )
-          : (shape) => (size) => shape.getInnerPath(
-                sizingRect(size),
-                textDirection: textDirection,
-              );
-
-  ///
-  ///
-  ///
   static Path Function(double) pathLine(
     Offset begin,
     Offset end,
@@ -436,7 +421,7 @@ final class BetweenTicks<T> extends Between<T> {
   }
 
   ///
-  /// RPC stands for Regular Polygon bezier-Cubic
+  /// RPC: Regular Polygon bezier-Cubic
   ///
   static Path Function(double) pathRPCOnEdge(
     int n,
@@ -499,6 +484,24 @@ final class BetweenTicks<T> extends Between<T> {
       return path..close();
     };
   }
+
+  ///
+  ///
+  ///
+  static Path Function(Size) Function(ShapeBorder) pathAdjustShapeBorder({
+    bool outerPath = true,
+    TextDirection? textDirection,
+    Rect Function(Size size) sizingRect = _E._rectFull,
+  }) =>
+      outerPath
+          ? (shape) => (size) => shape.getOuterPath(
+                sizingRect(size),
+                textDirection: textDirection,
+              )
+          : (shape) => (size) => shape.getInnerPath(
+                sizingRect(size),
+                textDirection: textDirection,
+              );
 }
 
 ///

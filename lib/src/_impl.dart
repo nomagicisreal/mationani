@@ -299,15 +299,15 @@ final class _BetweenOutlinedBorder extends Between<OutlinedBorder> {
   OutlinedBorder transform(double t) => OutlinedBorder.lerp(begin, end, t)!;
 }
 
-final class _BetweenTransform extends Between<TransformTarget> {
+final class BetweenTransform extends Between<TransformTarget> {
   final v64.Vector3 translation;
   final v64.Quaternion rotation;
   final v64.Vector3 scale;
   final void Function(double) setTransform;
 
-  Matrix4 get matrix4 => Matrix4.compose(translation, rotation, scale);
+  // Matrix4 get matrix4 => Matrix4.compose(translation, rotation, scale);
 
-  _BetweenTransform._(
+  BetweenTransform._(
     this.translation,
     this.rotation,
     this.scale,
@@ -317,7 +317,7 @@ final class _BetweenTransform extends Between<TransformTarget> {
     super.curve,
   ) : super._();
 
-  factory _BetweenTransform(
+  factory BetweenTransform(
     TransformTarget begin,
     TransformTarget end, [
     BiCurve curve = _curveLinear,
@@ -349,7 +349,7 @@ final class _BetweenTransform extends Between<TransformTarget> {
     final translation = v64.Vector3(btX, btY, btZ);
     final rotation = v64.Quaternion.euler(brX, brY, brZ);
     final scale = v64.Vector3(bsX, bsY, bsZ);
-    return _BetweenTransform._(
+    return BetweenTransform._(
       translation,
       rotation,
       scale,
