@@ -482,6 +482,76 @@ final class MamableTransform extends MamableSingle {
     );
   }
 
+  factory MamableTransform.compose(
+    TransformTarget begin,
+    TransformTarget end,
+    BiCurve curve, [
+    AlignmentGeometry? alignment,
+  ]) {
+    final bt = begin.translation,
+        br = begin.rotation,
+        bs = begin.scale,
+        et = end.translation,
+        er = end.rotation,
+        es = end.scale,
+        btX = bt.$1,
+        btY = bt.$2,
+        btZ = bt.$3,
+        brX = br.$1,
+        brY = br.$2,
+        brZ = br.$3,
+        bsX = bs.$1,
+        bsY = bs.$2,
+        bsZ = bs.$3,
+        etX = et.$1,
+        etY = et.$2,
+        etZ = et.$3,
+        erX = er.$1,
+        erY = er.$2,
+        erZ = er.$3,
+        esX = es.$1,
+        esY = es.$2,
+        esZ = es.$3,
+        translation = v64.Vector3(btX, btY, btZ),
+        rotation = v64.Quaternion.euler(brX, brY, brZ),
+        scale = v64.Vector3(bsX, bsY, bsZ),
+        matrix4 = Matrix4.compose(translation, rotation, scale);
+    return MamableTransform._(
+      null,
+      (animation, child) => ListenableBuilder(
+        listenable: animation,
+        builder: (_, __) {
+          final t = animation.value;
+          return Transform(
+            transform: matrix4
+              ..setFromTranslationRotationScale(
+                translation
+                  ..setValues(
+                    btX + (etX - btX) * t,
+                    btY + (etY - btY) * t,
+                    btZ + (etZ - btZ) * t,
+                  ),
+                rotation
+                  ..setEuler(
+                    brX + (erX - brX) * t,
+                    brY + (erY - brY) * t,
+                    brZ + (erZ - brZ) * t,
+                  ),
+                scale
+                  ..setValues(
+                    bsX + (esX - bsX) * t,
+                    bsY + (esY - bsY) * t,
+                    bsZ + (esZ - bsZ) * t,
+                  ),
+              ),
+            alignment: alignment,
+            child: child,
+          );
+        },
+      ),
+    );
+  }
+
   factory MamableTransform.rotate(
     Matalue<(double, double, double)> rotate,
     Matrix4 host, {
@@ -493,43 +563,6 @@ final class MamableTransform extends MamableSingle {
         host: host,
         onAnimate: MamableTransform.hostSetRotation,
       );
-
-  factory MamableTransform.compose(
-    BetweenTransform matalue, {
-    AlignmentGeometry? alignment,
-  }) {
-    final matrix4 =
-        Matrix4.compose(matalue.translation, matalue.rotation, matalue.scale);
-    return MamableTransform._(
-      null,
-      (animation, child) => ListenableBuilder(
-        listenable: animation,
-        builder: (_, __) {
-          matalue.setTransform(animation.value);
-          return Transform(
-            transform: matrix4
-              ..setFromTranslationRotationScale(
-                matalue.translation,
-                matalue.rotation,
-                matalue.scale,
-              ),
-            alignment: alignment,
-            child: child,
-          );
-        },
-      ),
-    );
-  }
-
-  ///
-  /// s: sequence
-  ///
-  static Mamable _sCompose(
-    TransformTarget previous,
-    TransformTarget next,
-    BiCurve curve,
-  ) =>
-      MamableTransform.compose(BetweenTransform(previous, next, curve));
 
   ///
   ///

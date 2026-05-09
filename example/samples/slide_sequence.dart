@@ -113,7 +113,7 @@ class SampleSlide extends StatelessWidget {
         Masionani.m(
           steps: stepsTransition,
           aniUpdate: AniSequenceCommandUpdate.forwardStep,
-          sMamable: _sMamable,
+          sequencer: _sMamable,
           child: ColoredBox(
             color: Colors.green.shade400,
             child: SizedBox.square(dimension: 20),
@@ -122,7 +122,7 @@ class SampleSlide extends StatelessWidget {
         Center(
           child: SizedBox.square(
             dimension: 20,
-            child: Masionani.m(
+            child: Masionani.mTransform(
               steps: stepsTransform,
               aniUpdate: AniSequenceCommandUpdate.forwardStep,
               defaultDuration: const Duration(milliseconds: 300),

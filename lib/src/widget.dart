@@ -174,28 +174,43 @@ class Masionani<T> extends StatefulWidget {
     Curve defaultCurve = Curves.fastOutSlowIn,
     AniSequenceCommandInit? aniInit,
     AniSequenceCommandUpdate? aniUpdate,
-    Mamable Function(T, T, BiCurve)? sMamable,
+    required Mamable Function(T, T, BiCurve) sequencer,
     required List<T> steps,
     required Widget child,
-  }) {
-    late final Mamable Function(T, T, BiCurve) sequencer;
-    if (sMamable == null) {
-      assert(T == TransformTarget);
-      sequencer = MamableTransform._sCompose as Mamable Function(T, T, BiCurve);
-    } else {
-      sequencer = sMamable;
-    }
-    return Masionani._(
-      styles: styles,
-      defaultDuration: defaultDuration,
-      defaultCurve: defaultCurve,
-      aniInit: aniInit,
-      aniUpdate: aniUpdate,
-      steps: steps,
-      sequencing: (previous, next, curve, animation) =>
-          sequencer(previous, next, curve)._perform(animation, child),
-    );
-  }
+  }) =>
+      Masionani._(
+        styles: styles,
+        defaultDuration: defaultDuration,
+        defaultCurve: defaultCurve,
+        aniInit: aniInit,
+        aniUpdate: aniUpdate,
+        steps: steps,
+        sequencing: (previous, next, curve, animation) =>
+            sequencer(previous, next, curve)._perform(animation, child),
+      );
+
+  factory Masionani.mTransform({
+    Key? key,
+    List<AnimationStyle> styles = const [],
+    Duration defaultDuration = _durationDefault,
+    Curve defaultCurve = Curves.fastOutSlowIn,
+    AniSequenceCommandInit? aniInit,
+    AniSequenceCommandUpdate? aniUpdate,
+    Alignment? alignment,
+    required List<TransformTarget> steps,
+    required Widget child,
+  }) =>
+      Masionani<TransformTarget>._(
+        styles: styles,
+        defaultDuration: defaultDuration,
+        defaultCurve: defaultCurve,
+        aniInit: aniInit,
+        aniUpdate: aniUpdate,
+        steps: steps,
+        sequencing: (a, b, c, animation) =>
+            MamableTransform.compose(a, b, c, alignment)
+                ._perform(animation, child),
+      ) as Masionani<T>;
 
   ///
   ///
@@ -207,33 +222,25 @@ class Masionani<T> extends StatefulWidget {
     Curve defaultCurve = Curves.fastOutSlowIn,
     AniSequenceCommandInit? aniInit,
     AniSequenceCommandUpdate? aniUpdate,
-    Manable Function(T, T, BiCurve)? sManable,
     required List<T> steps,
+    required Manable Function(T, T, BiCurve) sequencer,
     required Widget Function(List<Widget> children) parenting,
     required List<Widget> children,
-  }) {
-    late final Manable Function(T, T, BiCurve) sequencer;
-    if (sManable == null) {
-      assert(T == TransformTarget);
-      throw UnimplementedError();
-    } else {
-      sequencer = sManable;
-    }
-    return Masionani._(
-      styles: styles,
-      defaultDuration: defaultDuration,
-      defaultCurve: defaultCurve,
-      aniInit: aniInit,
-      aniUpdate: aniUpdate,
-      steps: steps,
-      sequencing: (previous, next, curve, animation) {
-        final manable = sequencer(previous, next, curve);
-        final child = parenting(manable._perform(animation, children));
-        if (manable is! _ManableParent) return child;
-        return (manable as _ManableParent).parent._perform(animation, child);
-      },
-    );
-  }
+  }) =>
+      Masionani._(
+        styles: styles,
+        defaultDuration: defaultDuration,
+        defaultCurve: defaultCurve,
+        aniInit: aniInit,
+        aniUpdate: aniUpdate,
+        steps: steps,
+        sequencing: (previous, next, curve, animation) {
+          final manable = sequencer(previous, next, curve);
+          final child = parenting(manable._perform(animation, children));
+          if (manable is! _ManableParent) return child;
+          return (manable as _ManableParent).parent._perform(animation, child);
+        },
+      );
 
   @override
   State<Masionani<T>> createState() => _MasionaniState<T>();

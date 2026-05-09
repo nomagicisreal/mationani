@@ -15,6 +15,7 @@ part of '../mationani.dart';
 ///         --[_BetweenDecoration], [_BetweenBoxDecoration], [_BetweenShapeDecoration]
 ///         --[_BetweenBoxBorder], [_BetweenShapeBorder], [_BetweenOutlinedBorder]
 ///         |
+///         --[_BetweenTransform]
 ///         --[BetweenTicks]
 ///
 /// * [TransformTarget]
@@ -114,10 +115,9 @@ abstract final class Between<T> extends Matalue<T> {
             end as _D4,
             curve,
           ),
-        TransformTarget _ => BetweenTransform(
-            begin,
-            end as TransformTarget,
-            curve,
+        TransformTarget _ => throw Exception(
+            "'TransformTarget' is accompanied with 'MamableTransform.compose',\n"
+            " instead of initiating Between($begin, $end) with Matable other than 'MamableTransform' by yourself",
           ),
 
         ///
@@ -421,7 +421,7 @@ final class BetweenTicks<T> extends Between<T> {
   }
 
   ///
-  /// RPC: Regular Polygon bezier-Cubic
+  /// RPC: Regular Polygon Bezier-Cubic
   ///
   static Path Function(double) pathRPCOnEdge(
     int n,
