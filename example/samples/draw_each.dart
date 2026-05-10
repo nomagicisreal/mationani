@@ -68,10 +68,10 @@ class SampleDraw extends StatelessWidget {
       ]),
       parenting: (children) => Stack(children: children),
       children: [
-        SizedBox.expand(),
-        SizedBox.expand(),
-        SizedBox.expand(),
-        SizedBox.expand(),
+        const SizedBox.expand(),
+        const SizedBox.expand(),
+        const SizedBox.expand(),
+        const SizedBox.expand(),
         SizedBox.expand(child: ColoredBox(color: Colors.blue.shade100)),
       ],
     );

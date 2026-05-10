@@ -340,6 +340,7 @@ final class _CurveSegment extends Curve {
 ///
 ///
 const Duration _durationDefault = Duration(milliseconds: 500);
+const Duration _durationQuick = Duration(milliseconds: 200);
 // const Between<double> _between00To05 = _BetweenDouble(0, 0.5, _curveLinear);
 // const Between<double> _between05To10 = _BetweenDouble(0.5, 1, _curveLinear);
 

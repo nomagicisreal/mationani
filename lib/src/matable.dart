@@ -40,7 +40,7 @@ typedef BiCurve = (Curve, Curve);
 
 typedef AnimationBuilder<T> = Widget Function(
   Animation<T> animation,
-  Widget child,
+  Widget? child,
 );
 
 ///
@@ -51,7 +51,7 @@ abstract final class Matable {}
 abstract final class Mamable implements Matable {
   Widget _perform(
     Animation<double> parent,
-    covariant Widget child,
+    covariant Widget? child,
   );
 }
 
@@ -67,7 +67,7 @@ abstract final class Manable implements Matable {
 ///
 sealed class MamableSingle<T> extends _MatableDriver<T> implements Mamable {
   @override
-  Widget _perform(Animation<double> parent, Widget child) => switch (this) {
+  Widget _perform(Animation<double> parent, Widget? child) => switch (this) {
         _MamableSingle() => ListenableBuilder(
             listenable: parent,
             builder: (_, __) => _builder(_drive(parent), child),
@@ -295,17 +295,18 @@ final class MamableTransition extends MamableSingle {
             child: child,
           );
 
-  static Widget _fromPositioned(Animation animation, Widget child) =>
+  static const Widget _shrink = SizedBox.shrink();
+  static Widget _fromPositioned(Animation animation, Widget? child) =>
       PositionedTransition(
         rect: animation as Animation<RelativeRect>,
-        child: child,
+        child: child ?? _shrink,
       );
 
   static AnimationBuilder _fromPositionedRelative(Size size) =>
       (animation, child) => RelativePositionedTransition(
             rect: animation as Animation<Rect>,
             size: size,
-            child: child,
+            child: child ?? _shrink,
           );
 
   static AnimationBuilder _fromAlign(
@@ -316,14 +317,14 @@ final class MamableTransition extends MamableSingle {
             alignment: animation as Animation<AlignmentGeometry>,
             heightFactor: heightFactor,
             widthFactor: widthFactor,
-            child: child,
+            child: child ?? _shrink,
           );
 
   static AnimationBuilder _fromDecoration(DecorationPosition p) =>
       (animation, child) => DecoratedBoxTransition(
             decoration: animation as Animation<Decoration>,
             position: p,
-            child: child,
+            child: child ?? _shrink,
           );
 
   static AnimationBuilder _fromTextStyle(
@@ -334,7 +335,7 @@ final class MamableTransition extends MamableSingle {
   ) =>
       (animation, child) => DefaultTextStyleTransition(
             style: animation as Animation<TextStyle>,
-            child: child,
+            child: child ?? _shrink,
             textAlign: textAlign,
             softWrap: softWrap,
             overflow: overflow,

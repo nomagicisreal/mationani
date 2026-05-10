@@ -18,11 +18,13 @@ part of '../mationani.dart';
 final class Mationani extends StatefulWidget {
   final AniInitializer initializer;
   final AniUpdater? updater;
-  final Widget Function(Animation<double>) mation;
+  final ValueNotifier<double>? notifier;
+  final Widget Function(AnimationController) mation;
   final (Duration, Duration) duration;
 
   const Mationani._({
     super.key,
+    this.notifier,
     required this.initializer,
     required this.updater,
     required this.mation,
@@ -37,15 +39,38 @@ final class Mationani extends StatefulWidget {
     (Duration, Duration) duration = const (_durationDefault, _durationDefault),
     AniInitializer initializer = Ani.initialize,
     AniUpdater? updater,
+    Widget? child,
     required Mamable mamable,
-    required Widget child,
   }) =>
       Mationani._(
         key: key,
         duration: duration,
         initializer: initializer,
         updater: updater,
-        mation: (animation) => mamable._perform(animation, child),
+        mation: (controller) => mamable._perform(controller, child),
+      );
+
+  factory Mationani.mListen({
+    Key? key,
+    (Duration, Duration) duration = const (_durationQuick, _durationQuick),
+    AniInitializer initializer = Ani.initialize,
+    Widget? child,
+    required ValueNotifier<double> notifier,
+    required Mamable mamable,
+  }) =>
+      Mationani._(
+        key: key,
+        notifier: notifier,
+        duration: duration,
+        initializer: initializer,
+        updater: null,
+        mation: (controller) => ValueListenableBuilder(
+          valueListenable: notifier,
+          builder: (context, value, _) => mamable._perform(
+            controller..animateTo(value),
+            child,
+          ),
+        ),
       );
 
   ///
@@ -66,11 +91,43 @@ final class Mationani extends StatefulWidget {
         initializer: initializer,
         updater: updater,
         mation: manable is _ManableParent
-            ? (animation) => (manable as _ManableParent).parent._perform(
-                  animation,
-                  parenting(manable._perform(animation, children)),
+            ? (controller) => (manable as _ManableParent).parent._perform(
+                  controller,
+                  parenting(manable._perform(controller, children)),
                 )
-            : (animation) => parenting(manable._perform(animation, children)),
+            : (controller) => parenting(manable._perform(controller, children)),
+      );
+
+  factory Mationani.nListen({
+    Key? key,
+    (Duration, Duration) duration = const (_durationQuick, _durationQuick),
+    AniInitializer initializer = Ani.initialize,
+    required ValueNotifier<double> notifier,
+    required Manable manable,
+    required Widget Function(List<Widget>) parenting,
+    required List<Widget> children,
+  }) =>
+      Mationani._(
+        key: key,
+        notifier: notifier,
+        duration: duration,
+        initializer: initializer,
+        updater: null,
+        mation: manable is _ManableParent
+            ? (controller) => ValueListenableBuilder(
+                  valueListenable: notifier,
+                  builder: (context, value, _) =>
+                      (manable as _ManableParent).parent._perform(
+                            controller..animateTo(value),
+                            parenting(manable._perform(controller, children)),
+                          ),
+                )
+            : (controller) => ValueListenableBuilder(
+                  valueListenable: notifier,
+                  builder: (context, value, _) => parenting(
+                    manable._perform(controller..animateTo(value), children),
+                  ),
+                ),
       );
 
   @override
@@ -115,8 +172,9 @@ class _MationaniState extends State<Mationani>
   void didUpdateWidget(covariant Mationani oldWidget) {
     super.didUpdateWidget(oldWidget);
     final widget = this.widget;
-    widget.updater?.call(controller, oldWidget, widget);
     if (Mationani._dismissUpdateBuilder(widget, oldWidget)) return;
+    final controller = this.controller;
+    widget.updater?.call(controller, oldWidget, widget);
     child = widget.mation(controller);
   }
 
@@ -174,9 +232,9 @@ class Masionani<T> extends StatefulWidget {
     Curve defaultCurve = Curves.fastOutSlowIn,
     AniSequenceCommandInit? aniInit,
     AniSequenceCommandUpdate? aniUpdate,
+    Widget? child,
     required Mamable Function(T, T, BiCurve) sequencer,
     required List<T> steps,
-    required Widget child,
   }) =>
       Masionani._(
         styles: styles,
@@ -197,8 +255,8 @@ class Masionani<T> extends StatefulWidget {
     AniSequenceCommandInit? aniInit,
     AniSequenceCommandUpdate? aniUpdate,
     Alignment? alignment,
+    Widget? child,
     required List<TransformTarget> steps,
-    required Widget child,
   }) =>
       Masionani<TransformTarget>._(
         styles: styles,

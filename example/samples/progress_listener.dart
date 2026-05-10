@@ -9,7 +9,6 @@ class SampleProgressListener extends StatefulWidget {
 }
 
 class _SampleProgressListenerState extends State<SampleProgressListener> {
-  static const double max = 100;
   late final ValueNotifier<double> _notifier;
 
   @override
@@ -25,29 +24,19 @@ class _SampleProgressListenerState extends State<SampleProgressListener> {
         Positioned(
           left: 5,
           top: 10,
-          child: ValueListenableBuilder( // todo: try to hide listener logic into widget.dart
-            valueListenable: _notifier,
-            builder: (context, value, child) {
-              return Mationani.m(
-                updater: Ani.updaterWhatever((c) => c.animateTo(value / max)),
-                duration: (
-                const Duration(milliseconds: 100),
-                const Duration(milliseconds: 100)
-                ),
-                mamable: MamablePaint.path(
-                  BetweenTicks(BetweenTicks.pathLine(
-                    Offset.zero,
-                    Offset(0, 100),
-                    3,
-                    strokeCap: StrokeCap.butt,
-                  )),
-                  pen: Paint()
-                    ..color = Colors.brown
-                    ..style = PaintingStyle.fill,
-                ),
-                child: const SizedBox.shrink(),
-              );
-            }
+          child: Mationani.mListen(
+            notifier: _notifier,
+            mamable: MamablePaint.path(
+              BetweenTicks(BetweenTicks.pathLine(
+                Offset.zero,
+                Offset(0, 100),
+                3,
+                strokeCap: StrokeCap.butt,
+              )),
+              pen: Paint()
+                ..color = Colors.brown
+                ..style = PaintingStyle.fill,
+            ),
           ),
         ),
         Positioned(
@@ -58,7 +47,7 @@ class _SampleProgressListenerState extends State<SampleProgressListener> {
             child: ValueListenableBuilder(
               valueListenable: _notifier,
               builder: (context, value, child) => Slider(
-                max: max,
+                // max: max,
                 value: value,
                 onChanged: (value) => _notifier.value = value,
               ),
