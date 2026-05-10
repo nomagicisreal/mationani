@@ -8,6 +8,7 @@ import 'package:mationani/mationani.dart';
 import 'samples/draw_each.dart';
 import 'samples/cutting_respectively.dart';
 import 'samples/cabinet_selected.dart';
+import 'samples/progress_listener.dart';
 import 'samples/slide_sequence.dart';
 
 void main(List<String> args) {
@@ -49,10 +50,11 @@ class _MyHomeState extends State<MyHome> {
           child: SizedBox(
             height: 300,
             width: 100,
-            child: SampleSlide(),
-            // child: SampleDraw(),
-            // child: SampleCutting(),
             // child: SampleCabinet(toggle: toggle),
+            // child: SampleCutting(),
+            // child: SampleDraw(),
+            child: SampleProgressListener(),
+            // child: SampleSlide(),
           ),
         ),
       ),

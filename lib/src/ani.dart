@@ -16,7 +16,7 @@ part of '../mationani.dart';
 /// static methods:
 /// [initialize], ...
 /// [statusListenForward], ...
-/// [updaterBinary]
+/// [updaterWhatever], ...
 /// [controlForward], ...
 /// [decideForward], ...
 /// [updateDurationOnly], ...
@@ -94,8 +94,15 @@ abstract final class Ani {
       };
 
   ///
+  /// [updaterWhatever]
   /// [updaterBinary]
   ///
+  static AniUpdater updaterWhatever(void Function(AnimationController) take) =>
+      (controller, oldWidget, widget) {
+        controller.updateDurationIfNew(oldWidget, widget);
+        take(controller);
+      };
+
   static AniUpdater updaterBinary({
     void Function(AnimationController)? onAnimating,
     void Function(AnimationController)? onNotAnimating,

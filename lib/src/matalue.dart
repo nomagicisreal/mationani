@@ -158,7 +158,7 @@ abstract final class Between<T> extends Matalue<T> {
       } as Between<T>;
 
   static Error _error(Object? begin, Object? end) => UnimplementedError(
-        'lerp($begin, $end) no defined in Between, try using BetweenDepend',
+        'lerp($begin, $end) no defined in Between, try using BetweenTicks',
       );
 }
 
@@ -368,6 +368,16 @@ final class BetweenTicks<T> extends Between<T> {
   }
 
   ///
+  /// spring, inertia. fling... other simulation-based physic movement
+  ///
+
+  ///
+  ///
+  /// path
+  ///
+  ///
+
+  ///
   ///
   ///
   static Path Function(double) pathLine(
@@ -376,7 +386,7 @@ final class BetweenTicks<T> extends Between<T> {
     double width, {
     StrokeCap strokeCap = StrokeCap.round,
   }) {
-    assert(strokeCap != StrokeCap.square);
+    if (strokeCap == StrokeCap.square) throw UnimplementedError();
     final direction = math.atan2(end.dy - begin.dy, end.dx - begin.dx),
         dTop = direction - _radian90,
         dBottom = direction + _radian90,
@@ -502,6 +512,14 @@ final class BetweenTicks<T> extends Between<T> {
                 sizingRect(size),
                 textDirection: textDirection,
               );
+
+  ///
+  /// see the libraries below for inspiration:
+  /// https://pub.dev/packages/flutter_path_morph
+  /// https://pub.dev/packages/morphable_shape
+  /// https://pub.dev/packages/animated_icon
+  /// https://pub.dev/packages/flutter_animated_button
+  ///
 }
 
 ///

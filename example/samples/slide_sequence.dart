@@ -6,7 +6,7 @@ class SampleSlide extends StatelessWidget {
   const SampleSlide({super.key});
 
   static List<AnimationStep> stepsTransition = List.generate(
-    30,
+    15,
     (i) => AnimationStep(
       0.3 + math.Random().nextInt(9) * 0.2,
       -1 + math.Random().nextInt(20) * 0.1,
@@ -21,35 +21,35 @@ class SampleSlide extends StatelessWidget {
   static const double r120 = r60 * 2;
   static final List<TransformTarget> stepsTransform = [
     ...List.generate(
-      4,
+      3,
       (i) => TransformTarget(rotation: (0, 0, r120 * i)),
     ),
     ...List.generate(
-      4,
+      3,
       (i) => TransformTarget(rotation: (0, r120 * i, 0)),
     ),
     ...List.generate(
-      4,
+      3,
       (i) => TransformTarget(rotation: (r120 * i, 0, 0)),
     ),
     ...List.generate(
-      4,
+      3,
       (i) => TransformTarget(rotation: (0, r60 * i, r60 * i)),
     ),
     ...List.generate(
-      4,
+      3,
       (i) => TransformTarget(rotation: (0, -r120 * i, r120 * i)),
     ),
     ...List.generate(
-      4,
+      3,
       (i) => TransformTarget(rotation: (r120 * i, 0, r120 * i)),
     ),
     ...List.generate(
-      4,
+      3,
       (i) => TransformTarget(rotation: (-r120 * i, 0, r120 * i)),
     ),
     ...List.generate(
-      10,
+      5,
       (_) => TransformTarget(
         translation: (
           math.Random().nextInt(200) - 100.0,
